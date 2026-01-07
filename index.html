@@ -3,47 +3,30 @@
 <head>
 <meta charset="utf-8" />
 <title>Wejuman</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Leaflet CSS -->
-<link
-rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
-html, body {
-height: 100%;
-margin: 0;
-background: #000;
-}
-#map {
-height: 100%;
-width: 100%;
-}
+html, body { height: 100%; margin: 0; }
+#map { height: 100%; width: 100%; }
 </style>
 </head>
-
 <body>
+
 <div id="map"></div>
 
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-const map = L.map('map', {
-center: [20, 0],
-zoom: 2,
-zoomControl: true
-});
+const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Load points from JSON
 fetch('./points.json')
-.then(response => response.json())
+.then(r => r.json())
 .then(points => {
 points.forEach(p => {
 if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
@@ -53,16 +36,13 @@ let popup =
 p.category + ' — Level ' + p.level + '<br>' +
 (p.city ? p.city + ', ' : '') + p.country;
 
-if (p.url) {
-popup += '<br><a href="' + p.url + '" target="_blank">Open</a>';
-}
+if (p.url) popup += '<br><a href="' + p.url + '" target="_blank" rel="noopener">Open</a>';
 
-L.marker([p.lat, p.lng])
-.addTo(map)
-.bindPopup(popup);
+L.marker([p.lat, p.lng]).addTo(map).bindPopup(popup);
 });
 })
-.catch(err => console.error(err));
+.catch(err => console.error('points.json error:', err));
 </script>
+
 </body>
 </html>
