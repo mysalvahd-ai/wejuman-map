@@ -1,0 +1,22 @@
+[
+{
+"name": "Addi Road Community Centre",
+"category": "Community/Social Care",
+"level": 1,
+"country": "Australia",
+"city": "Sydney",
+"lat": -33.9049,
+"lng": 151.1966,
+"url": "https://addiroad.org.au/"
+},
+{
+"name": "Emergency Example",
+"category": "Emergency/Crisis Response",
+"level": 0,
+"country": "Italy",
+"city": "Rome",
+"lat": 41.9028,
+"lng": 12.4964,
+"url": ""
+}
+]
