@@ -23,8 +23,8 @@ width: 100%;
 }
 </style>
 </head>
-<body>
 
+<body>
 <div id="map"></div>
 
 <!-- Leaflet JS -->
@@ -41,35 +41,28 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-<script>
-const map = L.map('map', {
-center: [20, 0],
-zoom: 2,
-zoomControl: true
-});
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
-
 // Load points from JSON
 fetch('./points.json')
-.then(r => r.json())
+.then(response => response.json())
 .then(points => {
 points.forEach(p => {
-// Skip invalid coordinates
 if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
 
-const popup = `
-<strong>${p.name}</strong><br>
-${p.category} — Level ${p.level}<br>
-${p.city ? p.city + ', ' : ''}${p.country}<br>
-${p.url ? `<a href="${p.url}" target="_blank" rel="noopener">Open</a>` : ''}
-`;
+let popup =
+'<strong>' + p.name + '</strong><br>' +
+p.category + ' — Level ' + p.level + '<br>' +
+(p.city ? p.city + ', ' : '') + p.country;
 
-L.marker([p.lat, p.lng]).addTo(map).bindPopup(popup);
+if (p.url) {
+popup += '<br><a href="' + p.url + '" target="_blank">Open</a>';
+}
+
+L.marker([p.lat, p.lng])
+.addTo(map)
+.bindPopup(popup);
 });
 })
-.catch(err => console.error('Error loading points.json', err));
+.catch(err => console.error(err));
 </script>
+</body>
 </html>
