@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>WEJUMAN — A living map of real and verifiable initiatives</title>
 
-<!-- Optional (keep if you already verified in Search Console) -->
-<!-- <meta name="google-site-verification" content="PASTE_YOUR_TOKEN_HERE" /> -->
-
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -33,7 +30,6 @@
 html, body { height:100%; margin:0; background:var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
 #map { height:100vh; width:100vw; }
 
-/* Top panel */
 .panel{
 position:fixed;
 top: calc(16px + env(safe-area-inset-top));
@@ -71,7 +67,6 @@ margin: 0 0 10px 0;
 max-width:720px;
 }
 
-/* Ask the map (AI-lite) */
 .askRow{
 display:flex;
 align-items:center;
@@ -138,7 +133,6 @@ font-size:14px;
 white-space:nowrap;
 }
 
-/* CTA */
 .cta{
 padding: 0 14px 14px 14px;
 color:var(--muted);
@@ -178,7 +172,30 @@ border:1px solid var(--border) !important;
 font-weight:700;
 }
 
-/* Results dropdown (search list) */
+.emptyState{
+display:none;
+margin-top:10px;
+padding:12px;
+border:1px solid var(--border);
+border-radius:14px;
+background:#fafafa;
+color:#111;
+font-size:14px;
+line-height:1.35;
+max-width: 720px;
+}
+.emptyState .sub{
+color:var(--muted);
+margin-top:4px;
+font-size:13px;
+}
+.emptyActions{
+margin-top:10px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
 .results{
 position:fixed;
 top: calc(16px + env(safe-area-inset-top) + 132px);
@@ -206,7 +223,6 @@ cursor:pointer;
 .item strong{ display:block; color:#111; font-size:15px; }
 .item span{ display:block; margin-top:4px; color:#666; font-size:13px; }
 
-/* Guardrail overlay */
 .overlay{
 position:fixed;
 inset:0;
@@ -256,7 +272,6 @@ border:1px solid var(--border);
 font-weight:800;
 }
 
-/* Mobile: keep it light */
 @media (max-width: 520px){
 .tagline{ font-size:13px; }
 .desc{ font-size:13px; }
@@ -292,7 +307,6 @@ font-weight:800;
 <div class="brand">WEJUMAN</div>
 <div class="tagline">Wejuman exists to make real human actions visible.</div>
 
-<!-- Ask the map -->
 <div class="askRow">
 <div class="askIcon">🧭</div>
 <input id="askInput" type="text" placeholder="Ask the map (e.g. “education in East Africa”, “near me”)"/>
@@ -309,6 +323,14 @@ font-weight:800;
 
 <div class="desc">
 Ask in plain language. Wejuman will only filter and reveal what is already on the map.
+</div>
+
+<div id="emptyState" class="emptyState">
+<strong>Nothing visible yet for this request.</strong>
+<div class="sub">Wejuman only reveals what is already on the map.</div>
+<div class="emptyActions">
+<button id="requestBtn" class="secondary" type="button">Request an addition</button>
+</div>
 </div>
 </div>
 
@@ -327,7 +349,7 @@ Ask in plain language. Wejuman will only filter and reveal what is already on th
 </div>
 </div>
 
-<!-- Results list (used for keyword results only, optional) -->
+<!-- Results list -->
 <div id="results" class="results">
 <div id="resultsList" class="resultsList"></div>
 </div>
@@ -335,10 +357,13 @@ Ask in plain language. Wejuman will only filter and reveal what is already on th
 <script>
 // ========= CONFIG =========
 const POINTS_URL = "points.json";
-
-// Nominatim geocoding (AI-lite)
-// Note: public service has rate limits. Works great for early stage.
 const NOMINATIM = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=";
+
+// ========= GOOGLE FORM (REPLACE) =========
+// Put your real form URL ending with /viewform
+const GOOGLE_FORM_VIEW_URL = "PASTE_YOUR_GOOGLE_FORM_VIEWFORM_URL_HERE";
+// Put your query entry id like: entry.1234567890
+const FORM_ENTRY_QUERY = "entry.QUERY_FIELD_ID";
 
 // ========= MAP INIT =========
 const map = L.map("map", { zoomControl: true }).setView([20, 0], 2);
@@ -366,18 +391,18 @@ const countEl = document.getElementById("count");
 const resultsEl = document.getElementById("results");
 const resultsListEl = document.getElementById("resultsList");
 
+const emptyState = document.getElementById("emptyState");
+const requestBtn = document.getElementById("requestBtn");
+
 const overlay = document.getElementById("overlay");
 const agreeBtn = document.getElementById("agreeBtn");
 const closeBtn = document.getElementById("closeBtn");
 const showRuleBtn = document.getElementById("showRuleBtn");
 
 // One-time guardrail
-function showOverlay(){
-overlay.style.display = "block";
-}
-function hideOverlay(){
-overlay.style.display = "none";
-}
+function showOverlay(){ overlay.style.display = "block"; }
+function hideOverlay(){ overlay.style.display = "none"; }
+
 agreeBtn.addEventListener("click", () => {
 localStorage.setItem("wejuman_rule_ack", "1");
 hideOverlay();
@@ -385,9 +410,7 @@ hideOverlay();
 closeBtn.addEventListener("click", hideOverlay);
 showRuleBtn.addEventListener("click", showOverlay);
 
-if (!localStorage.getItem("wejuman_rule_ack")) {
-showOverlay();
-}
+if (!localStorage.getItem("wejuman_rule_ack")) showOverlay();
 
 // Chips
 document.querySelectorAll(".chip").forEach(ch => {
@@ -398,8 +421,8 @@ runAsk();
 });
 
 // ========= DATA =========
-let items = []; // normalized items
-let markers = []; // { marker, data }
+let items = [];
+let markers = [];
 
 function escapeHtml(str){
 return String(str ?? "")
@@ -427,7 +450,6 @@ return `
 }
 
 function setCount(n, total){
-// Not evaluative, purely descriptive
 if (typeof total === "number" && n !== total) {
 countEl.textContent = `${n} visible / ${total} total`;
 } else {
@@ -448,11 +470,13 @@ const city = escapeHtml(p.city || "");
 const country = escapeHtml(p.country || "");
 const category = escapeHtml(p.category || "");
 const loc = [city, country].filter(Boolean).join(", ");
+
 const div = document.createElement("div");
 div.className = "item";
 div.innerHTML = `<strong>${name}</strong><span>${loc}${loc && category ? " • " : ""}${category}</span>`;
 div.onclick = () => {
 clearResults();
+emptyState.style.display = "none";
 map.setView([p.lat, p.lng], Math.max(map.getZoom(), 8));
 const it = markers.find(x => x.data === p);
 if (it) it.marker.openPopup();
@@ -473,6 +497,8 @@ markers.push({ marker: m, data: p });
 });
 
 setCount(filtered.length, items.length);
+
+emptyState.style.display = (filtered.length === 0) ? "block" : "none";
 }
 
 function normalizePoint(p){
@@ -548,25 +574,39 @@ const lower = q.toLowerCase();
 
 const nearMe = /\b(near me|nearby|around me|my location)\b/.test(lower);
 
-// Try to extract “in <place>” pattern
 let place = null;
 const inMatch = lower.match(/\b(in|near)\s+(.+)$/);
 if (inMatch && inMatch[2]) {
-// avoid treating “near me” as a place
 if (!/\bme\b/.test(inMatch[2])) place = inMatch[2].trim();
 }
 
-// tokens for filtering: remove "in <place>" part
 let keywordPart = q;
 if (place) {
 const idx = lower.lastIndexOf(" in ");
 if (idx !== -1) keywordPart = q.slice(0, idx).trim();
 }
-// remove generic words
-const tokens = tokenize(keywordPart).filter(t => !["initiative","initiatives","actions","action","map","the","a","an","of","for","on","in","near"].includes(t));
+
+const tokens = tokenize(keywordPart).filter(t =>
+!["initiative","initiatives","actions","action","map","the","a","an","of","for","on","in","near"].includes(t)
+);
 
 return { nearMe, place, tokens };
 }
+
+// ========= Google Form prefill =========
+function buildGoogleFormPrefillURL(query){
+const base = GOOGLE_FORM_VIEW_URL;
+const params = new URLSearchParams();
+if (FORM_ENTRY_QUERY && FORM_ENTRY_QUERY.startsWith("entry.")) {
+params.set(FORM_ENTRY_QUERY, query || "");
+}
+return base + (base.includes("?") ? "&" : "?") + params.toString();
+}
+
+requestBtn.addEventListener("click", () => {
+const q = (askInput.value || "").trim();
+window.open(buildGoogleFormPrefillURL(q), "_blank");
+});
 
 async function runAsk(){
 clearResults();
@@ -574,7 +614,6 @@ clearResults();
 const raw = askInput.value || "";
 const { nearMe, place, tokens } = parseQuery(raw);
 
-// 1) near me → geolocate + optionally filter by radius
 if (nearMe) {
 if (!navigator.geolocation) {
 alert("Geolocation not supported in this browser.");
@@ -585,23 +624,20 @@ navigator.geolocation.getCurrentPosition(
 const lat = pos.coords.latitude;
 const lng = pos.coords.longitude;
 
-// Filter by keywords first, then by distance (radius in km)
 const keywordFiltered = items.filter(p => matchesKeywords(p, tokens));
-const radiusKm = 300; // conservative, not too strict
+const radiusKm = 300;
 const near = keywordFiltered.filter(p => haversineKm(lat, lng, p.lat, p.lng) <= radiusKm);
+const finalList = near.length ? near : keywordFiltered;
 
-rebuildCluster(near.length ? near : keywordFiltered);
+rebuildCluster(finalList);
 map.setView([lat, lng], 7);
-
-// If there are keyword matches, show list (optional)
-if (tokens.length) showResultsList(near.length ? near : keywordFiltered);
+if (tokens.length) showResultsList(finalList);
 },
 () => alert("I can't access your location (permission denied).")
 );
 return;
 }
 
-// 2) place specified → geocode and move there, then filter
 if (place) {
 const geo = await geocodePlace(place);
 if (geo) {
@@ -611,14 +647,10 @@ rebuildCluster(filtered);
 if (tokens.length) showResultsList(filtered);
 return;
 }
-// If geocode fails: fallback to keyword-only
 }
 
-// 3) keyword-only filtering
 const filtered = items.filter(p => matchesKeywords(p, tokens.length ? tokens : tokenize(raw)));
 rebuildCluster(filtered);
-
-// If the user typed something, show list to help selection
 if ((raw || "").trim()) showResultsList(filtered);
 }
 
@@ -627,7 +659,6 @@ askInput.addEventListener("keydown", (e) => {
 if (e.key === "Enter") runAsk();
 });
 
-// Simple locate button (does not filter, just zoom)
 locateBtn.addEventListener("click", () => {
 if (!navigator.geolocation) return alert("Geolocation not supported.");
 navigator.geolocation.getCurrentPosition(
@@ -639,6 +670,7 @@ navigator.geolocation.getCurrentPosition(
 resetBtn.addEventListener("click", () => {
 askInput.value = "";
 clearResults();
+emptyState.style.display = "none";
 rebuildCluster(items);
 map.setView([20, 0], 2);
 });
@@ -648,7 +680,6 @@ const panel = document.querySelector(".panel");
 if (!panel.contains(e.target) && !resultsEl.contains(e.target)) clearResults();
 });
 
-// ========= START =========
 loadPoints();
 </script>
 </body>
