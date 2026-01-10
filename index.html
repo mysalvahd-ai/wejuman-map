@@ -1,218 +1,175 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>WEJUMAN — A living map of real and verifiable initiatives</title>
 
-<title>WEJUMAN — Una mappa viva di iniziative reali</title>
-
-<!-- ✅ Google Search Console (incolla QUI il tuo meta, sostituendo CONTENT) -->
-<!-- Esempio: <meta name="google-site-verification" content="SMegagkZf0yNP6..." /> -->
-<!-- <meta name="google-site-verification" content="INCOLLA_QUI" /> -->
+<!-- Google Search Console (optional) -->
+<!-- If you already verified, you can keep it or remove it -->
+<meta name="google-site-verification" content="PASTE_YOUR_TOKEN_HERE" />
 
 <!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- MarkerCluster -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <style>
 :root{
---bg: #f4f5f7;
---panel: #ffffff;
---text: #111;
---muted: #666;
---border: #e6e6e6;
---shadow: 0 12px 40px rgba(0,0,0,0.12);
---radius: 18px;
---btn: #111;
---btnText: #fff;
+--bg:#f4f5f7;
+--panel:#ffffff;
+--text:#111;
+--muted:#666;
+--border:#e6e6e6;
+--shadow:0 12px 40px rgba(0,0,0,0.12);
+--radius:18px;
+
+--btn:#111;
+--btnText:#fff;
 }
 
-html, body { height: 100%; margin: 0; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-
-#map { height: 100vh; width: 100vw; }
+html, body { height:100%; margin:0; background:var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+#map { height:100vh; width:100vw; }
 
 /* Top panel */
-.panel {
-position: fixed;
+.panel{
+position:fixed;
 top: calc(16px + env(safe-area-inset-top));
-left: 16px;
-right: 16px;
-z-index: 9999;
-background: var(--panel);
-border: 1px solid var(--border);
-border-radius: var(--radius);
-box-shadow: var(--shadow);
-overflow: hidden;
+left:16px;
+right:16px;
+z-index:9999;
+background:var(--panel);
+border:1px solid var(--border);
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+overflow:hidden;
 }
 
 .panel-inner{
-display: grid;
+display:grid;
 grid-template-columns: 1fr auto;
-gap: 12px;
-padding: 14px 14px 12px 14px;
-align-items: center;
+gap:12px;
+padding:14px 14px 12px 14px;
+align-items:start;
 }
 
-.brand {
-font-weight: 800;
-letter-spacing: 0.2em;
-font-size: 14px;
-margin-bottom: 8px;
-}
-
-.desc {
-color: var(--muted);
-font-size: 14px;
-line-height: 1.35;
-margin-top: 6px;
-}
-
-.right {
-display: grid;
-gap: 10px;
-justify-items: end;
-align-content: start;
-}
-
-.count {
-font-size: 13px;
-color: var(--muted);
-white-space: nowrap;
+.brand{
+font-weight:800;
+letter-spacing:0.24em;
+font-size:14px;
+color:var(--text);
+margin-bottom:10px;
 }
 
 .searchRow{
-display: grid;
-grid-template-columns: 32px 1fr 44px;
-gap: 10px;
-align-items: center;
-border: 1px solid var(--border);
-border-radius: 999px;
-padding: 10px 10px;
-background: #fff;
+display:flex;
+align-items:center;
+gap:10px;
+background:#fff;
+border:1px solid var(--border);
+border-radius:999px;
+padding:10px 12px;
 }
-
-.searchIcon{
-width: 22px; height: 22px; display: grid; place-items: center;
-color: var(--muted);
-font-size: 18px;
+.searchIcon{ font-size:16px; opacity:0.65; }
+#searchInput{
+border:0;
+outline:0;
+width:100%;
+font-size:16px;
+background:transparent;
 }
-
-input[type="text"]{
-width: 100%;
-font-size: 15px;
-border: none;
-outline: none;
-background: transparent;
-}
-
 .pinBtn{
-border: 1px solid var(--border);
-background: #fff;
-border-radius: 14px;
-width: 44px;
-height: 40px;
-cursor: pointer;
-font-size: 18px;
+border:0;
+background:#f2f2f2;
+border:1px solid var(--border);
+border-radius:999px;
+width:44px;
+height:36px;
+cursor:pointer;
+font-size:16px;
 }
 
-.cta {
-border-top: 1px solid var(--border);
-padding: 12px 14px 14px 14px;
-display: grid;
-gap: 10px;
+.desc{
+margin-top:10px;
+color:var(--muted);
+line-height:1.35;
+font-size:15px;
+max-width: 720px;
 }
 
-.ctaText{
-color: var(--muted);
-font-size: 14px;
-line-height: 1.35;
+.right{
+display:flex;
+align-items:flex-start;
+justify-content:flex-end;
+padding-top: 28px; /* align visually with search */
+}
+.count{
+color:var(--muted);
+font-size:14px;
+white-space:nowrap;
 }
 
-.ctaBtn{
-display: inline-flex;
-align-items: center;
-justify-content: center;
-gap: 8px;
-padding: 12px 14px;
-border-radius: 14px;
-border: none;
-background: var(--btn);
-color: var(--btnText);
-font-weight: 700;
-cursor: pointer;
-width: fit-content;
+/* CTA block */
+.cta{
+padding: 0 14px 14px 14px;
+color:var(--muted);
+border-top:1px solid var(--border);
+}
+.cta p{
+margin:12px 0 10px 0;
+font-size:15px;
+line-height:1.35;
+}
+.cta button{
+appearance:none;
+border:0;
+background:var(--btn);
+color:var(--btnText);
+padding:12px 18px;
+border-radius:14px;
+font-weight:700;
+cursor:pointer;
 }
 
-.results {
-position: fixed;
-top: calc(160px + env(safe-area-inset-top));
-left: 16px;
-right: 16px;
-z-index: 9998;
-background: #fff;
-border: 1px solid var(--border);
-border-radius: 16px;
-box-shadow: var(--shadow);
-overflow: hidden;
-display: none;
+/* Results dropdown */
+.results{
+position:fixed;
+top: calc(16px + env(safe-area-inset-top) + 96px);
+left:16px;
+right:16px;
+z-index:9998;
+background:#fff;
+border:1px solid var(--border);
+border-radius:16px;
+box-shadow:var(--shadow);
+overflow:hidden;
+display:none;
 max-height: 40vh;
 }
-
-.resultsHeader{
-padding: 10px 12px;
-font-size: 13px;
-color: var(--muted);
-border-bottom: 1px solid var(--border);
-display: flex;
-justify-content: space-between;
-align-items: center;
+.resultsList{
+max-height:40vh;
+overflow:auto;
 }
-
-.closeBtn{
-border: 1px solid var(--border);
-background: #fff;
-border-radius: 10px;
-padding: 6px 10px;
-cursor: pointer;
-font-size: 12px;
-}
-
-.list{
-overflow: auto;
-max-height: calc(40vh - 44px);
-}
-
 .item{
-padding: 10px 12px;
-border-bottom: 1px solid var(--border);
-cursor: pointer;
+padding:12px 14px;
+border-top:1px solid #f0f0f0;
+cursor:pointer;
 }
-.item:last-child{ border-bottom: none; }
-.item strong{ display:block; font-size: 14px; color: var(--text); }
-.item span{ display:block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.item:first-child{ border-top:0; }
+.item strong{ display:block; color:#111; font-size:15px; }
+.item span{ display:block; margin-top:4px; color:#666; font-size:13px; }
 
-/* Mobile tweaks */
-@media (min-width: 900px){
-.panel{
-left: 24px;
-right: auto;
-width: 520px;
+/* Mobile: make panel less invasive */
+@media (max-width: 520px){
+.desc{ font-size:14px; }
+.cta p{ font-size:14px; }
+.right{ padding-top: 18px; }
+.results{ top: calc(16px + env(safe-area-inset-top) + 92px); }
 }
-.results{
-left: 24px;
-right: auto;
-width: 520px;
-}
-}
- .desc {
-display: block;
-font-size: 14px;
-line-height: 1.5;
-color: var(--muted);
-margin-top: 10px;
-max-width: 520px;
-} 
 </style>
 </head>
 
@@ -227,14 +184,13 @@ max-width: 520px;
 
 <div class="searchRow">
 <div class="searchIcon">🔎</div>
-<input id="searchInput" type="text" placeholder="Cerca iniziativa o luogo (es. Emergency, Roma)" autocomplete="off" />
-<button id="locateBtn" class="pinBtn" title="Vai alla mia posizione">📍</button>
+<input id="searchInput" type="text" placeholder="Search initiative or place (e.g. Emergency, Nairobi)" />
+<button id="locateBtn" class="pinBtn" title="Go to my location">📍</button>
 </div>
 
 <div class="desc">
 A living map of real and verifiable initiatives around the world.
 Search for an organization (marker) or a city/place.
-</div>
 </div>
 </div>
 
@@ -244,32 +200,25 @@ Search for an organization (marker) or a city/place.
 </div>
 
 <div class="cta">
-<div class="ctaText">
-Se sei attivo nel mondo e vuoi essere sulla mappa, contattaci.
-</div>
-<button id="contactBtn" class="ctaBtn">Contattaci</button>
+<p>Wejuman exists to make real human actions visible. If you’re active in the world and want to be on the map, contact us.</p>
+<button id="contactBtn">Contact us</button>
 </div>
 </div>
 
-<!-- SEARCH RESULTS -->
-<div id="results" class="results" role="dialog" aria-label="Risultati ricerca">
-<div class="resultsHeader">
-<div id="resultsTitle">Risultati</div>
-<button id="closeResults" class="closeBtn">Chiudi</button>
-</div>
-<div id="resultsList" class="list"></div>
+<!-- Results -->
+<div id="results" class="results">
+<div id="resultsList" class="resultsList"></div>
 </div>
 
 <script>
 // ========= CONFIG =========
-// 1) Dove vuoi mandare il pulsante "Contattaci"?
-// Opzioni:
-// - mailto: (email)
-// - link a Google Form
-// - link a una pagina /contact.html
-const CONTACT_URL = "mailto:info@wejuman.org?subject=Wejuman%20—%20Richiesta%20inserimento%20in%20mappa";
+// Where the "Contact us" button goes:
+// - mailto:...
+// - a Google Form link
+// - a /contact.html page
+const CONTACT_URL = "mailto:info@wejuman.org?subject=Wejuman%20—%20Request%20to%20be%20on%20the%20map";
 
-// 2) file dati
+// Data file
 const POINTS_URL = "points.json";
 
 // ========= MAP INIT =========
@@ -278,7 +227,8 @@ const map = L.map("map", { zoomControl: true }).setView([20, 0], 2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 attribution: "© OpenStreetMap contributors"
 }).addTo(map);
- // ======= CLUSTER =======
+
+// ========= CLUSTER =========
 const cluster = L.markerClusterGroup({
 showCoverageOnHover: false,
 spiderfyOnMaxZoom: true,
@@ -287,72 +237,62 @@ maxClusterRadius: 55
 });
 map.addLayer(cluster);
 
+// ========= UI HOOKS =========
+const searchInput = document.getElementById("searchInput");
+const locateBtn = document.getElementById("locateBtn");
+const contactBtn = document.getElementById("contactBtn");
+const countEl = document.getElementById("count");
+const resultsEl = document.getElementById("results");
+const resultsListEl = document.getElementById("resultsList");
+
+contactBtn.addEventListener("click", () => {
+window.location.href = CONTACT_URL;
+});
+
+locateBtn.addEventListener("click", () => {
+if (!navigator.geolocation) return alert("Geolocation not supported.");
+navigator.geolocation.getCurrentPosition(
+(pos) => {
+const lat = pos.coords.latitude;
+const lng = pos.coords.longitude;
+map.setView([lat, lng], 10);
+},
+() => alert("I can't access your location (permission denied).")
+);
+});
+
+// ========= DATA =========
+let items = []; // raw points
 let markers = []; // { marker, data }
 
 function escapeHtml(str){
 return String(str ?? "")
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;")
-.replaceAll("'","&#039;");
+.replaceAll("&", "&amp;")
+.replaceAll("<", "&lt;")
+.replaceAll(">", "&gt;")
+.replaceAll('"', "&quot;")
+.replaceAll("'", "&#39;");
 }
 
-function markerPopup(p){
+function popupHtml(p){
 const name = escapeHtml(p.name);
 const city = escapeHtml(p.city || "");
 const country = escapeHtml(p.country || "");
 const category = escapeHtml(p.category || "");
-const website = (p.website || "").trim();
-
-const locLine = [city, country].filter(Boolean).join(", ");
-const websiteLine = website ? `<a href="${escapeHtml(website)}" target="_blank" rel="noopener">Sito</a>` : "";
+const loc = [city, country].filter(Boolean).join(", ");
 
 return `
 <div style="min-width:220px">
-<strong>${name}</strong><br/>
-${locLine ? `${locLine}<br/>` : ""}
-${category ? `<span style="color:#666">${category}</span><br/>` : ""}
-${websiteLine}
+<strong style="font-size:15px">${name}</strong>
+<div style="margin-top:6px;color:#666;font-size:13px">${loc}</div>
+<div style="margin-top:6px;color:#111;font-size:13px">${category}</div>
 </div>
 `;
 }
 
-async function loadPoints(){
-const res = await fetch(POINTS_URL, { cache: "no-store" });
-if(!res.ok) throw new Error("Impossibile caricare points.json");
-const data = await res.json();
-
-// pulizia marker precedenti
-markers.forEach(x => map.removeLayer(x.marker));
-markers = [];
-
-data.forEach(p => {
-if(typeof p.lat !== "number" || typeof p.lng !== "number") return;
-
-const m = L.marker([p.lat, p.lng])cluster.addLayer(m);.bindPopup(markerPopup(p));
-markers.push({ marker: m, data: p });
-});
-
-document.getElementById("count").innerText = `${markers.length} iniziative`;
-return markers.length;
-}
-
-// ========= SEARCH =========
-const resultsEl = document.getElementById("results");
-const resultsListEl = document.getElementById("resultsList");
-const resultsTitleEl = document.getElementById("resultsTitle");
-const searchInput = document.getElementById("searchInput");
-
-function showResults(items, q){
+function showResults(list){
 resultsListEl.innerHTML = "";
-resultsTitleEl.textContent = items.length ? `${items.length} risultati` : `Nessun risultato`;
-
-if(!items.length){
-resultsListEl.innerHTML = `<div class="item"><span>Nessun marker trovato per: <strong>${escapeHtml(q)}</strong></span></div>`;
-} else {
-items.slice(0, 50).forEach(it => {
-const p = it.data;
+list.slice(0, 40).forEach(p => {
 const name = escapeHtml(p.name);
 const city = escapeHtml(p.city || "");
 const country = escapeHtml(p.country || "");
@@ -361,77 +301,88 @@ const loc = [city, country].filter(Boolean).join(", ");
 
 const div = document.createElement("div");
 div.className = "item";
-div.innerHTML = `<strong>${name}</strong><span>${escapeHtml(loc)}${loc && category ? " • " : ""}${category}</span>`;
+div.innerHTML = `<strong>${name}</strong><span>${loc}${loc && category ? " • " : ""}${category}</span>`;
 div.onclick = () => {
 resultsEl.style.display = "none";
 map.setView([p.lat, p.lng], Math.max(map.getZoom(), 8));
-it.marker.openPopup();
+// open popup for its marker
+const it = markers.find(x => x.data === p);
+if (it) it.marker.openPopup();
 };
 resultsListEl.appendChild(div);
 });
-}
 
-resultsEl.style.display = "block";
+resultsEl.style.display = list.length ? "block" : "none";
 }
 
 function hideResults(){
 resultsEl.style.display = "none";
 }
 
-function filterMarkers(q){
-const s = q.trim().toLowerCase();
-if(!s){ hideResults(); return; }
+document.addEventListener("click", (e) => {
+// close results if click outside panel/results
+const panel = document.querySelector(".panel");
+if (!panel.contains(e.target) && !resultsEl.contains(e.target)) hideResults();
+});
 
-const found = markers.filter(it => {
-const p = it.data;
+function filter(q){
+q = (q || "").trim().toLowerCase();
+if (!q) return [];
+return items.filter(p => {
 const hay = [
 p.name, p.city, p.country, p.category
 ].filter(Boolean).join(" ").toLowerCase();
-return hay.includes(s);
+return hay.includes(q);
 });
-
-showResults(found, q);
 }
 
-let t = null;
-searchInput.addEventListener("input", (e) => {
-clearTimeout(t);
-t = setTimeout(() => filterMarkers(e.target.value), 120);
+searchInput.addEventListener("input", () => {
+const q = searchInput.value;
+const res = filter(q);
+showResults(res);
 });
 
-document.getElementById("closeResults").addEventListener("click", hideResults);
+// ========= LOAD =========
+async function loadPoints(){
+try{
+const res = await fetch(POINTS_URL, { cache: "no-store" });
+if (!res.ok) throw new Error("HTTP " + res.status);
+const data = await res.json();
 
-// ========= GEOLOCATE =========
-document.getElementById("locateBtn").addEventListener("click", () => {
-if(!navigator.geolocation){
-alert("Geolocalizzazione non disponibile su questo dispositivo.");
-return;
-}
-navigator.geolocation.getCurrentPosition(
-pos => {
-const lat = pos.coords.latitude;
-const lng = pos.coords.longitude;
-map.setView([lat, lng], 10);
-},
-err => {
-alert("Impossibile ottenere la posizione. Consenti l'accesso alla posizione nel browser.");
-},
-{ enableHighAccuracy: true, timeout: 8000 }
-);
+if (!Array.isArray(data)) throw new Error("points.json must be an array []");
+
+// basic validation + keep only valid coords
+items = data
+.filter(p => p && typeof p.lat === "number" && typeof p.lng === "number")
+.map(p => ({
+name: p.name || "Unknown",
+category: p.category || "",
+level: (typeof p.level === "number") ? p.level : 0,
+city: p.city || "",
+country: p.country || "",
+lat: p.lat,
+lng: p.lng
+}));
+
+// clear cluster + markers
+cluster.clearLayers();
+markers = [];
+
+items.forEach(p => {
+const m = L.marker([p.lat, p.lng]).bindPopup(popupHtml(p));
+cluster.addLayer(m);
+markers.push({ marker: m, data: p });
 });
 
-// ========= CONTACT CTA =========
-document.getElementById("contactBtn").addEventListener("click", () => {
-window.location.href = CONTACT_URL;
-});
-
-// ========= START =========
-loadPoints().catch(err => {
+countEl.textContent = `${items.length} initiatives`;
+}catch(err){
 console.error(err);
-document.getElementById("count").innerText = "Errore caricamento";
-alert("Errore: non riesco a caricare points.json. Controlla che esista nel repo e che sia valido JSON.");
-});
+countEl.textContent = "Error";
+alert("Error: I can't load points.json. Check that it exists in the repo and is valid JSON.");
+}
+}
+
+loadPoints();
 </script>
 </body>
 </html>
-
