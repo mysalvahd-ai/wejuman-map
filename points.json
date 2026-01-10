@@ -251,4 +251,275 @@
 "lat": 38.9072,
 "lng": -77.0369
 }
+  {
+"name": "UNHCR",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Geneva",
+"country": "Switzerland",
+"lat": 46.2044,
+"lng": 6.1432
+},
+{
+"name": "International Organization for Migration",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Geneva",
+"country": "Switzerland",
+"lat": 46.2044,
+"lng": 6.1432
+},
+{
+"name": "International Federation of Red Cross and Red Crescent Societies",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Geneva",
+"country": "Switzerland",
+"lat": 46.2044,
+"lng": 6.1432
+},
+{
+"name": "Islamic Relief Worldwide",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Birmingham",
+"country": "United Kingdom",
+"lat": 52.4862,
+"lng": -1.8904
+},
+{
+"name": "Action Against Hunger",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Paris",
+"country": "France",
+"lat": 48.8566,
+"lng": 2.3522
+},
+{
+"name": "Mercy Corps",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Portland",
+"country": "USA",
+"lat": 45.5152,
+"lng": -122.6784
+},
+{
+"name": "Doctors Without Borders USA (MSF USA)",
+"category": "Health / Care",
+"level": 2,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.006
+},
+{
+"name": "International Medical Corps",
+"category": "Health / Care",
+"level": 2,
+"city": "Los Angeles",
+"country": "USA",
+"lat": 34.0522,
+"lng": -118.2437
+},
+{
+"name": "PATH",
+"category": "Health / Care",
+"level": 2,
+"city": "Seattle",
+"country": "USA",
+"lat": 47.6062,
+"lng": -122.3321
+},
+{
+"name": "Clinton Health Access Initiative",
+"category": "Health / Care",
+"level": 2,
+"city": "Boston",
+"country": "USA",
+"lat": 42.3601,
+"lng": -71.0589
+},
+{
+"name": "The Carter Center",
+"category": "Health / Care",
+"level": 2,
+"city": "Atlanta",
+"country": "USA",
+"lat": 33.749,
+"lng": -84.388
+},
+{
+"name": "Bill & Melinda Gates Foundation",
+"category": "Health / Care",
+"level": 2,
+"city": "Seattle",
+"country": "USA",
+"lat": 47.6062,
+"lng": -122.3321
+},
+{
+"name": "GlobalGiving",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Washington, DC",
+"country": "USA",
+"lat": 38.9072,
+"lng": -77.0369
+},
+{
+"name": "GiveDirectly",
+"category": "Community / Social Care",
+"level": 2,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.006
+},
+{
+"name": "BRAC",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Dhaka",
+"country": "Bangladesh",
+"lat": 23.8103,
+"lng": 90.4125
+},
+{
+"name": "Save the Children International",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "London",
+"country": "United Kingdom",
+"lat": 51.5074,
+"lng": -0.1278
+},
+{
+"name": "Plan International",
+"category": "Education / Knowledge Access",
+"level": 2,
+"city": "Woking",
+"country": "United Kingdom",
+"lat": 51.319,
+"lng": -0.558
+},
+{
+"name": "Room to Read",
+"category": "Education / Knowledge Access",
+"level": 2,
+"city": "San Francisco",
+"country": "USA",
+"lat": 37.7749,
+"lng": -122.4194
+},
+{
+"name": "Pratham",
+"category": "Education / Knowledge Access",
+"level": 2,
+"city": "Mumbai",
+"country": "India",
+"lat": 19.076,
+"lng": 72.8777
+},
+{
+"name": "Teach For All",
+"category": "Education / Knowledge Access",
+"level": 2,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.006
+},
+{
+"name": "OpenStreetMap Foundation",
+"category": "Education / Knowledge Access",
+"level": 2,
+"city": "Cambridge",
+"country": "United Kingdom",
+"lat": 52.2053,
+"lng": 0.1218
+},
+{
+"name": "Access Now",
+"category": "Human Rights / Legal Support",
+"level": 2,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.006
+},
+{
+"name": "Electronic Frontier Foundation",
+"category": "Human Rights / Legal Support",
+"level": 2,
+"city": "San Francisco",
+"country": "USA",
+"lat": 37.7749,
+"lng": -122.4194
+},
+{
+"name": "International Justice Mission",
+"category": "Human Rights / Legal Support",
+"level": 2,
+"city": "Washington, DC",
+"country": "USA",
+"lat": 38.9072,
+"lng": -77.0369
+},
+{
+"name": "Crisis Text Line",
+"category": "Health / Care",
+"level": 2,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.006
+},
+{
+"name": "Samaritan's Purse",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Boone",
+"country": "USA",
+"lat": 36.2168,
+"lng": -81.6746
+},
+{
+"name": "The HALO Trust",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Salisbury",
+"country": "United Kingdom",
+"lat": 51.0688,
+"lng": -1.7945
+},
+{
+"name": "Fondazione Telethon",
+"category": "Health / Care",
+"level": 2,
+"city": "Rome",
+"country": "Italy",
+"lat": 41.9028,
+"lng": 12.4964
+},
+{
+"name": "Caritas Internationalis",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Vatican City",
+"country": "Vatican City",
+"lat": 41.9029,
+"lng": 12.4534
+},
+{
+"name": "SOS Children's Villages International",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Innsbruck",
+"country": "Austria",
+"lat": 47.2692,
+"lng": 11.4041
+}
+
 ]
