@@ -278,6 +278,14 @@ const map = L.map("map", { zoomControl: true }).setView([20, 0], 2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 attribution: "© OpenStreetMap contributors"
 }).addTo(map);
+ // ======= CLUSTER =======
+const cluster = L.markerClusterGroup({
+showCoverageOnHover: false,
+spiderfyOnMaxZoom: true,
+disableClusteringAtZoom: 12,
+maxClusterRadius: 55
+});
+map.addLayer(cluster);
 
 let markers = []; // { marker, data }
 
@@ -322,7 +330,7 @@ markers = [];
 data.forEach(p => {
 if(typeof p.lat !== "number" || typeof p.lng !== "number") return;
 
-const m = L.marker([p.lat, p.lng]).addTo(map).bindPopup(markerPopup(p));
+const m = L.marker([p.lat, p.lng])cluster.addLayer(m);.bindPopup(markerPopup(p));
 markers.push({ marker: m, data: p });
 });
 
