@@ -1,159 +1,419 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-<title>WEJUMAN – A living map of verified human action</title>
+<title>WEJUMAN — Una mappa viva di iniziative reali</title>
 
-<!-- ✅ Google Search Console verification -->
-<meta name="google-site-verification" content="SMegagkZf0yNP6RjTY3liw2xBGkRZwsodZQGFfkZw_E" />
+<!-- ✅ Google Search Console (incolla QUI il tuo meta, sostituendo CONTENT) -->
+<!-- Esempio: <meta name="google-site-verification" content="SMegagkZf0yNP6..." /> -->
+<!-- <meta name="google-site-verification" content="INCOLLA_QUI" /> -->
 
 <!-- Leaflet -->
-<link
-rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-:root {
---bg: #f5f6f7;
+:root{
+--bg: #f4f5f7;
 --panel: #ffffff;
 --text: #111;
 --muted: #666;
---border: #e0e0e0;
---radius: 16px;
+--border: #e6e6e6;
 --shadow: 0 12px 40px rgba(0,0,0,0.12);
+--radius: 18px;
+--btn: #111;
+--btnText: #fff;
 }
 
-html, body {
-height: 100%;
-margin: 0;
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-Roboto, Helvetica, Arial, sans-serif;
-background: var(--bg);
-}
+html, body { height: 100%; margin: 0; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
 
-#map {
-height: 100%;
-width: 100%;
-}
+#map { height: 100vh; width: 100vw; }
 
 /* Top panel */
 .panel {
-position: absolute;
-top: env(safe-area-inset-top, 16px);
-left: 50%;
-transform: translateX(-50%);
-width: calc(100% - 24px);
-max-width: 720px;
+position: fixed;
+top: calc(16px + env(safe-area-inset-top));
+left: 16px;
+right: 16px;
+z-index: 9999;
 background: var(--panel);
+border: 1px solid var(--border);
 border-radius: var(--radius);
 box-shadow: var(--shadow);
-padding: 14px;
-z-index: 1000;
+overflow: hidden;
+}
+
+.panel-inner{
+display: grid;
+grid-template-columns: 1fr auto;
+gap: 12px;
+padding: 14px 14px 12px 14px;
+align-items: center;
 }
 
 .brand {
-font-weight: 700;
-letter-spacing: 0.15em;
+font-weight: 800;
+letter-spacing: 0.2em;
 font-size: 14px;
-}
-
-.search {
-display: flex;
-gap: 8px;
-margin-top: 10px;
-}
-
-.search input {
-flex: 1;
-padding: 10px 12px;
-border-radius: 12px;
-border: 1px solid var(--border);
-font-size: 14px;
+margin-bottom: 8px;
 }
 
 .desc {
-margin-top: 10px;
-font-size: 13px;
 color: var(--muted);
-line-height: 1.4;
+font-size: 14px;
+line-height: 1.35;
+margin-top: 6px;
+}
+
+.right {
+display: grid;
+gap: 10px;
+justify-items: end;
+align-content: start;
 }
 
 .count {
-margin-top: 6px;
-font-size: 12px;
+font-size: 13px;
 color: var(--muted);
+white-space: nowrap;
+}
+
+.searchRow{
+display: grid;
+grid-template-columns: 32px 1fr 44px;
+gap: 10px;
+align-items: center;
+border: 1px solid var(--border);
+border-radius: 999px;
+padding: 10px 10px;
+background: #fff;
+}
+
+.searchIcon{
+width: 22px; height: 22px; display: grid; place-items: center;
+color: var(--muted);
+font-size: 18px;
+}
+
+input[type="text"]{
+width: 100%;
+font-size: 15px;
+border: none;
+outline: none;
+background: transparent;
+}
+
+.pinBtn{
+border: 1px solid var(--border);
+background: #fff;
+border-radius: 14px;
+width: 44px;
+height: 40px;
+cursor: pointer;
+font-size: 18px;
+}
+
+.cta {
+border-top: 1px solid var(--border);
+padding: 12px 14px 14px 14px;
+display: grid;
+gap: 10px;
+}
+
+.ctaText{
+color: var(--muted);
+font-size: 14px;
+line-height: 1.35;
+}
+
+.ctaBtn{
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+padding: 12px 14px;
+border-radius: 14px;
+border: none;
+background: var(--btn);
+color: var(--btnText);
+font-weight: 700;
+cursor: pointer;
+width: fit-content;
+}
+
+.results {
+position: fixed;
+top: calc(160px + env(safe-area-inset-top));
+left: 16px;
+right: 16px;
+z-index: 9998;
+background: #fff;
+border: 1px solid var(--border);
+border-radius: 16px;
+box-shadow: var(--shadow);
+overflow: hidden;
+display: none;
+max-height: 40vh;
+}
+
+.resultsHeader{
+padding: 10px 12px;
+font-size: 13px;
+color: var(--muted);
+border-bottom: 1px solid var(--border);
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.closeBtn{
+border: 1px solid var(--border);
+background: #fff;
+border-radius: 10px;
+padding: 6px 10px;
+cursor: pointer;
+font-size: 12px;
+}
+
+.list{
+overflow: auto;
+max-height: calc(40vh - 44px);
+}
+
+.item{
+padding: 10px 12px;
+border-bottom: 1px solid var(--border);
+cursor: pointer;
+}
+.item:last-child{ border-bottom: none; }
+.item strong{ display:block; font-size: 14px; color: var(--text); }
+.item span{ display:block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* Mobile tweaks */
+@media (min-width: 900px){
+.panel{
+left: 24px;
+right: auto;
+width: 520px;
+}
+.results{
+left: 24px;
+right: auto;
+width: 520px;
+}
 }
 </style>
 </head>
 
 <body>
-<div class="panel">
+<div id="map"></div>
+
+<!-- TOP PANEL -->
+<div class="panel" role="region" aria-label="Wejuman panel">
+<div class="panel-inner">
+<div>
 <div class="brand">WEJUMAN</div>
 
-<div class="search">
-<input
-id="searchInput"
-type="text"
-placeholder="Cerca iniziativa o luogo (es. Emergency, Roma)"
-/>
+<div class="searchRow">
+<div class="searchIcon">🔎</div>
+<input id="searchInput" type="text" placeholder="Cerca iniziativa o luogo (es. Emergency, Roma)" autocomplete="off" />
+<button id="locateBtn" class="pinBtn" title="Vai alla mia posizione">📍</button>
 </div>
 
 <div class="desc">
 Una mappa viva di iniziative reali e verificabili nel mondo.
 Cerca un'organizzazione (marker) oppure una città/luogo.
 </div>
-
-<div class="count" id="count">Loading…</div>
 </div>
 
-<div id="map"></div>
+<div class="right">
+<div id="count" class="count">Loading…</div>
+</div>
+</div>
+
+<div class="cta">
+<div class="ctaText">
+Se sei attivo nel mondo e vuoi essere sulla mappa, contattaci.
+</div>
+<button id="contactBtn" class="ctaBtn">Contattaci</button>
+</div>
+</div>
+
+<!-- SEARCH RESULTS -->
+<div id="results" class="results" role="dialog" aria-label="Risultati ricerca">
+<div class="resultsHeader">
+<div id="resultsTitle">Risultati</div>
+<button id="closeResults" class="closeBtn">Chiudi</button>
+</div>
+<div id="resultsList" class="list"></div>
+</div>
 
 <script>
-const map = L.map("map").setView([20, 0], 2);
+// ========= CONFIG =========
+// 1) Dove vuoi mandare il pulsante "Contattaci"?
+// Opzioni:
+// - mailto: (email)
+// - link a Google Form
+// - link a una pagina /contact.html
+const CONTACT_URL = "mailto:info@wejuman.org?subject=Wejuman%20—%20Richiesta%20inserimento%20in%20mappa";
+
+// 2) file dati
+const POINTS_URL = "points.json";
+
+// ========= MAP INIT =========
+const map = L.map("map", { zoomControl: true }).setView([20, 0], 2);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 attribution: "© OpenStreetMap contributors"
 }).addTo(map);
 
-let markers = [];
+let markers = []; // { marker, data }
 
-fetch("points.json")
-.then(res => res.json())
-.then(data => {
+function escapeHtml(str){
+return String(str ?? "")
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
+}
+
+function markerPopup(p){
+const name = escapeHtml(p.name);
+const city = escapeHtml(p.city || "");
+const country = escapeHtml(p.country || "");
+const category = escapeHtml(p.category || "");
+const website = (p.website || "").trim();
+
+const locLine = [city, country].filter(Boolean).join(", ");
+const websiteLine = website ? `<a href="${escapeHtml(website)}" target="_blank" rel="noopener">Sito</a>` : "";
+
+return `
+<div style="min-width:220px">
+<strong>${name}</strong><br/>
+${locLine ? `${locLine}<br/>` : ""}
+${category ? `<span style="color:#666">${category}</span><br/>` : ""}
+${websiteLine}
+</div>
+`;
+}
+
+async function loadPoints(){
+const res = await fetch(POINTS_URL, { cache: "no-store" });
+if(!res.ok) throw new Error("Impossibile caricare points.json");
+const data = await res.json();
+
+// pulizia marker precedenti
+markers.forEach(x => map.removeLayer(x.marker));
+markers = [];
+
 data.forEach(p => {
-const m = L.marker([p.lat, p.lng])
-.addTo(map)
-.bindPopup(
-"<strong>" + p.name + "</strong><br>" +
-p.city + "<br>" +
-p.category
-);
+if(typeof p.lat !== "number" || typeof p.lng !== "number") return;
+
+const m = L.marker([p.lat, p.lng]).addTo(map).bindPopup(markerPopup(p));
 markers.push({ marker: m, data: p });
 });
 
-document.getElementById("count").innerText =
-data.length + " iniziative";
-});
-
-document.getElementById("searchInput").addEventListener("input", e => {
-const q = e.target.value.toLowerCase();
-
-markers.forEach(o => {
-const match =
-o.data.name.toLowerCase().includes(q) ||
-o.data.city.toLowerCase().includes(q);
-
-if (match) {
-o.marker.addTo(map);
-} else {
-map.removeLayer(o.marker);
+document.getElementById("count").innerText = `${markers.length} iniziative`;
+return markers.length;
 }
+
+// ========= SEARCH =========
+const resultsEl = document.getElementById("results");
+const resultsListEl = document.getElementById("resultsList");
+const resultsTitleEl = document.getElementById("resultsTitle");
+const searchInput = document.getElementById("searchInput");
+
+function showResults(items, q){
+resultsListEl.innerHTML = "";
+resultsTitleEl.textContent = items.length ? `${items.length} risultati` : `Nessun risultato`;
+
+if(!items.length){
+resultsListEl.innerHTML = `<div class="item"><span>Nessun marker trovato per: <strong>${escapeHtml(q)}</strong></span></div>`;
+} else {
+items.slice(0, 50).forEach(it => {
+const p = it.data;
+const name = escapeHtml(p.name);
+const city = escapeHtml(p.city || "");
+const country = escapeHtml(p.country || "");
+const category = escapeHtml(p.category || "");
+const loc = [city, country].filter(Boolean).join(", ");
+
+const div = document.createElement("div");
+div.className = "item";
+div.innerHTML = `<strong>${name}</strong><span>${escapeHtml(loc)}${loc && category ? " • " : ""}${category}</span>`;
+div.onclick = () => {
+resultsEl.style.display = "none";
+map.setView([p.lat, p.lng], Math.max(map.getZoom(), 8));
+it.marker.openPopup();
+};
+resultsListEl.appendChild(div);
 });
+}
+
+resultsEl.style.display = "block";
+}
+
+function hideResults(){
+resultsEl.style.display = "none";
+}
+
+function filterMarkers(q){
+const s = q.trim().toLowerCase();
+if(!s){ hideResults(); return; }
+
+const found = markers.filter(it => {
+const p = it.data;
+const hay = [
+p.name, p.city, p.country, p.category
+].filter(Boolean).join(" ").toLowerCase();
+return hay.includes(s);
+});
+
+showResults(found, q);
+}
+
+let t = null;
+searchInput.addEventListener("input", (e) => {
+clearTimeout(t);
+t = setTimeout(() => filterMarkers(e.target.value), 120);
+});
+
+document.getElementById("closeResults").addEventListener("click", hideResults);
+
+// ========= GEOLOCATE =========
+document.getElementById("locateBtn").addEventListener("click", () => {
+if(!navigator.geolocation){
+alert("Geolocalizzazione non disponibile su questo dispositivo.");
+return;
+}
+navigator.geolocation.getCurrentPosition(
+pos => {
+const lat = pos.coords.latitude;
+const lng = pos.coords.longitude;
+map.setView([lat, lng], 10);
+},
+err => {
+alert("Impossibile ottenere la posizione. Consenti l'accesso alla posizione nel browser.");
+},
+{ enableHighAccuracy: true, timeout: 8000 }
+);
+});
+
+// ========= CONTACT CTA =========
+document.getElementById("contactBtn").addEventListener("click", () => {
+window.location.href = CONTACT_URL;
+});
+
+// ========= START =========
+loadPoints().catch(err => {
+console.error(err);
+document.getElementById("count").innerText = "Errore caricamento";
+alert("Errore: non riesco a caricare points.json. Controlla che esista nel repo e che sia valido JSON.");
 });
 </script>
 </body>
 </html>
+
