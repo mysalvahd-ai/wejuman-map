@@ -3,440 +3,157 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>WEJUMAN</title>
+
+<title>WEJUMAN – A living map of verified human action</title>
+
+<!-- ✅ Google Search Console verification -->
+<meta name="google-site-verification" content="ABC123XYZ..." />
 
 <!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-:root{
---bg:#ffffff;
---panel:#ffffff;
---text:#111;
---muted:#666;
---border:#e8e8e8;
---shadow: 0 12px 40px rgba(0,0,0,.10);
---radius:18px;
+:root {
+--bg: #f5f6f7;
+--panel: #ffffff;
+--text: #111;
+--muted: #666;
+--border: #e0e0e0;
+--radius: 16px;
+--shadow: 0 12px 40px rgba(0,0,0,0.12);
 }
 
-html, body { height: 100%; margin: 0; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-/* iPhone safe area */
-body { padding-top: env(safe-area-inset-top); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+html, body {
+height: 100%;
+margin: 0;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+Roboto, Helvetica, Arial, sans-serif;
+background: var(--bg);
+}
 
-/* IMPORTANT: 100vh so map always visible on mobile */
-#map { height: 100vh; width: 100vw; }
+#map {
+height: 100%;
+width: 100%;
+}
 
-/* Top overlay card */
-.top-card{
-position: fixed;
-top: 16px;
-left: 16px;
-right: 16px;
-max-width: 900px;
-margin: 0 auto;
+/* Top panel */
+.panel {
+position: absolute;
+top: env(safe-area-inset-top, 16px);
+left: 50%;
+transform: translateX(-50%);
+width: calc(100% - 24px);
+max-width: 720px;
 background: var(--panel);
-border: 1px solid var(--border);
 border-radius: var(--radius);
 box-shadow: var(--shadow);
-z-index: 9999;
-overflow: hidden;
+padding: 14px;
+z-index: 1000;
 }
 
-.top-row{
-display: flex;
-align-items: center;
-gap: 12px;
-padding: 14px 14px 10px 14px;
-}
-
-.brand{
-font-weight: 800;
-letter-spacing: .18em;
-font-size: 15px;
-color: var(--text);
-white-space: nowrap;
-}
-
-.search-wrap{
-flex: 1;
-display: flex;
-align-items: center;
-gap: 10px;
-border: 1px solid var(--border);
-border-radius: 999px;
-padding: 10px 12px;
-background: #fff;
-}
-
-.search-icon{ font-size: 16px; opacity: .75; }
-#searchInput{
-width: 100%;
-border: 0;
-outline: none;
-font-size: 15px;
-color: var(--text);
-background: transparent;
-}
-
-.btn{
-border: 1px solid var(--border);
-background: #fff;
-border-radius: 14px;
-padding: 10px 12px;
-font-size: 16px;
-cursor: pointer;
-user-select: none;
-}
-.btn:active{ transform: scale(.98); }
-
-.desc-row{
-display: grid;
-grid-template-columns: 1fr auto;
-gap: 12px;
-padding: 0 14px 14px 14px;
-border-top: 1px solid var(--border);
-background: #fff;
-}
-
-.desc{
-color: var(--muted);
+.brand {
+font-weight: 700;
+letter-spacing: 0.15em;
 font-size: 14px;
-line-height: 1.35;
-padding-top: 10px;
 }
 
-.status{
-color: var(--muted);
-font-size: 13px;
-padding-top: 10px;
-white-space: nowrap;
+.search {
+display: flex;
+gap: 8px;
+margin-top: 10px;
 }
 
-/* Results dropdown */
-.results{
-position: fixed;
-top: 86px; /* under the card */
-left: 16px;
-right: 16px;
-max-width: 900px;
-margin: 0 auto;
-background: #fff;
+.search input {
+flex: 1;
+padding: 10px 12px;
+border-radius: 12px;
 border: 1px solid var(--border);
-border-radius: 14px;
-box-shadow: var(--shadow);
-z-index: 9998;
-overflow: hidden;
-display: none;
-max-height: 45vh;
+font-size: 14px;
 }
 
-.result-item{
-padding: 12px 12px;
-border-bottom: 1px solid var(--border);
-cursor: pointer;
+.desc {
+margin-top: 10px;
+font-size: 13px;
+color: var(--muted);
+line-height: 1.4;
 }
-.result-item:last-child{ border-bottom: 0; }
-.result-title{ font-weight: 700; color: var(--text); font-size: 14px; }
-.result-sub{ color: var(--muted); font-size: 13px; margin-top: 4px; }
 
-/* Small screen tweaks */
-@media (max-width: 420px){
-.brand{ letter-spacing: .14em; font-size: 14px; }
-.desc{ font-size: 13px; }
+.count {
+margin-top: 6px;
+font-size: 12px;
+color: var(--muted);
 }
 </style>
 </head>
 
 <body>
-<div id="map"></div>
-
-<div class="top-card" role="banner" aria-label="Wejuman search">
-<div class="top-row">
+<div class="panel">
 <div class="brand">WEJUMAN</div>
 
-<div class="search-wrap">
-<div class="search-icon">🔎</div>
-<input id="searchInput" type="search" placeholder="Cerca iniziativa o luogo (es. Emergency, Nairobi)" />
+<div class="search">
+<input
+id="searchInput"
+type="text"
+placeholder="Cerca iniziativa o luogo (es. Emergency, Roma)"
+/>
 </div>
 
-<button id="locBtn" class="btn" title="La mia posizione" aria-label="La mia posizione">📍</button>
-</div>
-
-<div class="desc-row">
 <div class="desc">
-Una mappa viva di iniziative reali e verificabili nel mondo. Cerca un'organizzazione (marker) oppure una città/luogo.
-</div>
-<div id="status" class="status">Loading…</div>
-</div>
+Una mappa viva di iniziative reali e verificabili nel mondo.
+Cerca un'organizzazione (marker) oppure una città/luogo.
 </div>
 
-<div id="results" class="results" aria-label="Risultati ricerca"></div>
+<div class="count" id="count">Loading…</div>
+</div>
+
+<div id="map"></div>
 
 <script>
-// -------------------------
-// CONFIG
-// -------------------------
-const POINTS_URL = "./points.json"; // same repo
-const DEFAULT_VIEW = { lat: 20, lng: 0, zoom: 2 };
+const map = L.map("map").setView([20, 0], 2);
 
-// -------------------------
-// MAP
-// -------------------------
-const map = L.map('map', { zoomControl: true }).setView([DEFAULT_VIEW.lat, DEFAULT_VIEW.lng], DEFAULT_VIEW.zoom);
-
-// OSM tiles
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-maxZoom: 19,
-attribution: '&copy; OpenStreetMap contributors'
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+attribution: "© OpenStreetMap contributors"
 }).addTo(map);
 
-// Fix for some mobile renders
-setTimeout(() => map.invalidateSize(), 200);
-
-// -------------------------
-// DATA
-// -------------------------
-let points = [];
 let markers = [];
-const statusEl = document.getElementById('status');
-const resultsEl = document.getElementById('results');
-const searchInput = document.getElementById('searchInput');
 
-function setStatus(text){ statusEl.textContent = text; }
-
-function safe(v){ return (v ?? "").toString(); }
-
-function normalize(str){
-return safe(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-function buildPopup(p){
-const name = safe(p.name || p.title || "Iniziativa");
-const city = safe(p.city || p.place || "");
-const country = safe(p.country || "");
-const category = safe(p.category || "");
-const desc = safe(p.description || "");
-const url = safe(p.url || "");
-
-const line2 = [city, country].filter(Boolean).join(", ");
-const line3 = category ? `<div style="margin-top:6px;color:#666;font-size:13px;"><b>Categoria:</b> ${category}</div>` : "";
-const line4 = desc ? `<div style="margin-top:6px;color:#444;font-size:13px;line-height:1.35;">${desc}</div>` : "";
-const link = url ? `<div style="margin-top:8px;"><a href="${url}" target="_blank" rel="noopener">Apri sito</a></div>` : "";
-
-return `
-<div style="min-width:220px">
-<div style="font-weight:800;font-size:15px;margin-bottom:4px;">${name}</div>
-${line2 ? `<div style="color:#666;font-size:13px;">${line2}</div>` : ""}
-${line3}
-${line4}
-${link}
-</div>
-`;
-}
-
-function addMarkers(){
-// Clear old
-markers.forEach(m => map.removeLayer(m));
-markers = [];
-
-points.forEach(p => {
-const lat = Number(p.lat ?? p.latitude);
-const lng = Number(p.lng ?? p.lon ?? p.longitude);
-if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-
-const marker = L.marker([lat, lng]).addTo(map);
-marker.bindPopup(buildPopup(p));
-marker.__point = p;
-markers.push(marker);
-});
-
-setStatus(`${markers.length} iniziative`);
-}
-
-async function loadPoints(){
-try{
-setStatus("Carico punti…");
-const res = await fetch(POINTS_URL, { cache: "no-store" });
-if(!res.ok) throw new Error("points.json non trovato o non accessibile");
-const data = await res.json();
-
-// Accept array or {points:[...]}
-points = Array.isArray(data) ? data : (data.points || []);
-addMarkers();
-} catch(err){
-console.error(err);
-setStatus("Errore: points.json");
-}
-}
-
-// -------------------------
-// SEARCH (2 in 1)
-// - Local: initiative search
-// - Place: Nominatim
-// -------------------------
-function hideResults(){
-resultsEl.style.display = "none";
-resultsEl.innerHTML = "";
-}
-
-function showResults(items){
-resultsEl.innerHTML = "";
-items.forEach(item => {
-const row = document.createElement("div");
-row.className = "result-item";
-row.innerHTML = `
-<div class="result-title">${item.title}</div>
-${item.sub ? `<div class="result-sub">${item.sub}</div>` : ""}
-`;
-row.addEventListener("click", item.onClick);
-resultsEl.appendChild(row);
-});
-resultsEl.style.display = items.length ? "block" : "none";
-}
-
-function localSearch(q){
-const nq = normalize(q);
-if(!nq) return [];
-
-// Search by name + city + country + category
-const matches = points
-.map(p => {
-const name = safe(p.name || p.title);
-const city = safe(p.city || p.place);
-const country = safe(p.country);
-const category = safe(p.category);
-const hay = normalize([name, city, country, category].join(" "));
-return { p, score: hay.includes(nq) ? 1 : 0 };
-})
-.filter(x => x.score > 0)
-.slice(0, 6);
-
-return matches.map(x => {
-const p = x.p;
-const name = safe(p.name || p.title || "Iniziativa");
-const city = safe(p.city || p.place || "");
-const country = safe(p.country || "");
-const lat = Number(p.lat ?? p.latitude);
-const lng = Number(p.lng ?? p.lon ?? p.longitude);
-
-return {
-title: `📍 ${name}`,
-sub: [city, country].filter(Boolean).join(", "),
-onClick: () => {
-hideResults();
-if(Number.isFinite(lat) && Number.isFinite(lng)){
-map.setView([lat, lng], Math.max(map.getZoom(), 9));
-// open corresponding marker popup
-const mk = markers.find(m => m.__point === p);
-if(mk) mk.openPopup();
-}
-}
-};
-});
-}
-
-async function placeSearch(q){
-// Nominatim requires a User-Agent header normally,
-// but in browser we just hit the public endpoint with a limited query.
-const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(q)}`;
-const res = await fetch(url, { headers: { "Accept": "application/json" }});
-if(!res.ok) return [];
-const data = await res.json();
-return data.map(d => {
-const lat = Number(d.lat);
-const lon = Number(d.lon);
-return {
-title: `🌍 ${d.display_name}`,
-sub: "Cerca luogo (OSM)",
-onClick: () => {
-hideResults();
-if(Number.isFinite(lat) && Number.isFinite(lon)){
-map.setView([lat, lon], 11);
-}
-}
-};
-});
-}
-
-let searchTimer = null;
-
-async function handleSearch(){
-const q = searchInput.value.trim();
-if(!q){ hideResults(); return; }
-
-// Local results first
-const local = localSearch(q);
-
-// If query looks like a place or local results are few, also propose place results
-let combined = [...local];
-try{
-if(q.length >= 3){
-const places = await placeSearch(q);
-combined = [...local, ...places].slice(0, 8);
-}
-} catch(e){
-// ignore place errors
-}
-
-showResults(combined);
-}
-
-searchInput.addEventListener("input", () => {
-clearTimeout(searchTimer);
-searchTimer = setTimeout(handleSearch, 180);
-});
-
-// Close results when tapping map
-map.on("click", hideResults);
-
-// Enter key triggers immediate search
-searchInput.addEventListener("keydown", (e) => {
-if(e.key === "Enter"){
-e.preventDefault();
-handleSearch();
-}
-if(e.key === "Escape"){
-hideResults();
-}
-});
-
-// -------------------------
-// GEOLOCATION BUTTON
-// -------------------------
-const locBtn = document.getElementById("locBtn");
-let userMarker = null;
-
-locBtn.addEventListener("click", () => {
-if(!navigator.geolocation){
-alert("Geolocalizzazione non disponibile su questo dispositivo/browser.");
-return;
-}
-setStatus("Trovo la tua posizione…");
-navigator.geolocation.getCurrentPosition(
-(pos) => {
-const lat = pos.coords.latitude;
-const lng = pos.coords.longitude;
-
-if(userMarker) map.removeLayer(userMarker);
-userMarker = L.circleMarker([lat, lng], { radius: 7 }).addTo(map).bindPopup("Sei qui");
-map.setView([lat, lng], 12);
-userMarker.openPopup();
-
-setStatus(`${markers.length} iniziative`);
-},
-() => {
-setStatus(`${markers.length} iniziative`);
-alert("Non riesco ad accedere alla posizione. Controlla i permessi del browser.");
-},
-{ enableHighAccuracy: true, timeout: 8000 }
+fetch("points.json")
+.then(res => res.json())
+.then(data => {
+data.forEach(p => {
+const m = L.marker([p.lat, p.lng])
+.addTo(map)
+.bindPopup(
+"<strong>" + p.name + "</strong><br>" +
+p.city + "<br>" +
+p.category
 );
+markers.push({ marker: m, data: p });
 });
 
-// -------------------------
-// START
-// -------------------------
-loadPoints();
+document.getElementById("count").innerText =
+data.length + " iniziative";
+});
+
+document.getElementById("searchInput").addEventListener("input", e => {
+const q = e.target.value.toLowerCase();
+
+markers.forEach(o => {
+const match =
+o.data.name.toLowerCase().includes(q) ||
+o.data.city.toLowerCase().includes(q);
+
+if (match) {
+o.marker.addTo(map);
+} else {
+map.removeLayer(o.marker);
+}
+});
+});
 </script>
 </body>
 </html>
