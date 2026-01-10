@@ -1,67 +1,191 @@
 [
-{ "name": "Addi Road Community Organisation", "category": "Community / Social Care", "level": 2, "city": "Sydney", "country": "Australia", "lat": -33.8688, "lng": 151.2093 },
-{ "name": "Emergency", "category": "Health / Care", "level": 2, "city": "Milan", "country": "Italy", "lat": 45.4642, "lng": 9.19 },
-{ "name": "Médecins Sans Frontières", "category": "Health / Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lng": 6.1432 },
-{ "name": "International Committee of the Red Cross", "category": "Emergency / Crisis Response", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lng": 6.1432 },
-{ "name": "UNICEF", "category": "Health / Care", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lng": -74.006 },
-{ "name": "World Food Programme", "category": "Emergency / Crisis Response", "level": 2, "city": "Rome", "country": "Italy", "lat": 41.9028, "lng": 12.4964 },
-{ "name": "UNHCR", "category": "Human Rights / Legal Support", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lng": 6.1432 },
-{ "name": "IOM", "category": "Emergency / Crisis Response", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lng": 6.1432 },
-{ "name": "Save the Children", "category": "Emergency / Crisis Response", "level": 2, "city": "London", "country": "United Kingdom", "lat": 51.5074, "lng": -0.1278 },
-{ "name": "Oxfam International", "category": "Community / Social Care", "level": 2, "city": "Oxford", "country": "United Kingdom", "lat": 51.752, "lng": -1.2577 },
-
-{ "name": "CARE International", "category": "Community / Social Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lng": 6.1432 },
-{ "name": "Mercy Corps", "category": "Emergency / Crisis Response", "level": 2, "city": "Portland", "country": "USA", "lat": 45.5152, "lng": -122.6784 },
-{ "name": "Action Against Hunger", "category": "Emergency / Crisis Response", "level": 2, "city": "Paris", "country": "France", "lat": 48.8566, "lng": 2.3522 },
-{ "name": "Islamic Relief Worldwide", "category": "Community / Social Care", "level": 2, "city": "Birmingham", "country": "United Kingdom", "lat": 52.4862, "lng": -1.8904 },
-{ "name": "World Vision International", "category": "Community / Social Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lng": 6.1432 },
-
-{ "name": "Amnesty International", "category": "Human Rights / Legal Support", "level": 2, "city": "London", "country": "United Kingdom", "lat": 51.5074, "lng": -0.1278 },
-{ "name": "Human Rights Watch", "category": "Human Rights / Legal Support", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lng": -74.006 },
-{ "name": "Transparency International", "category": "Human Rights / Legal Support", "level": 2, "city": "Berlin", "country": "Germany", "lat": 52.52, "lng": 13.405 },
-{ "name": "Reporters Without Borders", "category": "Human Rights / Legal Support", "level": 2, "city": "Paris", "country": "France", "lat": 48.8566, "lng": 2.3522 },
-{ "name": "International Justice Mission", "category": "Human Rights / Legal Support", "level": 2, "city": "Washington, DC", "country": "USA", "lat": 38.9072, "lng": -77.0369 },
-
-{ "name": "Khan Academy", "category": "Education / Knowledge Access", "level": 2, "city": "Mountain View", "country": "USA", "lat": 37.3861, "lng": -122.0839 },
-{ "name": "Wikipedia (Wikimedia Foundation)", "category": "Education / Knowledge Access", "level": 2, "city": "San Francisco", "country": "USA", "lat": 37.7749, "lng": -122.4194 },
-{ "name": "Internet Archive", "category": "Education / Knowledge Access", "level": 2, "city": "San Francisco", "country": "USA", "lat": 37.7749, "lng": -122.4194 },
-{ "name": "Teach For All", "category": "Education / Knowledge Access", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lng": -74.006 },
-{ "name": "Pratham", "category": "Education / Knowledge Access", "level": 2, "city": "Mumbai", "country": "India", "lat": 19.076, "lng": 72.8777 },
-
-{ "name": "Greenpeace International", "category": "Environment / Planet Care", "level": 2, "city": "Amsterdam", "country": "Netherlands", "lat": 52.3676, "lng": 4.9041 },
-{ "name": "WWF International", "category": "Environment / Planet Care", "level": 2, "city": "Gland", "country": "Switzerland", "lat": 46.4204, "lng": 6.27 },
-{ "name": "The Nature Conservancy", "category": "Environment / Planet Care", "level": 2, "city": "Arlington", "country": "USA", "lat": 38.8816, "lng": -77.091 },
-{ "name": "Conservation International", "category": "Environment / Planet Care", "level": 2, "city": "Arlington", "country": "USA", "lat": 38.8816, "lng": -77.091 },
-{ "name": "UNEP", "category": "Environment / Planet Care", "level": 2, "city": "Nairobi", "country": "Kenya", "lat": -1.2921, "lng": 36.8219 },
-
-{ "name": "Isha Foundation", "category": "Environment / Planet Care", "level": 2, "city": "Coimbatore", "country": "India", "lat": 11.0168, "lng": 76.9558 },
-{ "name": "Save Soil (Conscious Planet)", "category": "Environment / Planet Care", "level": 2, "city": "Coimbatore", "country": "India", "lat": 11.0168, "lng": 76.9558 },
-{ "name": "Rally for Rivers", "category": "Environment / Planet Care", "level": 2, "city": "Bengaluru", "country": "India", "lat": 12.9716, "lng": 77.5946 },
-{ "name": "Cauvery Calling", "category": "Environment / Planet Care", "level": 2, "city": "Mysuru", "country": "India", "lat": 12.2958, "lng": 76.6394 },
-{ "name": "Isha Vidhya", "category": "Education / Knowledge Access", "level": 2, "city": "Chennai", "country": "India", "lat": 13.0827, "lng": 80.2707 },
-
-{ "name": "Partners In Health", "category": "Health / Care", "level": 2, "city": "Boston", "country": "USA", "lat": 42.3601, "lng": -71.0589 },
-{ "name": "PATH", "category": "Health / Care", "level": 2, "city": "Seattle", "country": "USA", "lat": 47.6062, "lng": -122.3321 },
-{ "name": "Gavi, the Vaccine Alliance", "category": "Health / Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lng": 6.1432 },
-{ "name": "The Global Fund", "category": "Health / Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lng": 6.1432 },
-{ "name": "Amref Health Africa", "category": "Health / Care", "level": 2, "city": "Nairobi", "country": "Kenya", "lat": -1.2921, "lng": 36.8219 },
-
-{ "name": "Doctors Without Borders – Gaza", "category": "Health / Care", "level": 2, "city": "Gaza City", "country": "Palestine", "lat": 31.5017, "lng": 34.4668 },
-{ "name": "ICRC – Gaza", "category": "Emergency / Crisis Response", "level": 2, "city": "Gaza City", "country": "Palestine", "lat": 31.5017, "lng": 34.4668 },
-{ "name": "UNRWA", "category": "Emergency / Crisis Response", "level": 2, "city": "Gaza City", "country": "Palestine", "lat": 31.5017, "lng": 34.4668 },
-{ "name": "Medical Aid for Palestinians", "category": "Health / Care", "level": 2, "city": "Jerusalem", "country": "Palestine", "lat": 31.7683, "lng": 35.2137 },
-{ "name": "Al-Haq", "category": "Human Rights / Legal Support", "level": 2, "city": "Ramallah", "country": "Palestine", "lat": 31.9038, "lng": 35.2034 },
-
-{ "name": "African Wildlife Foundation", "category": "Environment / Planet Care", "level": 2, "city": "Nairobi", "country": "Kenya", "lat": -1.2921, "lng": 36.8219 },
-{ "name": "Tostan", "category": "Community / Social Care", "level": 2, "city": "Dakar", "country": "Senegal", "lat": 14.7167, "lng": -17.4677 },
-{ "name": "BRAC", "category": "Community / Social Care", "level": 2, "city": "Dhaka", "country": "Bangladesh", "lat": 23.8103, "lng": 90.4125 },
-{ "name": "GiveDirectly", "category": "Community / Social Care", "level": 2, "city": "Nairobi", "country": "Kenya", "lat": -1.2921, "lng": 36.8219 },
-{ "name": "Ashoka", "category": "Community / Social Care", "level": 2, "city": "Arlington", "country": "USA", "lat": 38.8816, "lng": -77.091 },
-
-{ "name": "Habitat for Humanity", "category": "Community / Social Care", "level": 2, "city": "Atlanta", "country": "USA", "lat": 33.749, "lng": -84.388 },
-{ "name": "SOS Children's Villages", "category": "Community / Social Care", "level": 2, "city": "Innsbruck", "country": "Austria", "lat": 47.2692, "lng": 11.4041 },
-{ "name": "Caritas Internationalis", "category": "Community / Social Care", "level": 2, "city": "Vatican City", "country": "Vatican City", "lat": 41.9029, "lng": 12.4534 },
-{ "name": "Plan International", "category": "Education / Knowledge Access", "level": 2, "city": "Woking", "country": "United Kingdom", "lat": 51.319, "lng": -0.558 },
-{ "name": "World Central Kitchen", "category": "Emergency / Crisis Response", "level": 2, "city": "Washington, DC", "country": "USA", "lat": 38.9072, "lng": -77.0369 }
+{
+"name": "Addi Road Community Organisation",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Sydney",
+"country": "Australia",
+"lat": -33.8688,
+"lng": 151.2093
+},
+{
+"name": "Emergency",
+"category": "Health / Care",
+"level": 2,
+"city": "Milan",
+"country": "Italy",
+"lat": 45.4642,
+"lng": 9.1900
+},
+{
+"name": "Médecins Sans Frontières",
+"category": "Health / Care",
+"level": 2,
+"city": "Geneva",
+"country": "Switzerland",
+"lat": 46.2044,
+"lng": 6.1432
+},
+{
+"name": "Save the Soil – Conscious Planet",
+"category": "Environment / Planet Care",
+"level": 2,
+"city": "Coimbatore",
+"country": "India",
+"lat": 11.0168,
+"lng": 76.9558
+},
+{
+"name": "Water.org",
+"category": "Environment / Planet Care",
+"level": 1,
+"city": "Kansas City",
+"country": "USA",
+"lat": 39.0997,
+"lng": -94.5786
+},
+{
+"name": "BRAC",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Dhaka",
+"country": "Bangladesh",
+"lat": 23.8103,
+"lng": 90.4125
+},
+{
+"name": "International Rescue Committee",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.0060
+},
+{
+"name": "UNICEF",
+"category": "Human Rights / Care",
+"level": 2,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.0060
+},
+{
+"name": "Save the Children",
+"category": "Human Rights / Care",
+"level": 2,
+"city": "London",
+"country": "United Kingdom",
+"lat": 51.5074,
+"lng": -0.1278
+},
+{
+"name": "Doctors of the World",
+"category": "Health / Care",
+"level": 2,
+"city": "Paris",
+"country": "France",
+"lat": 48.8566,
+"lng": 2.3522
+},
+{
+"name": "African Wildlife Foundation",
+"category": "Environment / Planet Care",
+"level": 1,
+"city": "Nairobi",
+"country": "Kenya",
+"lat": -1.2921,
+"lng": 36.8219
+},
+{
+"name": "Rainforest Alliance",
+"category": "Environment / Planet Care",
+"level": 1,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.0060
+},
+{
+"name": "CARE International",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Geneva",
+"country": "Switzerland",
+"lat": 46.2044,
+"lng": 6.1432
+},
+{
+"name": "Norwegian Refugee Council",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Oslo",
+"country": "Norway",
+"lat": 59.9139,
+"lng": 10.7522
+},
+{
+"name": "International Committee of the Red Cross",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Geneva",
+"country": "Switzerland",
+"lat": 46.2044,
+"lng": 6.1432
+},
+{
+"name": "Human Rights Watch",
+"category": "Human Rights / Legal Support",
+"level": 1,
+"city": "New York",
+"country": "USA",
+"lat": 40.7128,
+"lng": -74.0060
+},
+{
+"name": "Amnesty International",
+"category": "Human Rights / Legal Support",
+"level": 2,
+"city": "London",
+"country": "United Kingdom",
+"lat": 51.5074,
+"lng": -0.1278
+},
+{
+"name": "Action Against Hunger",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Madrid",
+"country": "Spain",
+"lat": 40.4168,
+"lng": -3.7038
+},
+{
+"name": "Oxfam",
+"category": "Community / Social Care",
+"level": 2,
+"city": "Oxford",
+"country": "United Kingdom",
+"lat": 51.7520,
+"lng": -1.2577
+},
+{
+"name": "Islamic Relief Worldwide",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Birmingham",
+"country": "United Kingdom",
+"lat": 52.4862,
+"lng": -1.8904
+},
+{
+"name": "World Food Programme",
+"category": "Emergency / Crisis Response",
+"level": 2,
+"city": "Rome",
+"country": "Italy",
+"lat": 41.9028,
+"lng": 12.4964
+}
 ]
-
