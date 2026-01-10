@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>WEJUMAN — A living map of real and verifiable initiatives</title>
 
-<!-- Google Search Console (optional) -->
-<!-- If you already verified, you can keep it or remove it -->
-<meta name="google-site-verification" content="PASTE_YOUR_TOKEN_HERE" />
+<!-- Optional (keep if you already verified in Search Console) -->
+<!-- <meta name="google-site-verification" content="PASTE_YOUR_TOKEN_HERE" /> -->
 
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -27,7 +26,6 @@
 --border:#e6e6e6;
 --shadow:0 12px 40px rgba(0,0,0,0.12);
 --radius:18px;
-
 --btn:#111;
 --btnText:#fff;
 }
@@ -62,10 +60,19 @@ font-weight:800;
 letter-spacing:0.24em;
 font-size:14px;
 color:var(--text);
-margin-bottom:10px;
+margin-bottom:8px;
 }
 
-.searchRow{
+.tagline{
+font-size:14px;
+line-height:1.35;
+color:var(--muted);
+margin: 0 0 10px 0;
+max-width:720px;
+}
+
+/* Ask the map (AI-lite) */
+.askRow{
 display:flex;
 align-items:center;
 gap:10px;
@@ -74,15 +81,15 @@ border:1px solid var(--border);
 border-radius:999px;
 padding:10px 12px;
 }
-.searchIcon{ font-size:16px; opacity:0.65; }
-#searchInput{
+.askIcon{ font-size:16px; opacity:0.65; }
+#askInput{
 border:0;
 outline:0;
 width:100%;
 font-size:16px;
 background:transparent;
 }
-.pinBtn{
+.btnIcon{
 border:0;
 background:#f2f2f2;
 border:1px solid var(--border);
@@ -93,11 +100,28 @@ cursor:pointer;
 font-size:16px;
 }
 
+.examples{
+margin-top:10px;
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+}
+.chip{
+font-size:13px;
+color:#111;
+background:#f5f5f5;
+border:1px solid var(--border);
+padding:8px 10px;
+border-radius:999px;
+cursor:pointer;
+user-select:none;
+}
+
 .desc{
 margin-top:10px;
 color:var(--muted);
 line-height:1.35;
-font-size:15px;
+font-size:14px;
 max-width: 720px;
 }
 
@@ -105,7 +129,8 @@ max-width: 720px;
 display:flex;
 align-items:flex-start;
 justify-content:flex-end;
-padding-top: 28px; /* align visually with search */
+padding-top: 22px;
+gap:10px;
 }
 .count{
 color:var(--muted);
@@ -113,32 +138,50 @@ font-size:14px;
 white-space:nowrap;
 }
 
-/* CTA block */
+/* CTA */
 .cta{
 padding: 0 14px 14px 14px;
 color:var(--muted);
 border-top:1px solid var(--border);
+display:flex;
+flex-direction:column;
+gap:10px;
 }
 .cta p{
-margin:12px 0 10px 0;
-font-size:15px;
+margin:12px 0 0 0;
+font-size:14px;
 line-height:1.35;
 }
-.cta button{
+.ctaActions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+.cta button, .cta a{
 appearance:none;
 border:0;
 background:var(--btn);
 color:var(--btnText);
-padding:12px 18px;
+padding:12px 16px;
 border-radius:14px;
 font-weight:700;
 cursor:pointer;
+text-decoration:none;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+}
+.secondary{
+background:#fff !important;
+color:#111 !important;
+border:1px solid var(--border) !important;
+font-weight:700;
 }
 
-/* Results dropdown */
+/* Results dropdown (search list) */
 .results{
 position:fixed;
-top: calc(16px + env(safe-area-inset-top) + 96px);
+top: calc(16px + env(safe-area-inset-top) + 132px);
 left:16px;
 right:16px;
 z-index:9998;
@@ -148,10 +191,10 @@ border-radius:16px;
 box-shadow:var(--shadow);
 overflow:hidden;
 display:none;
-max-height: 40vh;
+max-height: 44vh;
 }
 .resultsList{
-max-height:40vh;
+max-height:44vh;
 overflow:auto;
 }
 .item{
@@ -163,12 +206,62 @@ cursor:pointer;
 .item strong{ display:block; color:#111; font-size:15px; }
 .item span{ display:block; margin-top:4px; color:#666; font-size:13px; }
 
-/* Mobile: make panel less invasive */
+/* Guardrail overlay */
+.overlay{
+position:fixed;
+inset:0;
+background: rgba(0,0,0,0.55);
+z-index:10000;
+display:none;
+padding: 18px;
+box-sizing:border-box;
+}
+.modal{
+max-width: 620px;
+margin: calc(18px + env(safe-area-inset-top)) auto 0;
+background:#fff;
+border-radius:18px;
+border:1px solid var(--border);
+box-shadow: var(--shadow);
+overflow:hidden;
+}
+.modalBody{
+padding:16px;
+color:#111;
+}
+.modalBody p{
+margin:0 0 10px 0;
+line-height:1.35;
+font-size:15px;
+}
+.modalActions{
+padding: 0 16px 16px 16px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+.modalActions button{
+border:0;
+background:#111;
+color:#fff;
+padding:12px 16px;
+border-radius:14px;
+font-weight:800;
+cursor:pointer;
+}
+.modalActions .secondaryBtn{
+background:#fff;
+color:#111;
+border:1px solid var(--border);
+font-weight:800;
+}
+
+/* Mobile: keep it light */
 @media (max-width: 520px){
-.desc{ font-size:14px; }
-.cta p{ font-size:14px; }
+.tagline{ font-size:13px; }
+.desc{ font-size:13px; }
+.results{ top: calc(16px + env(safe-area-inset-top) + 126px); }
 .right{ padding-top: 18px; }
-.results{ top: calc(16px + env(safe-area-inset-top) + 92px); }
 }
 </style>
 </head>
@@ -176,50 +269,76 @@ cursor:pointer;
 <body>
 <div id="map"></div>
 
+<!-- Guardrail (shown once) -->
+<div id="overlay" class="overlay" role="dialog" aria-modal="true">
+<div class="modal">
+<div class="modalBody">
+<p><strong>Wejuman does not evaluate.</strong></p>
+<p>It does not rank. It does not recommend.</p>
+<p>It shows what exists.</p>
+<p style="color:#666;font-size:13px;margin:0;">How you read it is your responsibility.</p>
+</div>
+<div class="modalActions">
+<button id="agreeBtn">I understand</button>
+<button id="closeBtn" class="secondaryBtn">Close</button>
+</div>
+</div>
+</div>
+
 <!-- TOP PANEL -->
 <div class="panel" role="region" aria-label="Wejuman panel">
 <div class="panel-inner">
 <div>
 <div class="brand">WEJUMAN</div>
+<div class="tagline">Wejuman exists to make real human actions visible.</div>
 
-<div class="searchRow">
-<div class="searchIcon">🔎</div>
-<input id="searchInput" type="text" placeholder="Search initiative or place (e.g. Emergency, Nairobi)" />
-<button id="locateBtn" class="pinBtn" title="Go to my location">📍</button>
+<!-- Ask the map -->
+<div class="askRow">
+<div class="askIcon">🧭</div>
+<input id="askInput" type="text" placeholder="Ask the map (e.g. “education in East Africa”, “near me”)"/>
+<button id="runBtn" class="btnIcon" title="Run">↵</button>
+<button id="locateBtn" class="btnIcon" title="My location">📍</button>
+</div>
+
+<div class="examples">
+<div class="chip" data-q="near me">near me</div>
+<div class="chip" data-q="health initiatives in Africa">health initiatives in Africa</div>
+<div class="chip" data-q="environment initiatives in South America">environment initiatives in South America</div>
+<div class="chip" data-q="education in India">education in India</div>
 </div>
 
 <div class="desc">
-A living map of real and verifiable initiatives around the world.
-Search for an organization (marker) or a city/place.
+Ask in plain language. Wejuman will only filter and reveal what is already on the map.
 </div>
 </div>
 
 <div class="right">
 <div id="count" class="count">Loading…</div>
+<button id="resetBtn" class="btnIcon" title="Reset">⟲</button>
 </div>
 </div>
 
 <div class="cta">
-<p>Wejuman exists to make real human actions visible. If you’re active in the world and want to be on the map, contact us.</p>
-<button id="contactBtn">Contact us</button>
+<p>If you’re active in the world and want to be on the map, contact us.</p>
+<div class="ctaActions">
+<a id="contactLink" href="mailto:info@wejuman.org?subject=Wejuman%20—%20Request%20to%20be%20on%20the%20map">Contact us</a>
+<button id="showRuleBtn" class="secondary">Interaction rule</button>
+</div>
 </div>
 </div>
 
-<!-- Results -->
+<!-- Results list (used for keyword results only, optional) -->
 <div id="results" class="results">
 <div id="resultsList" class="resultsList"></div>
 </div>
 
 <script>
 // ========= CONFIG =========
-// Where the "Contact us" button goes:
-// - mailto:...
-// - a Google Form link
-// - a /contact.html page
-const CONTACT_URL = "mailto:info@wejuman.org?subject=Wejuman%20—%20Request%20to%20be%20on%20the%20map";
-
-// Data file
 const POINTS_URL = "points.json";
+
+// Nominatim geocoding (AI-lite)
+// Note: public service has rate limits. Works great for early stage.
+const NOMINATIM = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=";
 
 // ========= MAP INIT =========
 const map = L.map("map", { zoomControl: true }).setView([20, 0], 2);
@@ -237,32 +356,49 @@ maxClusterRadius: 55
 });
 map.addLayer(cluster);
 
-// ========= UI HOOKS =========
-const searchInput = document.getElementById("searchInput");
+// ========= UI =========
+const askInput = document.getElementById("askInput");
+const runBtn = document.getElementById("runBtn");
 const locateBtn = document.getElementById("locateBtn");
-const contactBtn = document.getElementById("contactBtn");
+const resetBtn = document.getElementById("resetBtn");
 const countEl = document.getElementById("count");
+
 const resultsEl = document.getElementById("results");
 const resultsListEl = document.getElementById("resultsList");
 
-contactBtn.addEventListener("click", () => {
-window.location.href = CONTACT_URL;
-});
+const overlay = document.getElementById("overlay");
+const agreeBtn = document.getElementById("agreeBtn");
+const closeBtn = document.getElementById("closeBtn");
+const showRuleBtn = document.getElementById("showRuleBtn");
 
-locateBtn.addEventListener("click", () => {
-if (!navigator.geolocation) return alert("Geolocation not supported.");
-navigator.geolocation.getCurrentPosition(
-(pos) => {
-const lat = pos.coords.latitude;
-const lng = pos.coords.longitude;
-map.setView([lat, lng], 10);
-},
-() => alert("I can't access your location (permission denied).")
-);
+// One-time guardrail
+function showOverlay(){
+overlay.style.display = "block";
+}
+function hideOverlay(){
+overlay.style.display = "none";
+}
+agreeBtn.addEventListener("click", () => {
+localStorage.setItem("wejuman_rule_ack", "1");
+hideOverlay();
+});
+closeBtn.addEventListener("click", hideOverlay);
+showRuleBtn.addEventListener("click", showOverlay);
+
+if (!localStorage.getItem("wejuman_rule_ack")) {
+showOverlay();
+}
+
+// Chips
+document.querySelectorAll(".chip").forEach(ch => {
+ch.addEventListener("click", () => {
+askInput.value = ch.dataset.q || "";
+runAsk();
+});
 });
 
 // ========= DATA =========
-let items = []; // raw points
+let items = []; // normalized items
 let markers = []; // { marker, data }
 
 function escapeHtml(str){
@@ -290,7 +426,21 @@ return `
 `;
 }
 
-function showResults(list){
+function setCount(n, total){
+// Not evaluative, purely descriptive
+if (typeof total === "number" && n !== total) {
+countEl.textContent = `${n} visible / ${total} total`;
+} else {
+countEl.textContent = `${n} initiatives`;
+}
+}
+
+function clearResults(){
+resultsEl.style.display = "none";
+resultsListEl.innerHTML = "";
+}
+
+function showResultsList(list){
 resultsListEl.innerHTML = "";
 list.slice(0, 40).forEach(p => {
 const name = escapeHtml(p.name);
@@ -298,63 +448,35 @@ const city = escapeHtml(p.city || "");
 const country = escapeHtml(p.country || "");
 const category = escapeHtml(p.category || "");
 const loc = [city, country].filter(Boolean).join(", ");
-
 const div = document.createElement("div");
 div.className = "item";
 div.innerHTML = `<strong>${name}</strong><span>${loc}${loc && category ? " • " : ""}${category}</span>`;
 div.onclick = () => {
-resultsEl.style.display = "none";
+clearResults();
 map.setView([p.lat, p.lng], Math.max(map.getZoom(), 8));
-// open popup for its marker
 const it = markers.find(x => x.data === p);
 if (it) it.marker.openPopup();
 };
 resultsListEl.appendChild(div);
 });
-
 resultsEl.style.display = list.length ? "block" : "none";
 }
 
-function hideResults(){
-resultsEl.style.display = "none";
+function rebuildCluster(filtered){
+cluster.clearLayers();
+markers = [];
+
+filtered.forEach(p => {
+const m = L.marker([p.lat, p.lng]).bindPopup(popupHtml(p));
+cluster.addLayer(m);
+markers.push({ marker: m, data: p });
+});
+
+setCount(filtered.length, items.length);
 }
 
-document.addEventListener("click", (e) => {
-// close results if click outside panel/results
-const panel = document.querySelector(".panel");
-if (!panel.contains(e.target) && !resultsEl.contains(e.target)) hideResults();
-});
-
-function filter(q){
-q = (q || "").trim().toLowerCase();
-if (!q) return [];
-return items.filter(p => {
-const hay = [
-p.name, p.city, p.country, p.category
-].filter(Boolean).join(" ").toLowerCase();
-return hay.includes(q);
-});
-}
-
-searchInput.addEventListener("input", () => {
-const q = searchInput.value;
-const res = filter(q);
-showResults(res);
-});
-
-// ========= LOAD =========
-async function loadPoints(){
-try{
-const res = await fetch(POINTS_URL, { cache: "no-store" });
-if (!res.ok) throw new Error("HTTP " + res.status);
-const data = await res.json();
-
-if (!Array.isArray(data)) throw new Error("points.json must be an array []");
-
-// basic validation + keep only valid coords
-items = data
-.filter(p => p && typeof p.lat === "number" && typeof p.lng === "number")
-.map(p => ({
+function normalizePoint(p){
+return {
 name: p.name || "Unknown",
 category: p.category || "",
 level: (typeof p.level === "number") ? p.level : 0,
@@ -362,26 +484,171 @@ city: p.city || "",
 country: p.country || "",
 lat: p.lat,
 lng: p.lng
-}));
+};
+}
 
-// clear cluster + markers
-cluster.clearLayers();
-markers = [];
+async function loadPoints(){
+try{
+const res = await fetch(POINTS_URL, { cache: "no-store" });
+if (!res.ok) throw new Error("HTTP " + res.status);
+const data = await res.json();
+if (!Array.isArray(data)) throw new Error("points.json must be an array []");
 
-items.forEach(p => {
-const m = L.marker([p.lat, p.lng]).bindPopup(popupHtml(p));
-cluster.addLayer(m);
-markers.push({ marker: m, data: p });
-});
+items = data
+.filter(p => p && typeof p.lat === "number" && typeof p.lng === "number")
+.map(normalizePoint);
 
-countEl.textContent = `${items.length} initiatives`;
+rebuildCluster(items);
 }catch(err){
 console.error(err);
 countEl.textContent = "Error";
-alert("Error: I can't load points.json. Check that it exists in the repo and is valid JSON.");
+alert("Error: can't load points.json. Check file path and valid JSON.");
 }
 }
 
+// ========= AI-LITE “ASK THE MAP” =========
+function tokenize(q){
+return q
+.toLowerCase()
+.replace(/[^\p{L}\p{N}\s]/gu, " ")
+.split(/\s+/)
+.filter(Boolean);
+}
+
+function matchesKeywords(p, tokens){
+if (!tokens.length) return true;
+const hay = [p.name, p.city, p.country, p.category].filter(Boolean).join(" ").toLowerCase();
+return tokens.every(t => hay.includes(t));
+}
+
+function haversineKm(lat1, lon1, lat2, lon2){
+const R = 6371;
+const toRad = d => d * Math.PI / 180;
+const dLat = toRad(lat2 - lat1);
+const dLon = toRad(lon2 - lon1);
+const a =
+Math.sin(dLat/2) * Math.sin(dLat/2) +
+Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+Math.sin(dLon/2) * Math.sin(dLon/2);
+return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function geocodePlace(place){
+const url = NOMINATIM + encodeURIComponent(place);
+const res = await fetch(url, { headers: { "Accept": "application/json" }});
+if (!res.ok) return null;
+const j = await res.json();
+if (!Array.isArray(j) || !j.length) return null;
+return { lat: parseFloat(j[0].lat), lng: parseFloat(j[0].lon) };
+}
+
+function parseQuery(raw){
+const q = (raw || "").trim();
+const lower = q.toLowerCase();
+
+const nearMe = /\b(near me|nearby|around me|my location)\b/.test(lower);
+
+// Try to extract “in <place>” pattern
+let place = null;
+const inMatch = lower.match(/\b(in|near)\s+(.+)$/);
+if (inMatch && inMatch[2]) {
+// avoid treating “near me” as a place
+if (!/\bme\b/.test(inMatch[2])) place = inMatch[2].trim();
+}
+
+// tokens for filtering: remove "in <place>" part
+let keywordPart = q;
+if (place) {
+const idx = lower.lastIndexOf(" in ");
+if (idx !== -1) keywordPart = q.slice(0, idx).trim();
+}
+// remove generic words
+const tokens = tokenize(keywordPart).filter(t => !["initiative","initiatives","actions","action","map","the","a","an","of","for","on","in","near"].includes(t));
+
+return { nearMe, place, tokens };
+}
+
+async function runAsk(){
+clearResults();
+
+const raw = askInput.value || "";
+const { nearMe, place, tokens } = parseQuery(raw);
+
+// 1) near me → geolocate + optionally filter by radius
+if (nearMe) {
+if (!navigator.geolocation) {
+alert("Geolocation not supported in this browser.");
+return;
+}
+navigator.geolocation.getCurrentPosition(
+(pos) => {
+const lat = pos.coords.latitude;
+const lng = pos.coords.longitude;
+
+// Filter by keywords first, then by distance (radius in km)
+const keywordFiltered = items.filter(p => matchesKeywords(p, tokens));
+const radiusKm = 300; // conservative, not too strict
+const near = keywordFiltered.filter(p => haversineKm(lat, lng, p.lat, p.lng) <= radiusKm);
+
+rebuildCluster(near.length ? near : keywordFiltered);
+map.setView([lat, lng], 7);
+
+// If there are keyword matches, show list (optional)
+if (tokens.length) showResultsList(near.length ? near : keywordFiltered);
+},
+() => alert("I can't access your location (permission denied).")
+);
+return;
+}
+
+// 2) place specified → geocode and move there, then filter
+if (place) {
+const geo = await geocodePlace(place);
+if (geo) {
+map.setView([geo.lat, geo.lng], 5);
+const filtered = items.filter(p => matchesKeywords(p, tokens));
+rebuildCluster(filtered);
+if (tokens.length) showResultsList(filtered);
+return;
+}
+// If geocode fails: fallback to keyword-only
+}
+
+// 3) keyword-only filtering
+const filtered = items.filter(p => matchesKeywords(p, tokens.length ? tokens : tokenize(raw)));
+rebuildCluster(filtered);
+
+// If the user typed something, show list to help selection
+if ((raw || "").trim()) showResultsList(filtered);
+}
+
+runBtn.addEventListener("click", runAsk);
+askInput.addEventListener("keydown", (e) => {
+if (e.key === "Enter") runAsk();
+});
+
+// Simple locate button (does not filter, just zoom)
+locateBtn.addEventListener("click", () => {
+if (!navigator.geolocation) return alert("Geolocation not supported.");
+navigator.geolocation.getCurrentPosition(
+(pos) => map.setView([pos.coords.latitude, pos.coords.longitude], 10),
+() => alert("I can't access your location (permission denied).")
+);
+});
+
+resetBtn.addEventListener("click", () => {
+askInput.value = "";
+clearResults();
+rebuildCluster(items);
+map.setView([20, 0], 2);
+});
+
+document.addEventListener("click", (e) => {
+const panel = document.querySelector(".panel");
+if (!panel.contains(e.target) && !resultsEl.contains(e.target)) clearResults();
+});
+
+// ========= START =========
 loadPoints();
 </script>
 </body>
