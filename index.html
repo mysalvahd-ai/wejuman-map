@@ -33,7 +33,6 @@ backdrop-filter: blur(14px);
 color:#fff;
 box-sizing:border-box;
 display:none;
-
 max-height: 50vh;
 overflow:auto;
 }
@@ -58,7 +57,6 @@ margin-bottom:8px;
 }
 .item .n{ font-weight:650; }
 .item .t{ opacity:.75; margin-left:6px; }
-
 .mapped{ background: rgba(255,255,255,0.08); }
 
 .aiLine{
@@ -131,17 +129,15 @@ backdrop-filter: blur(10px);
 
 <script>
 /**********************
-* YOUR MAPPED / ANCHOR POINTS (Wejuman-curated)
+* LOAD POINTS FROM JSON
 **********************/
-const mappedPoints = [
-{ name:"Isha Foundation (Sadhguru)", tagline:"Environmental action, education and rural health initiatives.", lat:11.0168, lon:76.9558 },
-{ name:"Addi Road Community Organisation", tagline:"Community meals and social support.", lat:-33.9236, lon:151.0940 },
-{ name:"EMERGENCY", tagline:"Free healthcare in war zones and underserved areas.", lat:45.4642, lon:9.1900 },
-{ name:"Médecins Sans Frontières", tagline:"Medical assistance in conflict and crisis zones.", lat:46.2044, lon:6.1432 }
-];
+const POINTS_URL = "./points.json"; // same folder as index.html
+
+let mappedPoints = []; // will be loaded from JSON
+let markerLayer = null; // leaflet layer for points
 
 /**********************
-* Definitive Wejuman AI voice (short + honest)
+* AI voice (Auto-City + Explore)
 **********************/
 const AI_LINE_A = "Human action is likely present in this area.";
 const AI_LINE_B = "AI suggests recurring forms of human action related to community care, food support, education access, health assistance and emergency response.";
@@ -154,6 +150,11 @@ function escapeHtml(s){
 return String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
 }
 
+function openSearch(query){
+const q = encodeURIComponent(query);
+window.open(`https://duckduckgo.com/?q=${q}`, "_blank", "noopener,noreferrer");
+}
+
 function pointsInBounds(bounds){
 const arr = [];
 for (const p of mappedPoints){
@@ -161,11 +162,6 @@ if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
 if (bounds.contains([p.lat, p.lon])) arr.push(p);
 }
 return arr;
-}
-
-function openSearch(query){
-const q = encodeURIComponent(query);
-window.open(`https://duckduckgo.com/?q=${q}`, "_blank", "noopener,noreferrer");
 }
 
 /**********************
@@ -183,13 +179,10 @@ const region = a.state || a.region || a.county || null;
 const country = a.country || null;
 
 const place = city || region || country || "This area";
-
 return { place, city, region, country };
 }
 
 function buildFocusLabel(geo){
-// Use the most specific label available for searches
-// e.g., "Rovigo", else "Veneto", else "Italy"
 return geo?.city || geo?.region || geo?.country || geo?.place || "this area";
 }
 
@@ -201,7 +194,10 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 maxZoom:19, attribution:"&copy; OpenStreetMap"
 }).addTo(map);
 
-const markerLayer = L.layerGroup().addTo(map);
+markerLayer = L.layerGroup().addTo(map);
+
+function renderMarkers(){
+markerLayer.clearLayers();
 for (const p of mappedPoints){
 if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
 L.circleMarker([p.lat, p.lon], {
@@ -210,6 +206,33 @@ weight: 2,
 opacity: 0.9,
 fillOpacity: 0.14
 }).addTo(markerLayer);
+}
+}
+
+async function loadPoints(){
+try{
+const res = await fetch(POINTS_URL, { cache: "no-store" });
+if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+const data = await res.json();
+if (!Array.isArray(data)) throw new Error("points.json is not an array");
+
+// sanitize
+mappedPoints = data
+.filter(p => p && typeof p === "object")
+.map(p => ({
+name: String(p.name || "").trim(),
+tagline: String(p.tagline || "").trim(),
+lat: Number(p.lat),
+lon: Number(p.lon)
+}))
+.filter(p => p.name && Number.isFinite(p.lat) && Number.isFinite(p.lon));
+
+renderMarkers();
+scheduleUpdate(); // refresh panel after load
+}catch(err){
+console.error("Could not load points.json", err);
+// keep empty list; map still works
+}
 }
 
 /**********************
@@ -260,7 +283,6 @@ aiLines.appendChild(l3);
 
 const focus = buildFocusLabel(geo);
 
-// 3 doors to the world (auto-city)
 const b1 = document.createElement("a");
 b1.className = "btn";
 b1.href = "#";
@@ -311,7 +333,6 @@ const r = await reverseGeocode(center.lat, center.lng);
 if (r) geo = r;
 } catch(e){}
 
-// show in UI
 placeEl.textContent = geo.place;
 
 if (mappedInView.length){
@@ -337,7 +358,10 @@ timer = setTimeout(updatePanel, DEBOUNCE_MS);
 
 map.on("moveend", scheduleUpdate);
 map.on("zoomend", scheduleUpdate);
+
+// Start
 scheduleUpdate();
+loadPoints(); // <-- loads points.json and renders markers
 </script>
 </body>
 </html>
