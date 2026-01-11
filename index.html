@@ -16,6 +16,7 @@ position:absolute; top:12px; left:12px; z-index:1000;
 padding:10px 12px; border-radius:14px;
 background: rgba(0,0,0,0.62);
 backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
 color:#fff;
 user-select:none;
 max-width: calc(100% - 24px);
@@ -23,50 +24,70 @@ max-width: calc(100% - 24px);
 .brand{ letter-spacing:.26em; font-weight:700; font-size:12px; }
 .tagline{ margin-top:4px; opacity:.72; font-size:12px; }
 
+/* ✅ WHITE TRANSLUCENT PANEL */
 .panel{
-position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+position:absolute;
+left:50%;
+bottom:14px;
+transform:translateX(-50%);
 width:min(900px, calc(100% - 24px));
 z-index:1000;
-padding:12px 14px; border-radius:18px;
-background: rgba(0,0,0,0.70);
-backdrop-filter: blur(14px);
-color:#fff;
+
+padding:12px 14px;
+border-radius:18px;
+
+background: rgba(255,255,255,0.78);
+backdrop-filter: blur(18px);
+-webkit-backdrop-filter: blur(18px);
+
+color:#000;
 box-sizing:border-box;
+
 display:none;
 max-height: 52vh;
 overflow:auto;
+
+box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+transition: transform 180ms ease, opacity 180ms ease;
 }
 .panel.show{ display:block; }
 
+/* ✅ “LOWER WHILE MOVING” */
+.panel.lowered{
+transform: translateX(-50%) translateY(55%);
+opacity: 0.55;
+}
+
 .place{ font-weight:650; font-size:16px; }
-.meta{ opacity:.72; font-size:13px; margin-top:2px; }
+.meta{ font-size:13px; margin-top:2px; color: rgba(0,0,0,0.55); }
 
 .section{ margin-top:10px; }
 .sectionTitle{
 font-size:12px; letter-spacing:.18em;
-text-transform:uppercase; opacity:.7;
+text-transform:uppercase;
 margin-bottom:8px;
+color: rgba(0,0,0,0.50);
 }
 
 .item{
 font-size:13px; line-height:1.25;
 padding:9px 10px;
 border-radius:12px;
-background: rgba(255,255,255,0.06);
+background: rgba(0,0,0,0.05);
+border: 1px solid rgba(0,0,0,0.06);
 margin-bottom:8px;
 }
 .item .n{ font-weight:650; }
 .item .t{ opacity:.75; margin-left:6px; }
-.mapped{ background: rgba(255,255,255,0.08); }
 
 .aiLine{
 font-size:13px; line-height:1.3;
-opacity:.92;
 padding:9px 10px;
 border-radius:12px;
-background: rgba(255,255,255,0.04);
-border:1px solid rgba(255,255,255,0.08);
+background: rgba(0,0,0,0.04);
+border: 1px solid rgba(0,0,0,0.06);
 margin-bottom:8px;
+color: rgba(0,0,0,0.82);
 }
 
 .btnRow{
@@ -77,24 +98,26 @@ margin-top:10px;
 display:inline-flex; align-items:center; gap:8px;
 padding:10px 12px;
 border-radius:999px;
-background: rgba(255,255,255,0.10);
-color:#fff; text-decoration:none;
+background: rgba(0,0,0,0.06);
+color:#000;
+text-decoration:none;
 font-size:13px;
-border:1px solid rgba(255,255,255,0.10);
+border:1px solid rgba(0,0,0,0.08);
 }
-.btn:hover{ background: rgba(255,255,255,0.14); }
+.btn:hover{ background: rgba(0,0,0,0.08); }
 
 .smallNote{
 font-size:12px;
-opacity:.55;
 margin-top:10px;
+color: rgba(0,0,0,0.45);
 }
 
 .leaflet-control-zoom a{
-background: rgba(0,0,0,0.55) !important;
-color:#fff !important;
+background: rgba(255,255,255,0.70) !important;
+color:#000 !important;
 border:none !important;
-backdrop-filter: blur(10px);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
 }
 .leaflet-bar{ box-shadow:none !important; }
 </style>
@@ -135,16 +158,13 @@ const POINTS_URL = "./points.json"; // same folder
 const MIN_ZOOM_SHOW_PANEL = 4;
 const UPDATE_DEBOUNCE_MS = 650;
 
-// Reverse geocoding: more “city-level” when zoomed in
-// (Nominatim: zoom 14 ~ neighborhood/city; zoom 10 ~ region)
 function nominatimZoomForMapZoom(z){
 if (z >= 13) return 14;
 if (z >= 10) return 12;
 if (z >= 7) return 10;
-return 6; // country-ish
+return 6;
 }
 
-// Wejuman “AI voice” (short + definitive)
 const AI_LINES = [
 "Human action is likely present in this area.",
 "AI suggests recurring forms of human action related to community care, food support, education access, health assistance and emergency response.",
@@ -178,36 +198,22 @@ if (bounds.contains([p.lat, p.lon])) arr.push(p);
 return arr;
 }
 
-/**********************
-* Reverse Geocoding (auto city)
-**********************/
 async function reverseGeocode(lat, lon, mapZoom){
 const z = nominatimZoomForMapZoom(mapZoom);
 const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=${z}&lat=${lat}&lon=${lon}`;
 
-const res = await fetch(url, {
-headers: {
-"Accept-Language":"en",
-// user-agent header cannot be set in browser; ok.
-}
-});
+const res = await fetch(url, { headers: { "Accept-Language":"en" } });
 if (!res.ok) return null;
 
 const data = await res.json();
 const a = data?.address || {};
 
-// city-first logic
-const city =
-a.city || a.town || a.village || a.municipality || a.hamlet || a.locality || null;
-
-const region =
-a.state || a.region || a.county || a.state_district || null;
-
+const city = a.city || a.town || a.village || a.municipality || a.hamlet || a.locality || null;
+const region = a.state || a.region || a.county || a.state_district || null;
 const country = a.country || null;
 
-// place to display (city > region > country)
 const place = city || region || country || "This area";
-return { place, city, region, country, zoomUsed: z };
+return { place, city, region, country };
 }
 
 function focusLabel(geo){
@@ -277,7 +283,7 @@ function renderMapped(list){
 mappedList.innerHTML = "";
 for (const p of list){
 const div = document.createElement("div");
-div.className = "item mapped";
+div.className = "item";
 div.innerHTML = `<span class="n">${escapeHtml(p.name)}</span><span class="t">${escapeHtml(p.tagline)}</span>`;
 mappedList.appendChild(div);
 }
@@ -328,7 +334,6 @@ const bounds = map.getBounds();
 const center = map.getCenter();
 const inView = pointsInBounds(bounds);
 
-// AUTO CITY from the map center
 let geo = { place:"This area", city:null, region:null, country:null };
 try{
 const r = await reverseGeocode(center.lat, center.lng, z);
@@ -358,15 +363,28 @@ clearTimeout(timer);
 timer = setTimeout(updatePanel, UPDATE_DEBOUNCE_MS);
 }
 
-map.on("moveend", scheduleUpdate);
-map.on("zoomend", scheduleUpdate);
+/**********************
+* PANEL BEHAVIOR WHILE MOVING
+**********************/
+map.on("movestart", () => { panel.classList.add("lowered"); });
+map.on("zoomstart", () => { panel.classList.add("lowered"); });
+
+map.on("moveend", () => {
+panel.classList.remove("lowered");
+scheduleUpdate();
+});
+
+map.on("zoomend", () => {
+panel.classList.remove("lowered");
+scheduleUpdate();
+});
 
 /**********************
 * START
 **********************/
 (async function init(){
 try{
-await loadPoints(); // points.json -> markers
+await loadPoints();
 }catch(err){
 console.error(err);
 }
