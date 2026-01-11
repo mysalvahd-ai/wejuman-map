@@ -14,13 +14,18 @@ html, body { height: 100%; margin: 0; background:#000; }
 .topbar{
 position:absolute; top:12px; left:12px; z-index:1000;
 padding:10px 12px; border-radius:14px;
-background: rgba(0,0,0,0.62);
-backdrop-filter: blur(12px);
--webkit-backdrop-filter: blur(12px);
-color:#fff;
+
+background: rgba(255,255,255,0.78); /* 👈 bianco trasparente */
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+
+color:#000; /* 👈 testo nero */
 user-select:none;
 max-width: calc(100% - 24px);
+
+box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
+
 .brand{ letter-spacing:.26em; font-weight:700; font-size:12px; }
 .tagline{ margin-top:4px; opacity:.72; font-size:12px; }
 
