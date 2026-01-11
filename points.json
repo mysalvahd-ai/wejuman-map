@@ -1,12 +1,11 @@
 [
-{ "name": "Emergency", "category": "Health / Care", "level": 2, "city": "Milan", "country": "Italy", "lat": 45.4642, "lon": 9.19 },
-{ "name": "Doctors Without Borders", "category": "Health / Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lon": 6.1432 },
-{ "name": "Red Cross Italy", "category": "Emergency / Crisis Response", "level": 2, "city": "Rome", "country": "Italy", "lat": 41.9028, "lon": 12.4964 },
-{ "name": "Save the Children", "category": "Human Rights / Legal Support", "level": 2, "city": "London", "country": "United Kingdom", "lat": 51.5074, "lon": -0.1278 },
-{ "name": "UNICEF", "category": "Human Rights / Legal Support", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lon": -74.006 },
-{ "name": "World Food Programme", "category": "Emergency / Crisis Response", "level": 2, "city": "Rome", "country": "Italy", "lat": 41.9028, "lon": 12.4964 },
-{ "name": "World Health Organization", "category": "Health / Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lon": 6.1432 },
-{ "name": "Oxfam", "category": "Community / Social Care", "level": 2, "city": "Oxford", "country": "United Kingdom", "lat": 51.752, "lon": -1.2577 },
-{ "name": "Greenpeace", "category": "Environment / Planet Care", "level": 2, "city": "Amsterdam", "country": "Netherlands", "lat": 52.3676, "lon": 4.9041 },
-{ "name": "WWF", "category": "Environment / Planet Care", "level": 2, "city": "Gland", "country": "Switzerland", "lat": 46.42, "lon": 6.27 }
+{
+"name": "Emergency Test",
+"category": "Health / Care",
+"level": 2,
+"city": "Milan",
+"country": "Italy",
+"lat": 45.4642,
+"lon": 9.19
+}
 ]
