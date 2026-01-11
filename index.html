@@ -1,686 +1,365 @@
 <!doctype html>
-<html lang="en">
+<html lang="it">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>WEJUMAN — A living map of real and verifiable initiatives</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Wejuman</title>
 
 <!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <!-- MarkerCluster -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 
 <style>
-:root{
---bg:#f4f5f7;
---panel:#ffffff;
---text:#111;
---muted:#666;
---border:#e6e6e6;
---shadow:0 12px 40px rgba(0,0,0,0.12);
---radius:18px;
---btn:#111;
---btnText:#fff;
-}
+html, body { height: 100%; margin: 0; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#000; }
 
-html, body { height:100%; margin:0; background:var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-#map { height:100vh; width:100vw; }
+#map { height: 100%; width: 100%; }
 
-.panel{
-position:fixed;
-top: calc(16px + env(safe-area-inset-top));
-left:16px;
-right:16px;
-z-index:9999;
-background:var(--panel);
-border:1px solid var(--border);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-overflow:hidden;
-}
-
-.panel-inner{
-display:grid;
-grid-template-columns: 1fr auto;
-gap:12px;
-padding:14px 14px 12px 14px;
-align-items:start;
-}
-
-.brand{
-font-weight:800;
-letter-spacing:0.24em;
-font-size:14px;
-color:var(--text);
-margin-bottom:8px;
-}
-
-.tagline{
-font-size:14px;
-line-height:1.35;
-color:var(--muted);
-margin: 0 0 10px 0;
-max-width:720px;
-}
-
-.askRow{
-display:flex;
-align-items:center;
-gap:10px;
-background:#fff;
-border:1px solid var(--border);
-border-radius:999px;
-padding:10px 12px;
-}
-.askIcon{ font-size:16px; opacity:0.65; }
-#askInput{
-border:0;
-outline:0;
-width:100%;
-font-size:16px;
-background:transparent;
-}
-.btnIcon{
-border:0;
-background:#f2f2f2;
-border:1px solid var(--border);
-border-radius:999px;
-width:44px;
-height:36px;
-cursor:pointer;
-font-size:16px;
-}
-
-.examples{
-margin-top:10px;
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-}
-.chip{
-font-size:13px;
-color:#111;
-background:#f5f5f5;
-border:1px solid var(--border);
-padding:8px 10px;
-border-radius:999px;
-cursor:pointer;
-user-select:none;
-}
-
-.desc{
-margin-top:10px;
-color:var(--muted);
-line-height:1.35;
-font-size:14px;
-max-width: 720px;
-}
-
-.right{
-display:flex;
-align-items:flex-start;
-justify-content:flex-end;
-padding-top: 22px;
-gap:10px;
-}
-.count{
-color:var(--muted);
-font-size:14px;
-white-space:nowrap;
-}
-
-.cta{
-padding: 0 14px 14px 14px;
-color:var(--muted);
-border-top:1px solid var(--border);
-display:flex;
-flex-direction:column;
-gap:10px;
-}
-.cta p{
-margin:12px 0 0 0;
-font-size:14px;
-line-height:1.35;
-}
-.ctaActions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
-.cta button, .cta a{
-appearance:none;
-border:0;
-background:var(--btn);
-color:var(--btnText);
-padding:12px 16px;
-border-radius:14px;
-font-weight:700;
-cursor:pointer;
-text-decoration:none;
-display:inline-flex;
-align-items:center;
-justify-content:center;
-}
-.secondary{
-background:#fff !important;
-color:#111 !important;
-border:1px solid var(--border) !important;
-font-weight:700;
-}
-
-.emptyState{
-display:none;
-margin-top:10px;
-padding:12px;
-border:1px solid var(--border);
-border-radius:14px;
-background:#fafafa;
-color:#111;
-font-size:14px;
-line-height:1.35;
-max-width: 720px;
-}
-.emptyState .sub{
-color:var(--muted);
-margin-top:4px;
-font-size:13px;
-}
-.emptyActions{
-margin-top:10px;
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
-
-.results{
-position:fixed;
-top: calc(16px + env(safe-area-inset-top) + 132px);
-left:16px;
-right:16px;
-z-index:9998;
-background:#fff;
-border:1px solid var(--border);
-border-radius:16px;
-box-shadow:var(--shadow);
-overflow:hidden;
-display:none;
-max-height: 44vh;
-}
-.resultsList{
-max-height:44vh;
-overflow:auto;
-}
-.item{
-padding:12px 14px;
-border-top:1px solid #f0f0f0;
-cursor:pointer;
-}
-.item:first-child{ border-top:0; }
-.item strong{ display:block; color:#111; font-size:15px; }
-.item span{ display:block; margin-top:4px; color:#666; font-size:13px; }
-
-.overlay{
-position:fixed;
-inset:0;
+/* Minimal top label (optional) */
+.topbar {
+position: absolute;
+top: 12px;
+left: 12px;
+z-index: 999;
+display: flex;
+gap: 10px;
+align-items: center;
+padding: 8px 10px;
+border-radius: 14px;
 background: rgba(0,0,0,0.55);
-z-index:10000;
-display:none;
-padding: 18px;
-box-sizing:border-box;
+backdrop-filter: blur(10px);
+color: #fff;
+user-select: none;
+pointer-events: none; /* non blocca la mappa */
 }
-.modal{
-max-width: 620px;
-margin: calc(18px + env(safe-area-inset-top)) auto 0;
-background:#fff;
-border-radius:18px;
-border:1px solid var(--border);
-box-shadow: var(--shadow);
-overflow:hidden;
+.topbar .brand { letter-spacing: 0.22em; font-weight: 700; font-size: 12px; }
+.topbar .count { opacity: 0.9; font-size: 12px; }
+
+/* Bottom search bar */
+.bottom-bar{
+position: absolute;
+left: 50%;
+bottom: 14px;
+transform: translateX(-50%);
+width: min(760px, calc(100% - 24px));
+display: flex;
+gap: 10px;
+padding: 10px 12px;
+border-radius: 999px;
+background: rgba(0,0,0,0.72);
+backdrop-filter: blur(12px);
+z-index: 999;
+box-sizing: border-box;
 }
-.modalBody{
-padding:16px;
-color:#111;
+.bottom-bar input{
+flex: 1;
+border: none;
+outline: none;
+background: transparent;
+color: #fff;
+font-size: 16px;
 }
-.modalBody p{
-margin:0 0 10px 0;
-line-height:1.35;
-font-size:15px;
-}
-.modalActions{
-padding: 0 16px 16px 16px;
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
-.modalActions button{
-border:0;
-background:#111;
-color:#fff;
-padding:12px 16px;
-border-radius:14px;
-font-weight:800;
-cursor:pointer;
-}
-.modalActions .secondaryBtn{
-background:#fff;
-color:#111;
-border:1px solid var(--border);
-font-weight:800;
+.bottom-bar input::placeholder{ color: rgba(255,255,255,0.65); }
+.bottom-bar button{
+border: none;
+background: rgba(255,255,255,0.12);
+color: #fff;
+border-radius: 999px;
+padding: 8px 12px;
+font-size: 16px;
 }
 
-@media (max-width: 520px){
-.tagline{ font-size:13px; }
-.desc{ font-size:13px; }
-.results{ top: calc(16px + env(safe-area-inset-top) + 126px); }
-.right{ padding-top: 18px; }
+/* Toast hint */
+.toast{
+position: absolute;
+left: 50%;
+bottom: 74px;
+transform: translateX(-50%);
+width: min(760px, calc(100% - 24px));
+padding: 10px 12px;
+border-radius: 14px;
+background: rgba(0,0,0,0.72);
+backdrop-filter: blur(12px);
+color: #fff;
+z-index: 999;
+box-sizing: border-box;
+display: none;
+font-size: 14px;
+line-height: 1.25;
 }
+.toast.show { display: block; }
+
+/* Subtle pulse ring (optional) */
+.pulse-ring {
+pointer-events: none;
+border-radius: 50%;
+border: 2px solid rgba(255,255,255,0.45);
+background: rgba(255,255,255,0.06);
+}
+
+/* Leaflet controls subtle */
+.leaflet-control-zoom a {
+background: rgba(0,0,0,0.55) !important;
+color: #fff !important;
+border: none !important;
+backdrop-filter: blur(10px);
+}
+.leaflet-bar { box-shadow: none !important; }
 </style>
 </head>
 
 <body>
 <div id="map"></div>
 
-<!-- Guardrail (shown once) -->
-<div id="overlay" class="overlay" role="dialog" aria-modal="true">
-<div class="modal">
-<div class="modalBody">
-<p><strong>Wejuman does not evaluate.</strong></p>
-<p>It does not rank. It does not recommend.</p>
-<p>It shows what exists.</p>
-<p style="color:#666;font-size:13px;margin:0;">How you read it is your responsibility.</p>
-</div>
-<div class="modalActions">
-<button id="agreeBtn">I understand</button>
-<button id="closeBtn" class="secondaryBtn">Close</button>
-</div>
-</div>
-</div>
-
-<!-- TOP PANEL -->
-<div class="panel" role="region" aria-label="Wejuman panel">
-<div class="panel-inner">
-<div>
+<!-- Minimal brand + global count (no CTA) -->
+<div class="topbar" id="topbar">
 <div class="brand">WEJUMAN</div>
-<div class="tagline">Wejuman exists to make real human actions visible.</div>
-
-<div class="askRow">
-<div class="askIcon">🧭</div>
-<input id="askInput" type="text" placeholder="Ask the map (e.g. “education in East Africa”, “near me”)"/>
-<button id="runBtn" class="btnIcon" title="Run">↵</button>
-<button id="locateBtn" class="btnIcon" title="My location">📍</button>
+<div class="count" id="globalCount">— initiatives</div>
 </div>
 
-<div class="examples">
-<div class="chip" data-q="near me">near me</div>
-<div class="chip" data-q="health initiatives in Africa">health initiatives in Africa</div>
-<div class="chip" data-q="environment initiatives in South America">environment initiatives in South America</div>
-<div class="chip" data-q="education in India">education in India</div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Bottom search -->
+<div class="bottom-bar" id="bottomBar">
+<input id="searchInput" type="text" placeholder="Search a place (e.g., Torino)" autocomplete="off" />
+<button id="searchBtn" aria-label="Search">🔍</button>
 </div>
 
-<div class="desc">
-Ask in plain language. Wejuman will only filter and reveal what is already on the map.
-</div>
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<div id="emptyState" class="emptyState">
-<strong>Nothing visible yet for this request.</strong>
-<div class="sub">Wejuman only reveals what is already on the map.</div>
-<div class="emptyActions">
-<button id="requestBtn" class="secondary" type="button">Request an addition</button>
-</div>
-</div>
-</div>
-
-<div class="right">
-<div id="count" class="count">Loading…</div>
-<button id="resetBtn" class="btnIcon" title="Reset">⟲</button>
-</div>
-</div>
-
-<div class="cta">
-<p>If you’re active in the world and want to be on the map, contact us.</p>
-<div class="ctaActions">
-<a id="contactLink" href="mailto:info@wejuman.org?subject=Wejuman%20—%20Request%20to%20be%20on%20the%20map">Contact us</a>
-<button id="showRuleBtn" class="secondary">Interaction rule</button>
-</div>
-</div>
-</div>
-
-<!-- Results list -->
-<div id="results" class="results">
-<div id="resultsList" class="resultsList"></div>
-</div>
+<!-- MarkerCluster -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <script>
-// ========= CONFIG =========
-const POINTS_URL = "points.json";
-const NOMINATIM = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=";
+/***************
+* CONFIG
+***************/
+const SMART_HINT_MIN_ZOOM = 9; // da qui in su attiviamo "Torino — 12 initiatives..."
+const SMART_HINT_DEBOUNCE_MS = 650; // ritardo dopo pan/zoom
+const TOAST_MS = 2600; // durata toast
+const NOMINATIM_REVERSE_ZOOM = 10; // granularità luogo (10 ~ city/town)
+const SHOW_PULSE_RING = true; // anello soft sul centro (non modifica i punti)
 
-// ========= GOOGLE FORM (REPLACE) =========
-// Put your real form URL ending with /viewform
-const GOOGLE_FORM_VIEW_URL = "PASTE_YOUR_GOOGLE_FORM_VIEWFORM_URL_HERE";
-// Put your query entry id like: entry.1234567890
-const FORM_ENTRY_QUERY = "entry.QUERY_FIELD_ID";
+/***************
+* DATA
+* Sostituisci questo array con i tuoi punti reali.
+* Formato minimo: { name, lat, lon, category }
+***************/
+const actions = [
+{ name: "Sample Torino", lat: 45.0703, lon: 7.6869, category: "Community" },
+{ name: "Sample Milano", lat: 45.4642, lon: 9.1900, category: "Health" },
+{ name: "Sample Roma", lat: 41.9028, lon: 12.4964, category: "Human Rights" },
+{ name: "Sample Nairobi",lat: -1.2864, lon: 36.8172, category: "Environment" },
+{ name: "Sample Delhi", lat: 28.6139, lon: 77.2090, category: "Education" },
+];
 
-// ========= MAP INIT =========
-const map = L.map("map", { zoomControl: true }).setView([20, 0], 2);
+/***************
+* MAP INIT
+***************/
+const map = L.map('map', {
+zoomControl: true,
+worldCopyJump: true
+}).setView([20, 0], 2);
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-attribution: "© OpenStreetMap contributors"
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+maxZoom: 19,
+attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-// ========= CLUSTER =========
-const cluster = L.markerClusterGroup({
+/***************
+* CLUSTERS
+***************/
+const clusters = L.markerClusterGroup({
 showCoverageOnHover: false,
 spiderfyOnMaxZoom: true,
-disableClusteringAtZoom: 12,
-maxClusterRadius: 55
-});
-map.addLayer(cluster);
-
-// ========= UI =========
-const askInput = document.getElementById("askInput");
-const runBtn = document.getElementById("runBtn");
-const locateBtn = document.getElementById("locateBtn");
-const resetBtn = document.getElementById("resetBtn");
-const countEl = document.getElementById("count");
-
-const resultsEl = document.getElementById("results");
-const resultsListEl = document.getElementById("resultsList");
-
-const emptyState = document.getElementById("emptyState");
-const requestBtn = document.getElementById("requestBtn");
-
-const overlay = document.getElementById("overlay");
-const agreeBtn = document.getElementById("agreeBtn");
-const closeBtn = document.getElementById("closeBtn");
-const showRuleBtn = document.getElementById("showRuleBtn");
-
-// One-time guardrail
-function showOverlay(){ overlay.style.display = "block"; }
-function hideOverlay(){ overlay.style.display = "none"; }
-
-agreeBtn.addEventListener("click", () => {
-localStorage.setItem("wejuman_rule_ack", "1");
-hideOverlay();
-});
-closeBtn.addEventListener("click", hideOverlay);
-showRuleBtn.addEventListener("click", showOverlay);
-
-if (!localStorage.getItem("wejuman_rule_ack")) showOverlay();
-
-// Chips
-document.querySelectorAll(".chip").forEach(ch => {
-ch.addEventListener("click", () => {
-askInput.value = ch.dataset.q || "";
-runAsk();
-});
+disableClusteringAtZoom: 12
 });
 
-// ========= DATA =========
-let items = [];
-let markers = [];
+function makeMarker(a){
+const m = L.marker([a.lat, a.lon], { title: a.name });
+// Niente popup per ora: coerente "minimal info"
+// Se un giorno vuoi: m.bindPopup(`<b>${escapeHtml(a.name)}</b>`);
+return m;
+}
+
+actions.forEach(a => clusters.addLayer(makeMarker(a)));
+map.addLayer(clusters);
+
+document.getElementById("globalCount").textContent = `${actions.length} initiatives`;
+
+/***************
+* UI HELPERS
+***************/
+const toastEl = document.getElementById("toast");
+function showToast(msg){
+toastEl.textContent = msg;
+toastEl.classList.add("show");
+clearTimeout(showToast._t);
+showToast._t = setTimeout(()=> toastEl.classList.remove("show"), TOAST_MS);
+}
 
 function escapeHtml(str){
-return String(str ?? "")
-.replaceAll("&", "&amp;")
-.replaceAll("<", "&lt;")
-.replaceAll(">", "&gt;")
-.replaceAll('"', "&quot;")
-.replaceAll("'", "&#39;");
+return String(str).replace(/[&<>"']/g, s => ({
+'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[s]));
 }
 
-function popupHtml(p){
-const name = escapeHtml(p.name);
-const city = escapeHtml(p.city || "");
-const country = escapeHtml(p.country || "");
-const category = escapeHtml(p.category || "");
-const loc = [city, country].filter(Boolean).join(", ");
-
-return `
-<div style="min-width:220px">
-<strong style="font-size:15px">${name}</strong>
-<div style="margin-top:6px;color:#666;font-size:13px">${loc}</div>
-<div style="margin-top:6px;color:#111;font-size:13px">${category}</div>
-</div>
-`;
+/***************
+* COUNT IN VIEWPORT
+* (vera logica "in this area")
+***************/
+function countActionsInBounds(bounds){
+let c = 0;
+for (const a of actions){
+if (bounds.contains([a.lat, a.lon])) c++;
+}
+return c;
 }
 
-function setCount(n, total){
-if (typeof total === "number" && n !== total) {
-countEl.textContent = `${n} visible / ${total} total`;
+/***************
+* OPTIONAL PULSE RING
+***************/
+let pulseCircle = null;
+function updatePulseRing(){
+if (!SHOW_PULSE_RING) return;
+const z = map.getZoom();
+if (z < SMART_HINT_MIN_ZOOM) {
+if (pulseCircle) { map.removeLayer(pulseCircle); pulseCircle = null; }
+return;
+}
+
+const center = map.getCenter();
+// raggio in metri, scalato in modo semplice con zoom
+const meters = Math.max(1200, 22000 / Math.pow(1.35, (z - SMART_HINT_MIN_ZOOM)));
+
+if (!pulseCircle) {
+pulseCircle = L.circle([center.lat, center.lng], {
+radius: meters,
+className: 'pulse-ring',
+interactive: false
+}).addTo(map);
 } else {
-countEl.textContent = `${n} initiatives`;
+pulseCircle.setLatLng([center.lat, center.lng]);
+pulseCircle.setRadius(meters);
 }
 }
 
-function clearResults(){
-resultsEl.style.display = "none";
-resultsListEl.innerHTML = "";
-}
-
-function showResultsList(list){
-resultsListEl.innerHTML = "";
-list.slice(0, 40).forEach(p => {
-const name = escapeHtml(p.name);
-const city = escapeHtml(p.city || "");
-const country = escapeHtml(p.country || "");
-const category = escapeHtml(p.category || "");
-const loc = [city, country].filter(Boolean).join(", ");
-
-const div = document.createElement("div");
-div.className = "item";
-div.innerHTML = `<strong>${name}</strong><span>${loc}${loc && category ? " • " : ""}${category}</span>`;
-div.onclick = () => {
-clearResults();
-emptyState.style.display = "none";
-map.setView([p.lat, p.lng], Math.max(map.getZoom(), 8));
-const it = markers.find(x => x.data === p);
-if (it) it.marker.openPopup();
-};
-resultsListEl.appendChild(div);
-});
-resultsEl.style.display = list.length ? "block" : "none";
-}
-
-function rebuildCluster(filtered){
-cluster.clearLayers();
-markers = [];
-
-filtered.forEach(p => {
-const m = L.marker([p.lat, p.lng]).bindPopup(popupHtml(p));
-cluster.addLayer(m);
-markers.push({ marker: m, data: p });
-});
-
-setCount(filtered.length, items.length);
-
-emptyState.style.display = (filtered.length === 0) ? "block" : "none";
-}
-
-function normalizePoint(p){
-return {
-name: p.name || "Unknown",
-category: p.category || "",
-level: (typeof p.level === "number") ? p.level : 0,
-city: p.city || "",
-country: p.country || "",
-lat: p.lat,
-lng: p.lng
-};
-}
-
-async function loadPoints(){
-try{
-const res = await fetch(POINTS_URL, { cache: "no-store" });
-if (!res.ok) throw new Error("HTTP " + res.status);
+/***************
+* REVERSE GEOCODE (Nominatim)
+* Nota: uso leggero, solo su zoom alto e con debounce.
+***************/
+async function reverseGeocode(lat, lon){
+const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=${NOMINATIM_REVERSE_ZOOM}&lat=${lat}&lon=${lon}`;
+const res = await fetch(url, { headers: { "Accept-Language": "it" } });
 const data = await res.json();
-if (!Array.isArray(data)) throw new Error("points.json must be an array []");
-
-items = data
-.filter(p => p && typeof p.lat === "number" && typeof p.lng === "number")
-.map(normalizePoint);
-
-rebuildCluster(items);
-}catch(err){
-console.error(err);
-countEl.textContent = "Error";
-alert("Error: can't load points.json. Check file path and valid JSON.");
-}
+if(!data || !data.address) return null;
+const a = data.address;
+return a.city || a.town || a.village || a.county || a.state || null;
 }
 
-// ========= AI-LITE “ASK THE MAP” =========
-function tokenize(q){
-return q
-.toLowerCase()
-.replace(/[^\p{L}\p{N}\s]/gu, " ")
-.split(/\s+/)
-.filter(Boolean);
+/***************
+* SMART HINT ON NAVIGATION
+***************/
+let smartHintTimer = null;
+let lastLabel = "";
+let lastBoundsKey = "";
+
+function boundsKey(bounds){
+const c = bounds.getCenter();
+return `${c.lat.toFixed(3)}:${c.lng.toFixed(3)}:${map.getZoom()}`;
 }
 
-function matchesKeywords(p, tokens){
-if (!tokens.length) return true;
-const hay = [p.name, p.city, p.country, p.category].filter(Boolean).join(" ").toLowerCase();
-return tokens.every(t => hay.includes(t));
-}
+async function smartHint(){
+const z = map.getZoom();
+updatePulseRing();
 
-function haversineKm(lat1, lon1, lat2, lon2){
-const R = 6371;
-const toRad = d => d * Math.PI / 180;
-const dLat = toRad(lat2 - lat1);
-const dLon = toRad(lon2 - lon1);
-const a =
-Math.sin(dLat/2) * Math.sin(dLat/2) +
-Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-Math.sin(dLon/2) * Math.sin(dLon/2);
-return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
+if (z < SMART_HINT_MIN_ZOOM) return;
 
-async function geocodePlace(place){
-const url = NOMINATIM + encodeURIComponent(place);
-const res = await fetch(url, { headers: { "Accept": "application/json" }});
-if (!res.ok) return null;
-const j = await res.json();
-if (!Array.isArray(j) || !j.length) return null;
-return { lat: parseFloat(j[0].lat), lng: parseFloat(j[0].lon) };
-}
+const bounds = map.getBounds();
+const key = boundsKey(bounds);
+if (key === lastBoundsKey) return; // evita ripetizioni
+lastBoundsKey = key;
 
-function parseQuery(raw){
-const q = (raw || "").trim();
-const lower = q.toLowerCase();
+const count = countActionsInBounds(bounds);
+if (count <= 0) return;
 
-const nearMe = /\b(near me|nearby|around me|my location)\b/.test(lower);
-
+const center = map.getCenter();
 let place = null;
-const inMatch = lower.match(/\b(in|near)\s+(.+)$/);
-if (inMatch && inMatch[2]) {
-if (!/\bme\b/.test(inMatch[2])) place = inMatch[2].trim();
+
+try {
+place = await reverseGeocode(center.lat, center.lng);
+} catch (e) {
+// silenzioso: niente errori a schermo
 }
 
-let keywordPart = q;
-if (place) {
-const idx = lower.lastIndexOf(" in ");
-if (idx !== -1) keywordPart = q.slice(0, idx).trim();
+if (place) showToast(`${place} — ${count} initiatives in this area`);
+else showToast(`${count} initiatives in this area`);
 }
 
-const tokens = tokenize(keywordPart).filter(t =>
-!["initiative","initiatives","actions","action","map","the","a","an","of","for","on","in","near"].includes(t)
-);
-
-return { nearMe, place, tokens };
+function scheduleSmartHint(){
+clearTimeout(smartHintTimer);
+smartHintTimer = setTimeout(smartHint, SMART_HINT_DEBOUNCE_MS);
 }
 
-// ========= Google Form prefill =========
-function buildGoogleFormPrefillURL(query){
-const base = GOOGLE_FORM_VIEW_URL;
-const params = new URLSearchParams();
-if (FORM_ENTRY_QUERY && FORM_ENTRY_QUERY.startsWith("entry.")) {
-params.set(FORM_ENTRY_QUERY, query || "");
+map.on("moveend", scheduleSmartHint);
+map.on("zoomend", scheduleSmartHint);
+
+/***************
+* SEARCH (place -> center + count)
+***************/
+async function geocodePlace(query){
+const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+const res = await fetch(url, { headers: { "Accept-Language": "it" } });
+const data = await res.json();
+if(!data?.length) return null;
+return {
+lat: parseFloat(data[0].lat),
+lon: parseFloat(data[0].lon),
+label: data[0].display_name
+};
 }
-return base + (base.includes("?") ? "&" : "?") + params.toString();
-}
 
-requestBtn.addEventListener("click", () => {
-const q = (askInput.value || "").trim();
-window.open(buildGoogleFormPrefillURL(q), "_blank");
-});
+async function runSearch(){
+const input = document.getElementById("searchInput");
+const q = input.value.trim();
+if (!q) return;
 
-async function runAsk(){
-clearResults();
-
-const raw = askInput.value || "";
-const { nearMe, place, tokens } = parseQuery(raw);
-
-if (nearMe) {
-if (!navigator.geolocation) {
-alert("Geolocation not supported in this browser.");
-return;
-}
-navigator.geolocation.getCurrentPosition(
-(pos) => {
-const lat = pos.coords.latitude;
-const lng = pos.coords.longitude;
-
-const keywordFiltered = items.filter(p => matchesKeywords(p, tokens));
-const radiusKm = 300;
-const near = keywordFiltered.filter(p => haversineKm(lat, lng, p.lat, p.lng) <= radiusKm);
-const finalList = near.length ? near : keywordFiltered;
-
-rebuildCluster(finalList);
-map.setView([lat, lng], 7);
-if (tokens.length) showResultsList(finalList);
-},
-() => alert("I can't access your location (permission denied).")
-);
+const place = await geocodePlace(q);
+if(!place){
+showToast("No results for that place.");
 return;
 }
 
-if (place) {
-const geo = await geocodePlace(place);
-if (geo) {
-map.setView([geo.lat, geo.lng], 5);
-const filtered = items.filter(p => matchesKeywords(p, tokens));
-rebuildCluster(filtered);
-if (tokens.length) showResultsList(filtered);
-return;
+map.setView([place.lat, place.lon], Math.max(map.getZoom(), SMART_HINT_MIN_ZOOM));
+
+// dopo setView, aspetta che bounds si stabilizzi e poi calcola
+setTimeout(async () => {
+updatePulseRing();
+const b = map.getBounds();
+const count = countActionsInBounds(b);
+if (count > 0) {
+// prova a usare il nome “pulito” dalla reverse (più umano)
+let label = null;
+try { label = await reverseGeocode(place.lat, place.lon); } catch(e){}
+showToast(label ? `${label} — ${count} initiatives in this area` : `${count} initiatives in this area`);
+} else {
+showToast(`No initiatives found in this area.`);
 }
+}, 450);
 }
 
-const filtered = items.filter(p => matchesKeywords(p, tokens.length ? tokens : tokenize(raw)));
-rebuildCluster(filtered);
-if ((raw || "").trim()) showResultsList(filtered);
-}
-
-runBtn.addEventListener("click", runAsk);
-askInput.addEventListener("keydown", (e) => {
-if (e.key === "Enter") runAsk();
+document.getElementById("searchBtn").addEventListener("click", runSearch);
+document.getElementById("searchInput").addEventListener("keydown", (e)=>{
+if(e.key === "Enter") runSearch();
 });
 
-locateBtn.addEventListener("click", () => {
-if (!navigator.geolocation) return alert("Geolocation not supported.");
-navigator.geolocation.getCurrentPosition(
-(pos) => map.setView([pos.coords.latitude, pos.coords.longitude], 10),
-() => alert("I can't access your location (permission denied).")
-);
-});
-
-resetBtn.addEventListener("click", () => {
-askInput.value = "";
-clearResults();
-emptyState.style.display = "none";
-rebuildCluster(items);
-map.setView([20, 0], 2);
-});
-
-document.addEventListener("click", (e) => {
-const panel = document.querySelector(".panel");
-if (!panel.contains(e.target) && !resultsEl.contains(e.target)) clearResults();
-});
-
-loadPoints();
+// Prima hint leggera dopo load
+setTimeout(()=> scheduleSmartHint(), 900);
 </script>
 </body>
 </html>
