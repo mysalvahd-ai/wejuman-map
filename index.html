@@ -18,13 +18,14 @@ background: rgba(0,0,0,0.62);
 backdrop-filter: blur(12px);
 color:#fff;
 user-select:none;
+max-width: calc(100% - 24px);
 }
 .brand{ letter-spacing:.26em; font-weight:700; font-size:12px; }
 .tagline{ margin-top:4px; opacity:.72; font-size:12px; }
 
 .panel{
 position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
-width:min(820px, calc(100% - 24px));
+width:min(860px, calc(100% - 24px));
 z-index:1000;
 padding:12px 14px; border-radius:18px;
 background: rgba(0,0,0,0.70);
@@ -57,7 +58,6 @@ margin-bottom:8px;
 .item .n{ font-weight:650; }
 .item .t{ opacity:.75; margin-left:6px; }
 
-/* Suggested vs mapped styling */
 .mapped{ background: rgba(255,255,255,0.08); }
 .suggested{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); }
 
@@ -106,7 +106,7 @@ backdrop-filter: blur(10px);
 
 <div class="topbar">
 <div class="brand">WEJUMAN</div>
-<div class="tagline">making real human actions visible</div>
+<div class="tagline">A live map of the world that keeps human action visible.</div>
 </div>
 
 <div class="panel" id="panel">
@@ -130,49 +130,61 @@ backdrop-filter: blur(10px);
 
 <script>
 /**********************
-* 1) VERIFIED / MAPPED POINTS (Wejuman points)
-* You can keep them here for stability.
-* Later you can move them to points.json.
+* MAPPED / WEJUMAN POINTS
+* (Keep here for stability; later you can move to points.json)
 **********************/
 const mappedPoints = [
-{ name:"Emergency", tagline:"Free healthcare for people in need.", lat:45.4642, lon:9.19 },
-{ name:"Médecins Sans Frontières (MSF)", tagline:"Medical aid in conflict zones.", lat:46.2044, lon:6.1432 },
-{ name:"Save the Children", tagline:"Children protection and essential services.", lat:51.5074, lon:-0.1278 },
-{ name:"UNICEF", tagline:"Support for children worldwide.", lat:40.7128, lon:-74.0060 },
-{ name:"World Food Programme", tagline:"Food assistance in emergencies.", lat:41.9028, lon:12.4964 },
-{ name:"Greenpeace", tagline:"Direct action for the planet.", lat:52.3676, lon:4.9041 },
-{ name:"WWF", tagline:"Wildlife and nature conservation.", lat:46.4200, lon:6.2700 },
-{ name:"Amnesty International", tagline:"Human rights advocacy worldwide.", lat:51.5074, lon:-0.1278 },
-{ name:"Human Rights Watch", tagline:"Investigations and accountability.", lat:40.7128, lon:-74.0060 },
-{ name:"Khan Academy", tagline:"Free education for everyone.", lat:37.3861, lon:-122.0839 }
-// Add your 180 later
+{ name:"Isha Foundation (Sadhguru)", tagline:"Environmental action, education and rural health initiatives.", lat:11.0168, lon:76.9558 },
+{ name:"Addi Road Community Organisation", tagline:"Community meals and social support.", lat:-33.9236, lon:151.0940 },
+{ name:"EMERGENCY", tagline:"Free healthcare in war zones and underserved areas.", lat:45.4642, lon:9.1900 },
+{ name:"Médecins Sans Frontières", tagline:"Medical assistance in conflict and crisis zones.", lat:46.2044, lon:6.1432 }
 ];
 
 /**********************
-* 2) AI SUGGESTION “WORLD LAYER” (not mapped)
-* This is NOT a claim. It’s guidance + doors to explore.
-* You can expand this list gradually.
+* CITY-FIRST AI SUGGESTIONS (not mapped)
+* Keys are normalized (lowercase, no accents).
 **********************/
-const suggestedByCountry = {
-"Australia": [
+const suggestedByCity = {
+"sydney": [
 { name: "OzHarvest", hint: "Food rescue & redistribution." },
 { name: "Addi Road Community Organisation", hint: "Community meals & support." }
 ],
-"Italy": [
-{ name: "Caritas", hint: "Local social support networks." },
-{ name: "Banco Alimentare", hint: "Food assistance & recovery." }
+"melbourne": [
+{ name: "FareShare", hint: "Meals for people in need." },
+{ name: "Asylum Seeker Resource Centre", hint: "Support for refugees and asylum seekers." }
 ],
-"United States": [
-{ name: "Feeding America", hint: "National food bank network." },
-{ name: "Direct Relief", hint: "Medical aid & disaster response." }
+"rome": [
+{ name: "Caritas Roma", hint: "Local support networks and services." }
 ],
-"United Kingdom": [
-{ name: "The Trussell Trust", hint: "Food bank network." },
-{ name: "Shelter", hint: "Housing and homelessness support." }
+"milan": [
+{ name: "Banco Alimentare", hint: "Food recovery and distribution." }
 ]
 };
 
-// Generic “AI voice” categories (used everywhere)
+const suggestedByRegion = {
+"victoria": [
+{ name: "FareShare", hint: "Meals for people in need." }
+],
+"new south wales": [
+{ name: "OzHarvest", hint: "Food rescue & redistribution." }
+],
+"lombardy": [
+{ name: "Banco Alimentare", hint: "Food recovery and distribution." }
+]
+};
+
+const suggestedByCountry = {
+"australia": [
+{ name: "OzHarvest", hint: "Food rescue & redistribution." }
+],
+"italy": [
+{ name: "Banco Alimentare", hint: "Food recovery and distribution." }
+],
+"india": [
+{ name: "Akshaya Patra", hint: "School meals and nutrition support." }
+]
+};
+
 const genericAiCategories = [
 "community care",
 "food support",
@@ -182,7 +194,7 @@ const genericAiCategories = [
 ];
 
 /**********************
-* UI STRINGS (definitive)
+* Definitive Wejuman AI voice
 **********************/
 const AI_LINE_A = "Human action is likely present in this area.";
 const AI_LINE_B = (cats) => `AI suggests recurring forms of human action in this area, including ${cats}.`;
@@ -193,6 +205,52 @@ const AI_CLICK_2 = "Wejuman does not verify or represent this initiative.";
 const AI_CLICK_3 = "You are leaving the map to explore independently.";
 
 /**********************
+* Helpers
+**********************/
+function escapeHtml(s){
+return String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+}
+
+function normKey(s){
+return String(s || "")
+.trim()
+.toLowerCase()
+.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function openExplore(entityName){
+const q = encodeURIComponent(entityName);
+window.open(`https://duckduckgo.com/?q=${q}`, "_blank", "noopener,noreferrer");
+}
+
+function pointsInBounds(bounds){
+const arr = [];
+for (const p of mappedPoints){
+if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
+if (bounds.contains([p.lat, p.lon])) arr.push(p);
+}
+return arr;
+}
+
+/**********************
+* Reverse geocode (city/region/country) - worldwide
+**********************/
+async function reverseGeocode(lat, lon){
+const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${lat}&lon=${lon}`;
+const res = await fetch(url, { headers:{ "Accept-Language":"en" } });
+if (!res.ok) return null;
+const data = await res.json();
+const a = data?.address || {};
+
+const city = a.city || a.town || a.village || a.municipality || a.hamlet || null;
+const region = a.state || a.region || a.county || null;
+const country = a.country || null;
+const place = city || region || country || "This area";
+
+return { place, city, region, country };
+}
+
+/**********************
 * MAP
 **********************/
 const map = L.map("map", { zoomControl:true, worldCopyJump:true }).setView([20,0], 2);
@@ -200,7 +258,6 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 maxZoom:19, attribution:"&copy; OpenStreetMap"
 }).addTo(map);
 
-// Simple markers for mapped points
 const markerLayer = L.layerGroup().addTo(map);
 for (const p of mappedPoints){
 if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
@@ -213,53 +270,19 @@ fillOpacity: 0.14
 }
 
 /**********************
-* PANEL LOGIC
+* PANEL UI
 **********************/
 const panel = document.getElementById("panel");
 const placeEl = document.getElementById("place");
 const metaEl = document.getElementById("meta");
-
 const mappedSection = document.getElementById("mappedSection");
 const mappedList = document.getElementById("mappedList");
-
 const aiSection = document.getElementById("aiSection");
 const aiLines = document.getElementById("aiLines");
 const aiList = document.getElementById("aiList");
 
 const MIN_ZOOM_SHOW = 4;
 const DEBOUNCE_MS = 650;
-
-function escapeHtml(s){
-return String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
-}
-
-function pointsInBounds(bounds){
-const arr = [];
-for (const p of mappedPoints){
-if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
-if (bounds.contains([p.lat, p.lon])) arr.push(p);
-}
-return arr;
-}
-
-async function reverseGeocode(lat, lon){
-const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=7&lat=${lat}&lon=${lon}`;
-const res = await fetch(url, { headers:{ "Accept-Language":"en" } });
-if (!res.ok) return null;
-const data = await res.json();
-const a = data?.address;
-return {
-place: a?.city || a?.town || a?.village || a?.county || a?.state || a?.country || null,
-country: a?.country || null
-};
-}
-
-// Explore page (outside the map)
-function openExplore(entityName){
-const q = encodeURIComponent(entityName);
-// DuckDuckGo as neutral search (user verifies)
-window.open(`https://duckduckgo.com/?q=${q}`, "_blank", "noopener,noreferrer");
-}
 
 function renderMapped(list){
 mappedList.innerHTML = "";
@@ -271,11 +294,21 @@ mappedList.appendChild(div);
 }
 }
 
-function renderAi(placeName, countryName, hasMapped){
+function pickSuggestions(geo){
+const cityKey = normKey(geo?.city);
+const regionKey = normKey(geo?.region);
+const countryKey = normKey(geo?.country);
+
+return (cityKey && suggestedByCity[cityKey]) ? suggestedByCity[cityKey] :
+(regionKey && suggestedByRegion[regionKey]) ? suggestedByRegion[regionKey] :
+(countryKey && suggestedByCountry[countryKey]) ? suggestedByCountry[countryKey] :
+[];
+}
+
+function renderAi(geo, hasMapped){
 aiLines.innerHTML = "";
 aiList.innerHTML = "";
 
-// Lines (definitive)
 const l1 = document.createElement("div");
 l1.className = "aiLine";
 l1.textContent = AI_LINE_A;
@@ -287,7 +320,6 @@ l2.className = "aiLine";
 l2.textContent = AI_LINE_B(cats);
 aiLines.appendChild(l2);
 
-// optional deeper line (only when zoom is quite high)
 if (map.getZoom() >= 9){
 const l3 = document.createElement("div");
 l3.className = "aiLine";
@@ -302,8 +334,7 @@ l4.textContent = AI_LINE_D;
 aiLines.appendChild(l4);
 }
 
-// Suggested entities for country (optional)
-const suggestions = (countryName && suggestedByCountry[countryName]) ? suggestedByCountry[countryName] : [];
+const suggestions = pickSuggestions(geo);
 
 if (suggestions.length){
 for (const s of suggestions){
@@ -318,18 +349,22 @@ openExplore(s.name);
 aiList.appendChild(div);
 }
 } else {
-// If no named suggestions, give one neutral “door”
-const div = document.createElement("a");
-div.className = "btn";
-div.href = "#";
-div.textContent = "Explore human action in this area";
-div.addEventListener("click", (e) => {
+const row = document.createElement("div");
+row.className = "btnRow";
+
+const b1 = document.createElement("a");
+b1.className = "btn";
+b1.href = "#";
+b1.textContent = "Explore human action here";
+b1.addEventListener("click", (e) => {
 e.preventDefault();
-const q = placeName && placeName !== "This area" ? placeName : (countryName || "human action");
 alert(`${AI_CLICK_3}`);
+const q = (geo?.place && geo.place !== "This area") ? geo.place : "human action";
 openExplore(q + " community initiatives");
 });
-aiList.appendChild(div);
+
+row.appendChild(b1);
+aiList.appendChild(row);
 }
 }
 
@@ -345,18 +380,18 @@ const bounds = map.getBounds();
 const center = map.getCenter();
 const mappedInView = pointsInBounds(bounds);
 
-// Place name (best effort)
-let placeName = "This area";
-let countryName = null;
+let geo = { place:"This area", city:null, region:null, country:null };
+
 try{
 const r = await reverseGeocode(center.lat, center.lng);
-if (r?.place) placeName = r.place;
-if (r?.country) countryName = r.country;
-} catch(e){}
+if (r) geo = r;
+}catch(e){}
 
-placeEl.textContent = placeName;
+// Expose for debugging if needed
+window.__geo = geo;
 
-// Mapped section = show ALL mapped points in view
+placeEl.textContent = geo.place;
+
 if (mappedInView.length){
 metaEl.textContent = `${mappedInView.length} initiative${mappedInView.length>1 ? "s" : ""} visible here`;
 mappedSection.style.display = "block";
@@ -367,9 +402,8 @@ mappedSection.style.display = "none";
 mappedList.innerHTML = "";
 }
 
-// AI section always available (so world never feels empty)
 aiSection.style.display = "block";
-renderAi(placeName, countryName, mappedInView.length > 0);
+renderAi(geo, mappedInView.length > 0);
 
 panel.classList.add("show");
 }
