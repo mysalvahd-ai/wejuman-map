@@ -1,94 +1,46 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Wejuman</title>
 
-<!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<!-- MarkerCluster -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
-
 <style>
-html, body { height: 100%; margin: 0; }
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#000; }
+html, body { height: 100%; margin: 0; background:#000; }
 #map { height: 100%; width: 100%; }
 
-/* Minimal top label */
 .topbar{
-position:absolute; top:12px; left:12px; z-index:999;
-display:flex; gap:10px; align-items:center;
-padding:8px 10px; border-radius:14px;
-background: rgba(0,0,0,0.55);
-backdrop-filter: blur(10px);
-color:#fff; user-select:none; pointer-events:none;
-}
-.topbar .brand{ letter-spacing:.22em; font-weight:700; font-size:12px; }
-.topbar .count{ opacity:.9; font-size:12px; }
-
-/* Bottom search bar */
-.bottom-bar{
-position:absolute;
-left:50%;
-bottom:14px;
-transform:translateX(-50%);
-width:min(760px, calc(100% - 24px));
-display:flex;
-gap:10px;
-padding:10px 12px;
-border-radius:999px;
-background: rgba(0,0,0,0.72);
-backdrop-filter: blur(12px);
-z-index:999;
-box-sizing:border-box;
-}
-.bottom-bar input{
-flex:1; border:none; outline:none;
-background:transparent; color:#fff;
-font-size:16px;
-}
-.bottom-bar input::placeholder{ color: rgba(255,255,255,0.65); }
-.bottom-bar button{
-border:none;
-background: rgba(255,255,255,0.12);
-color:#fff;
-border-radius:999px;
-padding:8px 12px;
-font-size:16px;
-}
-
-/* Toast hint */
-.toast{
-position:absolute;
-left:50%;
-bottom:74px;
-transform:translateX(-50%);
-width:min(760px, calc(100% - 24px));
-padding:10px 12px;
-border-radius:14px;
-background: rgba(0,0,0,0.72);
+position:absolute; top:12px; left:12px; z-index:1000;
+padding:10px 12px; border-radius:14px;
+background: rgba(0,0,0,0.62);
 backdrop-filter: blur(12px);
 color:#fff;
-z-index:999;
+user-select:none;
+}
+.brand{ letter-spacing:.26em; font-weight:700; font-size:12px; }
+.tagline{ margin-top:4px; opacity:.72; font-size:12px; }
+
+.hint{
+position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+width:min(760px, calc(100% - 24px));
+z-index:1000;
+padding:12px 14px; border-radius:18px;
+background: rgba(0,0,0,0.68);
+backdrop-filter: blur(14px);
+color:#fff;
 box-sizing:border-box;
 display:none;
-font-size:14px;
-line-height:1.25;
 }
-.toast.show{ display:block; }
+.hint.show{ display:block; }
+.hint .place{ font-weight:650; font-size:15px; }
+.hint .meta{ opacity:.72; font-size:13px; margin-top:2px; }
+.hint .list{ margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+.item{ font-size:13px; line-height:1.25; }
+.item .n{ font-weight:650; }
+.item .t{ opacity:.75; margin-left:6px; }
 
-/* Optional pulse ring */
-.pulse-ring{
-pointer-events:none;
-border-radius:50%;
-border:2px solid rgba(0,120,255,0.55);
-background: rgba(0,120,255,0.10);
-}
-
-/* Controls subtle */
 .leaflet-control-zoom a{
 background: rgba(0,0,0,0.55) !important;
 color:#fff !important;
@@ -104,246 +56,173 @@ backdrop-filter: blur(10px);
 
 <div class="topbar">
 <div class="brand">WEJUMAN</div>
-<div class="count" id="globalCount">loading…</div>
+<div class="tagline">making real human actions visible</div>
 </div>
 
-<div class="toast" id="toast"></div>
-
-<div class="bottom-bar">
-<input id="searchInput" type="text" placeholder="Search a place (e.g., Torino)" autocomplete="off" />
-<button id="searchBtn" aria-label="Search">🔍</button>
+<div class="hint" id="hint">
+<div class="place" id="hintPlace">This area</div>
+<div class="meta" id="hintMeta">—</div>
+<div class="list" id="hintList"></div>
 </div>
 
-<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- MarkerCluster -->
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <script>
 /**********************
-* CONFIG
+* DATA (INLINE v1)
+* Dopo che tutto funziona: puoi spostare in points.json
 **********************/
-// ✅ Cambia solo questa riga se repo/user sono diversi
-const POINTS_URL = const POINTS_URL = "./points.json";
+const initiatives = [
+{ name:"Emergency", tagline:"Free healthcare for people in need.", lat:45.4642, lon:9.19 },
+{ name:"Médecins Sans Frontières (MSF)", tagline:"Medical aid in conflict zones.", lat:46.2044, lon:6.1432 },
+{ name:"Save the Children", tagline:"Children protection and essential services.", lat:51.5074, lon:-0.1278 },
+{ name:"UNICEF", tagline:"Support for children worldwide.", lat:40.7128, lon:-74.0060 },
+{ name:"World Food Programme", tagline:"Food assistance in emergencies.", lat:41.9028, lon:12.4964 },
 
-const SMART_HINT_MIN_ZOOM = 9;
-const SMART_HINT_DEBOUNCE_MS = 650;
-const TOAST_MS = 2600;
-const NOMINATIM_REVERSE_ZOOM = 10;
-const SHOW_PULSE_RING = true;
+{ name:"Red Cross", tagline:"Emergency response and humanitarian support.", lat:41.9028, lon:12.4964 },
+{ name:"WHO", tagline:"Global public health leadership.", lat:46.2044, lon:6.1432 },
+{ name:"Oxfam", tagline:"Fight inequality and poverty.", lat:51.7520, lon:-1.2577 },
+{ name:"CARE", tagline:"Humanitarian aid and long-term solutions.", lat:46.2044, lon:6.1432 },
+{ name:"Norwegian Refugee Council", tagline:"Protection and help for displaced people.", lat:59.9139, lon:10.7522 },
+
+{ name:"Greenpeace", tagline:"Direct action for the planet.", lat:52.3676, lon:4.9041 },
+{ name:"WWF", tagline:"Wildlife and nature conservation.", lat:46.4200, lon:6.2700 },
+{ name:"Amnesty International", tagline:"Human rights advocacy worldwide.", lat:51.5074, lon:-0.1278 },
+{ name:"Human Rights Watch", tagline:"Investigations and accountability.", lat:40.7128, lon:-74.0060 },
+{ name:"Khan Academy", tagline:"Free education for everyone.", lat:37.3861, lon:-122.0839 },
+
+{ name:"Internet Archive", tagline:"Universal access to knowledge.", lat:37.7749, lon:-122.4194 },
+{ name:"BRAC", tagline:"Community development at scale.", lat:23.8103, lon:90.4125 },
+{ name:"Pratham", tagline:"Education programs for children.", lat:19.0760, lon:72.8777 },
+{ name:"African Wildlife Foundation", tagline:"Conservation across Africa.", lat:-1.2921, lon:36.8219 },
+{ name:"SOS Méditerranée", tagline:"Rescue at sea, saving lives.", lat:43.2965, lon:5.3698 }
+];
 
 /**********************
-* MAP INIT
+* MAP
 **********************/
-const map = L.map("map", { zoomControl: true, worldCopyJump: true })
-.setView([20, 0], 2);
-
+const map = L.map("map", { zoomControl:true, worldCopyJump:true }).setView([20, 0], 2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-maxZoom: 19,
-attribution: "&copy; OpenStreetMap"
+maxZoom: 19, attribution: "&copy; OpenStreetMap"
 }).addTo(map);
 
-/**********************
-* CLUSTER LAYER
-**********************/
-const clusters = L.markerClusterGroup({
-showCoverageOnHover: false,
-spiderfyOnMaxZoom: true,
-disableClusteringAtZoom: 12
-});
-map.addLayer(clusters);
-
-/**********************
-* UI HELPERS
-**********************/
-const toastEl = document.getElementById("toast");
-function showToast(msg){
-toastEl.textContent = msg;
-toastEl.classList.add("show");
-clearTimeout(showToast._t);
-showToast._t = setTimeout(() => toastEl.classList.remove("show"), TOAST_MS);
+// Markers (minimali)
+const markerLayer = L.layerGroup().addTo(map);
+for (const p of initiatives) {
+if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
+L.circleMarker([p.lat, p.lon], {
+radius: 6,
+weight: 2,
+opacity: 0.9,
+fillOpacity: 0.15
+}).addTo(markerLayer);
 }
 
 /**********************
-* DATA
+* HINT LOGIC
 **********************/
-let actions = [];
+const hintEl = document.getElementById("hint");
+const hintPlace = document.getElementById("hintPlace");
+const hintMeta = document.getElementById("hintMeta");
+const hintList = document.getElementById("hintList");
 
-function getLat(a){
-return a.lat ?? a.latitude ?? a.LAT ?? a.Lat;
-}
-function getLon(a){
-return a.lon ?? a.lng ?? a.longitude ?? a.LON ?? a.Lon;
-}
+const MIN_ZOOM_COUNT = 4; // quando iniziare a dire "X initiatives"
+const MIN_ZOOM_LIST = 8; // quando iniziare a mostrare 1–3 nomi
+const DEBOUNCE_MS = 600;
 
-async function loadPoints(){
-const res = await fetch(POINTS_URL, { cache: "no-store" });
-if (!res.ok) throw new Error("Cannot load points.json (check POINTS_URL)");
-actions = await res.json();
-
-document.getElementById("globalCount").textContent = `${actions.length} initiatives`;
-
-clusters.clearLayers();
-
-let placed = 0;
-for (const a of actions){
-const lat = getLat(a);
-const lon = getLon(a);
-
-if (typeof lat !== "number" || typeof lon !== "number") continue;
-
-clusters.addLayer(L.marker([lat, lon], { title: a.name || "" }));
-placed++;
+function haversineKm(a, b){
+const R = 6371;
+const dLat = (b.lat - a.lat) * Math.PI/180;
+const dLon = (b.lon - a.lon) * Math.PI/180;
+const s1 = Math.sin(dLat/2)**2;
+const s2 = Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLon/2)**2;
+return 2 * R * Math.asin(Math.sqrt(s1+s2));
 }
 
-// Se hai 112 record ma 0 marker: mancano coordinate numeriche
-if (placed === 0 && actions.length > 0){
-showToast("Loaded points, but no coordinates found (lat/lon missing).");
+function pointsInBounds(bounds){
+const arr = [];
+for (const p of initiatives){
+if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
+if (bounds.contains([p.lat, p.lon])) arr.push(p);
 }
-}
-
-/**********************
-* COUNT IN VIEWPORT
-**********************/
-function countActionsInBounds(bounds){
-let c = 0;
-for (const a of actions){
-const lat = getLat(a), lon = getLon(a);
-if (typeof lat !== "number" || typeof lon !== "number") continue;
-if (bounds.contains([lat, lon])) c++;
-}
-return c;
+return arr;
 }
 
-/**********************
-* OPTIONAL PULSE RING
-**********************/
-let pulseCircle = null;
+// Reverse geocode (nome luogo) — opzionale, se fallisce non blocca nulla
+async function reverseGeocode(lat, lon){
+const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${lat}&lon=${lon}`;
+const res = await fetch(url, { headers:{ "Accept-Language":"en" } });
+if (!res.ok) return null;
+const data = await res.json();
+const a = data?.address;
+return a?.city || a?.town || a?.village || a?.county || a?.state || null;
+}
 
-function updatePulseRing(){
-if (!SHOW_PULSE_RING) return;
-
+let t = null;
+async function updateHint(){
 const z = map.getZoom();
-if (z < SMART_HINT_MIN_ZOOM){
-if (pulseCircle){ map.removeLayer(pulseCircle); pulseCircle = null; }
+if (z < MIN_ZOOM_COUNT){
+hintEl.classList.remove("show");
 return;
 }
-
-const center = map.getCenter();
-const meters = Math.max(1200, 22000 / Math.pow(1.35, (z - SMART_HINT_MIN_ZOOM)));
-
-if (!pulseCircle){
-pulseCircle = L.circle([center.lat, center.lng], {
-radius: meters,
-className: "pulse-ring",
-interactive: false
-}).addTo(map);
-} else {
-pulseCircle.setLatLng([center.lat, center.lng]);
-pulseCircle.setRadius(meters);
-}
-}
-
-/**********************
-* REVERSE GEOCODE (Nominatim)
-**********************/
-async function reverseGeocode(lat, lon){
-const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=${NOMINATIM_REVERSE_ZOOM}&lat=${lat}&lon=${lon}`;
-const res = await fetch(url, { headers: { "Accept-Language": "it" } });
-const data = await res.json();
-if (!data || !data.address) return null;
-const a = data.address;
-return a.city || a.town || a.village || a.county || a.state || null;
-}
-
-/**********************
-* SMART HINT (on navigation)
-**********************/
-let smartHintTimer = null;
-let lastKey = "";
-
-function boundsKey(){
-const b = map.getBounds();
-const c = b.getCenter();
-return `${c.lat.toFixed(3)}:${c.lng.toFixed(3)}:${map.getZoom()}`;
-}
-
-async function smartHint(){
-if (!actions.length) return;
-
-updatePulseRing();
-
-const z = map.getZoom();
-if (z < SMART_HINT_MIN_ZOOM) return;
-
-const key = boundsKey();
-if (key === lastKey) return;
-lastKey = key;
 
 const bounds = map.getBounds();
-const count = countActionsInBounds(bounds);
-if (count <= 0) return;
-
 const center = map.getCenter();
 
-try{
-const place = await reverseGeocode(center.lat, center.lng);
-showToast(place ? `${place} — ${count} initiatives in this area`
-: `${count} initiatives in this area`);
-} catch(e){
-showToast(`${count} initiatives in this area`);
-}
-}
+const inView = pointsInBounds(bounds);
 
-function scheduleSmartHint(){
-clearTimeout(smartHintTimer);
-smartHintTimer = setTimeout(smartHint, SMART_HINT_DEBOUNCE_MS);
-}
-
-map.on("moveend", scheduleSmartHint);
-map.on("zoomend", scheduleSmartHint);
-
-/**********************
-* SEARCH (place -> center + hint)
-**********************/
-async function geocodePlace(query){
-const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
-const res = await fetch(url, { headers: { "Accept-Language": "it" } });
-const data = await res.json();
-if (!data?.length) return null;
-return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-}
-
-async function runSearch(){
-const q = document.getElementById("searchInput").value.trim();
-if (!q) return;
-
-const place = await geocodePlace(q);
-if (!place){
-showToast("No results for that place.");
+if (inView.length === 0){
+hintPlace.textContent = "This area";
+hintMeta.textContent = "0 initiatives";
+hintList.innerHTML = "";
+hintEl.classList.add("show");
 return;
 }
 
-map.setView([place.lat, place.lon], Math.max(map.getZoom(), SMART_HINT_MIN_ZOOM));
+// luogo (best effort)
+let placeName = "This area";
+try{
+const p = await reverseGeocode(center.lat, center.lng);
+if (p) placeName = p;
+}catch(e){}
 
-setTimeout(() => scheduleSmartHint(), 450);
+hintPlace.textContent = placeName;
+hintMeta.textContent = `${inView.length} initiative${inView.length>1 ? "s" : ""}`;
+
+// lista 1–3 vicine al centro (solo da zoom list in su)
+hintList.innerHTML = "";
+if (z >= MIN_ZOOM_LIST){
+const sorted = [...inView].sort((p1, p2) => {
+const d1 = haversineKm({lat:center.lat, lon:center.lng}, {lat:p1.lat, lon:p1.lon});
+const d2 = haversineKm({lat:center.lat, lon:center.lng}, {lat:p2.lat, lon:p2.lon});
+return d1 - d2;
+}).slice(0, 3);
+
+for (const p of sorted){
+const div = document.createElement("div");
+div.className = "item";
+div.innerHTML = `<span class="n">${escapeHtml(p.name)}</span><span class="t">${escapeHtml(p.tagline || "")}</span>`;
+hintList.appendChild(div);
+}
 }
 
-document.getElementById("searchBtn").addEventListener("click", runSearch);
-document.getElementById("searchInput").addEventListener("keydown", (e) => {
-if (e.key === "Enter") runSearch();
-});
+hintEl.classList.add("show");
+}
 
-/**********************
-* BOOT
-**********************/
-loadPoints()
-.then(() => scheduleSmartHint())
-.catch(err => {
-console.error(err);
-document.getElementById("globalCount").textContent = "error";
-showToast("Error loading points.json (check POINTS_URL)");
-});
+function escapeHtml(s){
+return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+}
+
+function scheduleHint(){
+clearTimeout(t);
+t = setTimeout(updateHint, DEBOUNCE_MS);
+}
+
+map.on("moveend", scheduleHint);
+map.on("zoomend", scheduleHint);
+
+// first run
+scheduleHint();
 </script>
 </body>
 </html>
