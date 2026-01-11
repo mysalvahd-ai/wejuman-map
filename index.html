@@ -15,232 +15,227 @@
 <style>
 html, body { height: 100%; margin: 0; }
 body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#000; }
-
 #map { height: 100%; width: 100%; }
 
-/* Minimal top label (optional) */
-.topbar {
-position: absolute;
-top: 12px;
-left: 12px;
-z-index: 999;
-display: flex;
-gap: 10px;
-align-items: center;
-padding: 8px 10px;
-border-radius: 14px;
+/* Minimal top label */
+.topbar{
+position:absolute; top:12px; left:12px; z-index:999;
+display:flex; gap:10px; align-items:center;
+padding:8px 10px; border-radius:14px;
 background: rgba(0,0,0,0.55);
 backdrop-filter: blur(10px);
-color: #fff;
-user-select: none;
-pointer-events: none; /* non blocca la mappa */
+color:#fff; user-select:none; pointer-events:none;
 }
-.topbar .brand { letter-spacing: 0.22em; font-weight: 700; font-size: 12px; }
-.topbar .count { opacity: 0.9; font-size: 12px; }
+.topbar .brand{ letter-spacing:.22em; font-weight:700; font-size:12px; }
+.topbar .count{ opacity:.9; font-size:12px; }
 
 /* Bottom search bar */
 .bottom-bar{
-position: absolute;
-left: 50%;
-bottom: 14px;
-transform: translateX(-50%);
-width: min(760px, calc(100% - 24px));
-display: flex;
-gap: 10px;
-padding: 10px 12px;
-border-radius: 999px;
+position:absolute;
+left:50%;
+bottom:14px;
+transform:translateX(-50%);
+width:min(760px, calc(100% - 24px));
+display:flex;
+gap:10px;
+padding:10px 12px;
+border-radius:999px;
 background: rgba(0,0,0,0.72);
 backdrop-filter: blur(12px);
-z-index: 999;
-box-sizing: border-box;
+z-index:999;
+box-sizing:border-box;
 }
 .bottom-bar input{
-flex: 1;
-border: none;
-outline: none;
-background: transparent;
-color: #fff;
-font-size: 16px;
+flex:1; border:none; outline:none;
+background:transparent; color:#fff;
+font-size:16px;
 }
 .bottom-bar input::placeholder{ color: rgba(255,255,255,0.65); }
 .bottom-bar button{
-border: none;
+border:none;
 background: rgba(255,255,255,0.12);
-color: #fff;
-border-radius: 999px;
-padding: 8px 12px;
-font-size: 16px;
+color:#fff;
+border-radius:999px;
+padding:8px 12px;
+font-size:16px;
 }
 
 /* Toast hint */
 .toast{
-position: absolute;
-left: 50%;
-bottom: 74px;
-transform: translateX(-50%);
-width: min(760px, calc(100% - 24px));
-padding: 10px 12px;
-border-radius: 14px;
+position:absolute;
+left:50%;
+bottom:74px;
+transform:translateX(-50%);
+width:min(760px, calc(100% - 24px));
+padding:10px 12px;
+border-radius:14px;
 background: rgba(0,0,0,0.72);
 backdrop-filter: blur(12px);
-color: #fff;
-z-index: 999;
-box-sizing: border-box;
-display: none;
-font-size: 14px;
-line-height: 1.25;
+color:#fff;
+z-index:999;
+box-sizing:border-box;
+display:none;
+font-size:14px;
+line-height:1.25;
 }
-.toast.show { display: block; }
+.toast.show{ display:block; }
 
-/* Subtle pulse ring (optional) */
-.pulse-ring {
-pointer-events: none;
-border-radius: 50%;
-border: 2px solid rgba(255,255,255,0.45);
-background: rgba(255,255,255,0.06);
+/* Optional pulse ring */
+.pulse-ring{
+pointer-events:none;
+border-radius:50%;
+border:2px solid rgba(0,120,255,0.55);
+background: rgba(0,120,255,0.10);
 }
 
-/* Leaflet controls subtle */
-.leaflet-control-zoom a {
+/* Controls subtle */
+.leaflet-control-zoom a{
 background: rgba(0,0,0,0.55) !important;
-color: #fff !important;
-border: none !important;
+color:#fff !important;
+border:none !important;
 backdrop-filter: blur(10px);
 }
-.leaflet-bar { box-shadow: none !important; }
+.leaflet-bar{ box-shadow:none !important; }
 </style>
 </head>
 
 <body>
 <div id="map"></div>
 
-<!-- Minimal brand + global count (no CTA) -->
-<div class="topbar" id="topbar">
+<div class="topbar">
 <div class="brand">WEJUMAN</div>
-<div class="count" id="globalCount">— initiatives</div>
+<div class="count" id="globalCount">loading…</div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- Bottom search -->
-<div class="bottom-bar" id="bottomBar">
+<div class="bottom-bar">
 <input id="searchInput" type="text" placeholder="Search a place (e.g., Torino)" autocomplete="off" />
 <button id="searchBtn" aria-label="Search">🔍</button>
 </div>
 
 <!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <!-- MarkerCluster -->
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <script>
-/***************
+/**********************
 * CONFIG
-***************/
-const SMART_HINT_MIN_ZOOM = 9; // da qui in su attiviamo "Torino — 12 initiatives..."
-const SMART_HINT_DEBOUNCE_MS = 650; // ritardo dopo pan/zoom
-const TOAST_MS = 2600; // durata toast
-const NOMINATIM_REVERSE_ZOOM = 10; // granularità luogo (10 ~ city/town)
-const SHOW_PULSE_RING = true; // anello soft sul centro (non modifica i punti)
+**********************/
+// ✅ Cambia solo questa riga se repo/user sono diversi
+const POINTS_URL = "https://raw.githubusercontent.com/mysalvavhd-ai/wejuman-map/main/points.json";
 
-/***************
-* DATA
-* Sostituisci questo array con i tuoi punti reali.
-* Formato minimo: { name, lat, lon, category }
-***************/
-const actions = [
-{ name: "Sample Torino", lat: 45.0703, lon: 7.6869, category: "Community" },
-{ name: "Sample Milano", lat: 45.4642, lon: 9.1900, category: "Health" },
-{ name: "Sample Roma", lat: 41.9028, lon: 12.4964, category: "Human Rights" },
-{ name: "Sample Nairobi",lat: -1.2864, lon: 36.8172, category: "Environment" },
-{ name: "Sample Delhi", lat: 28.6139, lon: 77.2090, category: "Education" },
-];
+const SMART_HINT_MIN_ZOOM = 9;
+const SMART_HINT_DEBOUNCE_MS = 650;
+const TOAST_MS = 2600;
+const NOMINATIM_REVERSE_ZOOM = 10;
+const SHOW_PULSE_RING = true;
 
-/***************
+/**********************
 * MAP INIT
-***************/
-const map = L.map('map', {
-zoomControl: true,
-worldCopyJump: true
-}).setView([20, 0], 2);
+**********************/
+const map = L.map("map", { zoomControl: true, worldCopyJump: true })
+.setView([20, 0], 2);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 maxZoom: 19,
-attribution: '&copy; OpenStreetMap'
+attribution: "&copy; OpenStreetMap"
 }).addTo(map);
 
-/***************
-* CLUSTERS
-***************/
+/**********************
+* CLUSTER LAYER
+**********************/
 const clusters = L.markerClusterGroup({
 showCoverageOnHover: false,
 spiderfyOnMaxZoom: true,
 disableClusteringAtZoom: 12
 });
-
-function makeMarker(a){
-const m = L.marker([a.lat, a.lon], { title: a.name });
-// Niente popup per ora: coerente "minimal info"
-// Se un giorno vuoi: m.bindPopup(`<b>${escapeHtml(a.name)}</b>`);
-return m;
-}
-
-actions.forEach(a => clusters.addLayer(makeMarker(a)));
 map.addLayer(clusters);
 
-document.getElementById("globalCount").textContent = `${actions.length} initiatives`;
-
-/***************
+/**********************
 * UI HELPERS
-***************/
+**********************/
 const toastEl = document.getElementById("toast");
 function showToast(msg){
 toastEl.textContent = msg;
 toastEl.classList.add("show");
 clearTimeout(showToast._t);
-showToast._t = setTimeout(()=> toastEl.classList.remove("show"), TOAST_MS);
+showToast._t = setTimeout(() => toastEl.classList.remove("show"), TOAST_MS);
 }
 
-function escapeHtml(str){
-return String(str).replace(/[&<>"']/g, s => ({
-'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-}[s]));
+/**********************
+* DATA
+**********************/
+let actions = [];
+
+function getLat(a){
+return a.lat ?? a.latitude ?? a.LAT ?? a.Lat;
+}
+function getLon(a){
+return a.lon ?? a.lng ?? a.longitude ?? a.LON ?? a.Lon;
 }
 
-/***************
+async function loadPoints(){
+const res = await fetch(POINTS_URL, { cache: "no-store" });
+if (!res.ok) throw new Error("Cannot load points.json (check POINTS_URL)");
+actions = await res.json();
+
+document.getElementById("globalCount").textContent = `${actions.length} initiatives`;
+
+clusters.clearLayers();
+
+let placed = 0;
+for (const a of actions){
+const lat = getLat(a);
+const lon = getLon(a);
+
+if (typeof lat !== "number" || typeof lon !== "number") continue;
+
+clusters.addLayer(L.marker([lat, lon], { title: a.name || "" }));
+placed++;
+}
+
+// Se hai 112 record ma 0 marker: mancano coordinate numeriche
+if (placed === 0 && actions.length > 0){
+showToast("Loaded points, but no coordinates found (lat/lon missing).");
+}
+}
+
+/**********************
 * COUNT IN VIEWPORT
-* (vera logica "in this area")
-***************/
+**********************/
 function countActionsInBounds(bounds){
 let c = 0;
 for (const a of actions){
-if (bounds.contains([a.lat, a.lon])) c++;
+const lat = getLat(a), lon = getLon(a);
+if (typeof lat !== "number" || typeof lon !== "number") continue;
+if (bounds.contains([lat, lon])) c++;
 }
 return c;
 }
 
-/***************
+/**********************
 * OPTIONAL PULSE RING
-***************/
+**********************/
 let pulseCircle = null;
+
 function updatePulseRing(){
 if (!SHOW_PULSE_RING) return;
+
 const z = map.getZoom();
-if (z < SMART_HINT_MIN_ZOOM) {
-if (pulseCircle) { map.removeLayer(pulseCircle); pulseCircle = null; }
+if (z < SMART_HINT_MIN_ZOOM){
+if (pulseCircle){ map.removeLayer(pulseCircle); pulseCircle = null; }
 return;
 }
 
 const center = map.getCenter();
-// raggio in metri, scalato in modo semplice con zoom
 const meters = Math.max(1200, 22000 / Math.pow(1.35, (z - SMART_HINT_MIN_ZOOM)));
 
-if (!pulseCircle) {
+if (!pulseCircle){
 pulseCircle = L.circle([center.lat, center.lng], {
 radius: meters,
-className: 'pulse-ring',
+className: "pulse-ring",
 interactive: false
 }).addTo(map);
 } else {
@@ -249,56 +244,55 @@ pulseCircle.setRadius(meters);
 }
 }
 
-/***************
+/**********************
 * REVERSE GEOCODE (Nominatim)
-* Nota: uso leggero, solo su zoom alto e con debounce.
-***************/
+**********************/
 async function reverseGeocode(lat, lon){
 const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=${NOMINATIM_REVERSE_ZOOM}&lat=${lat}&lon=${lon}`;
 const res = await fetch(url, { headers: { "Accept-Language": "it" } });
 const data = await res.json();
-if(!data || !data.address) return null;
+if (!data || !data.address) return null;
 const a = data.address;
 return a.city || a.town || a.village || a.county || a.state || null;
 }
 
-/***************
-* SMART HINT ON NAVIGATION
-***************/
+/**********************
+* SMART HINT (on navigation)
+**********************/
 let smartHintTimer = null;
-let lastLabel = "";
-let lastBoundsKey = "";
+let lastKey = "";
 
-function boundsKey(bounds){
-const c = bounds.getCenter();
+function boundsKey(){
+const b = map.getBounds();
+const c = b.getCenter();
 return `${c.lat.toFixed(3)}:${c.lng.toFixed(3)}:${map.getZoom()}`;
 }
 
 async function smartHint(){
-const z = map.getZoom();
+if (!actions.length) return;
+
 updatePulseRing();
 
+const z = map.getZoom();
 if (z < SMART_HINT_MIN_ZOOM) return;
 
-const bounds = map.getBounds();
-const key = boundsKey(bounds);
-if (key === lastBoundsKey) return; // evita ripetizioni
-lastBoundsKey = key;
+const key = boundsKey();
+if (key === lastKey) return;
+lastKey = key;
 
+const bounds = map.getBounds();
 const count = countActionsInBounds(bounds);
 if (count <= 0) return;
 
 const center = map.getCenter();
-let place = null;
 
-try {
-place = await reverseGeocode(center.lat, center.lng);
-} catch (e) {
-// silenzioso: niente errori a schermo
+try{
+const place = await reverseGeocode(center.lat, center.lng);
+showToast(place ? `${place} — ${count} initiatives in this area`
+: `${count} initiatives in this area`);
+} catch(e){
+showToast(`${count} initiatives in this area`);
 }
-
-if (place) showToast(`${place} — ${count} initiatives in this area`);
-else showToast(`${count} initiatives in this area`);
 }
 
 function scheduleSmartHint(){
@@ -309,57 +303,47 @@ smartHintTimer = setTimeout(smartHint, SMART_HINT_DEBOUNCE_MS);
 map.on("moveend", scheduleSmartHint);
 map.on("zoomend", scheduleSmartHint);
 
-/***************
-* SEARCH (place -> center + count)
-***************/
+/**********************
+* SEARCH (place -> center + hint)
+**********************/
 async function geocodePlace(query){
 const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
 const res = await fetch(url, { headers: { "Accept-Language": "it" } });
 const data = await res.json();
-if(!data?.length) return null;
-return {
-lat: parseFloat(data[0].lat),
-lon: parseFloat(data[0].lon),
-label: data[0].display_name
-};
+if (!data?.length) return null;
+return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
 }
 
 async function runSearch(){
-const input = document.getElementById("searchInput");
-const q = input.value.trim();
+const q = document.getElementById("searchInput").value.trim();
 if (!q) return;
 
 const place = await geocodePlace(q);
-if(!place){
+if (!place){
 showToast("No results for that place.");
 return;
 }
 
 map.setView([place.lat, place.lon], Math.max(map.getZoom(), SMART_HINT_MIN_ZOOM));
 
-// dopo setView, aspetta che bounds si stabilizzi e poi calcola
-setTimeout(async () => {
-updatePulseRing();
-const b = map.getBounds();
-const count = countActionsInBounds(b);
-if (count > 0) {
-// prova a usare il nome “pulito” dalla reverse (più umano)
-let label = null;
-try { label = await reverseGeocode(place.lat, place.lon); } catch(e){}
-showToast(label ? `${label} — ${count} initiatives in this area` : `${count} initiatives in this area`);
-} else {
-showToast(`No initiatives found in this area.`);
-}
-}, 450);
+setTimeout(() => scheduleSmartHint(), 450);
 }
 
 document.getElementById("searchBtn").addEventListener("click", runSearch);
-document.getElementById("searchInput").addEventListener("keydown", (e)=>{
-if(e.key === "Enter") runSearch();
+document.getElementById("searchInput").addEventListener("keydown", (e) => {
+if (e.key === "Enter") runSearch();
 });
 
-// Prima hint leggera dopo load
-setTimeout(()=> scheduleSmartHint(), 900);
+/**********************
+* BOOT
+**********************/
+loadPoints()
+.then(() => scheduleSmartHint())
+.catch(err => {
+console.error(err);
+document.getElementById("globalCount").textContent = "error";
+showToast("Error loading points.json (check POINTS_URL)");
+});
 </script>
 </body>
 </html>
