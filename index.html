@@ -33,12 +33,12 @@ backdrop-filter: blur(14px);
 color:#fff;
 box-sizing:border-box;
 display:none;
-max-height: 50vh;
+max-height: 52vh;
 overflow:auto;
 }
 .panel.show{ display:block; }
 
-.place{ font-weight:650; font-size:15px; }
+.place{ font-weight:650; font-size:16px; }
 .meta{ opacity:.72; font-size:13px; margin-top:2px; }
 
 .section{ margin-top:10px; }
@@ -50,7 +50,7 @@ margin-bottom:8px;
 
 .item{
 font-size:13px; line-height:1.25;
-padding:8px 10px;
+padding:9px 10px;
 border-radius:12px;
 background: rgba(255,255,255,0.06);
 margin-bottom:8px;
@@ -62,7 +62,7 @@ margin-bottom:8px;
 .aiLine{
 font-size:13px; line-height:1.3;
 opacity:.92;
-padding:8px 10px;
+padding:9px 10px;
 border-radius:12px;
 background: rgba(255,255,255,0.04);
 border:1px solid rgba(255,255,255,0.08);
@@ -75,7 +75,7 @@ margin-top:10px;
 }
 .btn{
 display:inline-flex; align-items:center; gap:8px;
-padding:9px 12px;
+padding:10px 12px;
 border-radius:999px;
 background: rgba(255,255,255,0.10);
 color:#fff; text-decoration:none;
@@ -129,19 +129,33 @@ backdrop-filter: blur(10px);
 
 <script>
 /**********************
-* LOAD POINTS FROM JSON
+* CONFIG
 **********************/
-const POINTS_URL = "./points.json"; // same folder as index.html
+const POINTS_URL = "./points.json"; // same folder
+const MIN_ZOOM_SHOW_PANEL = 4;
+const UPDATE_DEBOUNCE_MS = 650;
 
-let mappedPoints = []; // will be loaded from JSON
-let markerLayer = null; // leaflet layer for points
+// Reverse geocoding: more “city-level” when zoomed in
+// (Nominatim: zoom 14 ~ neighborhood/city; zoom 10 ~ region)
+function nominatimZoomForMapZoom(z){
+if (z >= 13) return 14;
+if (z >= 10) return 12;
+if (z >= 7) return 10;
+return 6; // country-ish
+}
+
+// Wejuman “AI voice” (short + definitive)
+const AI_LINES = [
+"Human action is likely present in this area.",
+"AI suggests recurring forms of human action related to community care, food support, education access, health assistance and emergency response.",
+"You can explore independently outside the map."
+];
 
 /**********************
-* AI voice (Auto-City + Explore)
+* STATE
 **********************/
-const AI_LINE_A = "Human action is likely present in this area.";
-const AI_LINE_B = "AI suggests recurring forms of human action related to community care, food support, education access, health assistance and emergency response.";
-const AI_LINE_C = "You can explore independently outside the map.";
+let mappedPoints = [];
+let markerLayer = null;
 
 /**********************
 * Helpers
@@ -158,31 +172,45 @@ window.open(`https://duckduckgo.com/?q=${q}`, "_blank", "noopener,noreferrer");
 function pointsInBounds(bounds){
 const arr = [];
 for (const p of mappedPoints){
-if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
+if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) continue;
 if (bounds.contains([p.lat, p.lon])) arr.push(p);
 }
 return arr;
 }
 
 /**********************
-* Reverse geocode (worldwide): city / region / country
+* Reverse Geocoding (auto city)
 **********************/
-async function reverseGeocode(lat, lon){
-const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${lat}&lon=${lon}`;
-const res = await fetch(url, { headers:{ "Accept-Language":"en" } });
+async function reverseGeocode(lat, lon, mapZoom){
+const z = nominatimZoomForMapZoom(mapZoom);
+const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=${z}&lat=${lat}&lon=${lon}`;
+
+const res = await fetch(url, {
+headers: {
+"Accept-Language":"en",
+// user-agent header cannot be set in browser; ok.
+}
+});
 if (!res.ok) return null;
+
 const data = await res.json();
 const a = data?.address || {};
 
-const city = a.city || a.town || a.village || a.municipality || a.hamlet || null;
-const region = a.state || a.region || a.county || null;
+// city-first logic
+const city =
+a.city || a.town || a.village || a.municipality || a.hamlet || a.locality || null;
+
+const region =
+a.state || a.region || a.county || a.state_district || null;
+
 const country = a.country || null;
 
+// place to display (city > region > country)
 const place = city || region || country || "This area";
-return { place, city, region, country };
+return { place, city, region, country, zoomUsed: z };
 }
 
-function buildFocusLabel(geo){
+function focusLabel(geo){
 return geo?.city || geo?.region || geo?.country || geo?.place || "this area";
 }
 
@@ -190,8 +218,10 @@ return geo?.city || geo?.region || geo?.country || geo?.place || "this area";
 * MAP
 **********************/
 const map = L.map("map", { zoomControl:true, worldCopyJump:true }).setView([20,0], 2);
+
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-maxZoom:19, attribution:"&copy; OpenStreetMap"
+maxZoom:19,
+attribution:"&copy; OpenStreetMap"
 }).addTo(map);
 
 markerLayer = L.layerGroup().addTo(map);
@@ -199,7 +229,7 @@ markerLayer = L.layerGroup().addTo(map);
 function renderMarkers(){
 markerLayer.clearLayers();
 for (const p of mappedPoints){
-if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
+if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) continue;
 L.circleMarker([p.lat, p.lon], {
 radius: 6,
 weight: 2,
@@ -210,13 +240,12 @@ fillOpacity: 0.14
 }
 
 async function loadPoints(){
-try{
-const res = await fetch(POINTS_URL, { cache: "no-store" });
-if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-const data = await res.json();
-if (!Array.isArray(data)) throw new Error("points.json is not an array");
+const res = await fetch(POINTS_URL, { cache:"no-store" });
+if (!res.ok) throw new Error(`Cannot fetch points.json: ${res.status}`);
 
-// sanitize
+const data = await res.json();
+if (!Array.isArray(data)) throw new Error("points.json must be an array");
+
 mappedPoints = data
 .filter(p => p && typeof p === "object")
 .map(p => ({
@@ -228,15 +257,10 @@ lon: Number(p.lon)
 .filter(p => p.name && Number.isFinite(p.lat) && Number.isFinite(p.lon));
 
 renderMarkers();
-scheduleUpdate(); // refresh panel after load
-}catch(err){
-console.error("Could not load points.json", err);
-// keep empty list; map still works
-}
 }
 
 /**********************
-* PANEL
+* PANEL UI
 **********************/
 const panel = document.getElementById("panel");
 const placeEl = document.getElementById("place");
@@ -246,11 +270,8 @@ const mappedSection = document.getElementById("mappedSection");
 const mappedList = document.getElementById("mappedList");
 
 const aiSection = document.getElementById("aiSection");
-const aiLines = document.getElementById("aiLines");
+const aiLinesEl = document.getElementById("aiLines");
 const aiButtons = document.getElementById("aiButtons");
-
-const MIN_ZOOM_SHOW = 4;
-const DEBOUNCE_MS = 650;
 
 function renderMapped(list){
 mappedList.innerHTML = "";
@@ -263,52 +284,32 @@ mappedList.appendChild(div);
 }
 
 function renderAi(geo){
-aiLines.innerHTML = "";
+aiLinesEl.innerHTML = "";
 aiButtons.innerHTML = "";
 
-const l1 = document.createElement("div");
-l1.className = "aiLine";
-l1.textContent = AI_LINE_A;
-aiLines.appendChild(l1);
+for (const line of AI_LINES){
+const d = document.createElement("div");
+d.className = "aiLine";
+d.textContent = line;
+aiLinesEl.appendChild(d);
+}
 
-const l2 = document.createElement("div");
-l2.className = "aiLine";
-l2.textContent = AI_LINE_B;
-aiLines.appendChild(l2);
-
-const l3 = document.createElement("div");
-l3.className = "aiLine";
-l3.textContent = AI_LINE_C;
-aiLines.appendChild(l3);
-
-const focus = buildFocusLabel(geo);
+const focus = focusLabel(geo);
 
 const b1 = document.createElement("a");
-b1.className = "btn";
-b1.href = "#";
+b1.className = "btn"; b1.href = "#";
 b1.textContent = `Explore initiatives in ${focus}`;
-b1.addEventListener("click", (e) => {
-e.preventDefault();
-openSearch(`${focus} community initiatives`);
-});
+b1.addEventListener("click", (e) => { e.preventDefault(); openSearch(`${focus} community initiatives`); });
 
 const b2 = document.createElement("a");
-b2.className = "btn";
-b2.href = "#";
+b2.className = "btn"; b2.href = "#";
 b2.textContent = `Explore volunteering in ${focus}`;
-b2.addEventListener("click", (e) => {
-e.preventDefault();
-openSearch(`${focus} volunteer opportunities`);
-});
+b2.addEventListener("click", (e) => { e.preventDefault(); openSearch(`${focus} volunteer opportunities`); });
 
 const b3 = document.createElement("a");
-b3.className = "btn";
-b3.href = "#";
+b3.className = "btn"; b3.href = "#";
 b3.textContent = `Explore support & aid in ${focus}`;
-b3.addEventListener("click", (e) => {
-e.preventDefault();
-openSearch(`${focus} food bank shelter clinic support`);
-});
+b3.addEventListener("click", (e) => { e.preventDefault(); openSearch(`${focus} food bank shelter clinic support`); });
 
 aiButtons.appendChild(b1);
 aiButtons.appendChild(b2);
@@ -318,28 +319,29 @@ aiButtons.appendChild(b3);
 let timer = null;
 async function updatePanel(){
 const z = map.getZoom();
-if (z < MIN_ZOOM_SHOW){
+if (z < MIN_ZOOM_SHOW_PANEL){
 panel.classList.remove("show");
 return;
 }
 
 const bounds = map.getBounds();
 const center = map.getCenter();
-const mappedInView = pointsInBounds(bounds);
+const inView = pointsInBounds(bounds);
 
+// AUTO CITY from the map center
 let geo = { place:"This area", city:null, region:null, country:null };
 try{
-const r = await reverseGeocode(center.lat, center.lng);
+const r = await reverseGeocode(center.lat, center.lng, z);
 if (r) geo = r;
-} catch(e){}
+}catch(e){}
 
 placeEl.textContent = geo.place;
 
-if (mappedInView.length){
-metaEl.textContent = `${mappedInView.length} initiative${mappedInView.length>1 ? "s" : ""} visible here`;
+if (inView.length){
+metaEl.textContent = `${inView.length} initiative${inView.length>1 ? "s" : ""} visible here`;
 mappedSection.style.display = "block";
-renderMapped(mappedInView);
-} else {
+renderMapped(inView);
+}else{
 metaEl.textContent = "0 mapped initiatives visible here";
 mappedSection.style.display = "none";
 mappedList.innerHTML = "";
@@ -353,15 +355,23 @@ panel.classList.add("show");
 
 function scheduleUpdate(){
 clearTimeout(timer);
-timer = setTimeout(updatePanel, DEBOUNCE_MS);
+timer = setTimeout(updatePanel, UPDATE_DEBOUNCE_MS);
 }
 
 map.on("moveend", scheduleUpdate);
 map.on("zoomend", scheduleUpdate);
 
-// Start
+/**********************
+* START
+**********************/
+(async function init(){
+try{
+await loadPoints(); // points.json -> markers
+}catch(err){
+console.error(err);
+}
 scheduleUpdate();
-loadPoints(); // <-- loads points.json and renders markers
+})();
 </script>
 </body>
 </html>
