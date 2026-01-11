@@ -1,53 +1,12 @@
 [
-{ "name": "Emergency", "category": "Health / Care", "level": 2, "city": "Milan", "country": "Italy", "lat": 45.4642, "lon": 9.1900 },
+{ "name": "Emergency", "category": "Health / Care", "level": 2, "city": "Milan", "country": "Italy", "lat": 45.4642, "lon": 9.19 },
 { "name": "Doctors Without Borders", "category": "Health / Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lon": 6.1432 },
 { "name": "Red Cross Italy", "category": "Emergency / Crisis Response", "level": 2, "city": "Rome", "country": "Italy", "lat": 41.9028, "lon": 12.4964 },
 { "name": "Save the Children", "category": "Human Rights / Legal Support", "level": 2, "city": "London", "country": "United Kingdom", "lat": 51.5074, "lon": -0.1278 },
-{ "name": "UNICEF", "category": "Human Rights / Legal Support", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lon": -74.0060 },
+{ "name": "UNICEF", "category": "Human Rights / Legal Support", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lon": -74.006 },
 { "name": "World Food Programme", "category": "Emergency / Crisis Response", "level": 2, "city": "Rome", "country": "Italy", "lat": 41.9028, "lon": 12.4964 },
 { "name": "World Health Organization", "category": "Health / Care", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lon": 6.1432 },
-{ "name": "Oxfam", "category": "Community / Social Care", "level": 2, "city": "Oxford", "country": "United Kingdom", "lat": 51.7520, "lon": -1.2577 },
-{ "name": "CARE International", "category": "Emergency / Crisis Response", "level": 2, "city": "Geneva", "country": "Switzerland", "lat": 46.2044, "lon": 6.1432 },
-{ "name": "Norwegian Refugee Council", "category": "Emergency / Crisis Response", "level": 2, "city": "Oslo", "country": "Norway", "lat": 59.9139, "lon": 10.7522 },
-
-{ "name": "International Rescue Committee", "category": "Emergency / Crisis Response", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lon": -74.0060 },
-{ "name": "Mercy Corps", "category": "Emergency / Crisis Response", "level": 2, "city": "Portland", "country": "USA", "lat": 45.5152, "lon": -122.6784 },
-{ "name": "Action Against Hunger", "category": "Emergency / Crisis Response", "level": 2, "city": "Paris", "country": "France", "lat": 48.8566, "lon": 2.3522 },
-{ "name": "Plan International", "category": "Education / Knowledge Access", "level": 2, "city": "Woking", "country": "United Kingdom", "lat": 51.3190, "lon": -0.5586 },
-{ "name": "World Vision", "category": "Human Rights / Legal Support", "level": 2, "city": "Monrovia", "country": "USA", "lat": 47.8554, "lon": -121.9715 },
-
-{ "name": "Catholic Relief Services", "category": "Emergency / Crisis Response", "level": 2, "city": "Baltimore", "country": "USA", "lat": 39.2904, "lon": -76.6122 },
-{ "name": "Islamic Relief Worldwide", "category": "Emergency / Crisis Response", "level": 2, "city": "Birmingham", "country": "United Kingdom", "lat": 52.4862, "lon": -1.8904 },
-{ "name": "Isha Foundation", "category": "Community / Social Care", "level": 1, "city": "Coimbatore", "country": "India", "lat": 11.0168, "lon": 76.9558 },
-{ "name": "Save the Soil", "category": "Environment / Planet Care", "level": 1, "city": "Coimbatore", "country": "India", "lat": 11.0168, "lon": 76.9558 },
+{ "name": "Oxfam", "category": "Community / Social Care", "level": 2, "city": "Oxford", "country": "United Kingdom", "lat": 51.752, "lon": -1.2577 },
 { "name": "Greenpeace", "category": "Environment / Planet Care", "level": 2, "city": "Amsterdam", "country": "Netherlands", "lat": 52.3676, "lon": 4.9041 },
-
-{ "name": "WWF", "category": "Environment / Planet Care", "level": 2, "city": "Gland", "country": "Switzerland", "lat": 46.4200, "lon": 6.2700 },
-{ "name": "Extinction Rebellion", "category": "Environment / Planet Care", "level": 1, "city": "London", "country": "United Kingdom", "lat": 51.5074, "lon": -0.1278 },
-{ "name": "Tree Aid", "category": "Environment / Planet Care", "level": 1, "city": "Bristol", "country": "United Kingdom", "lat": 51.4545, "lon": -2.5879 },
-{ "name": "SOS Méditerranée", "category": "Emergency / Crisis Response", "level": 2, "city": "Marseille", "country": "France", "lat": 43.2965, "lon": 5.3698 },
-{ "name": "Open Arms", "category": "Emergency / Crisis Response", "level": 2, "city": "Barcelona", "country": "Spain", "lat": 41.3851, "lon": 2.1734 },
-
-{ "name": "Sea-Watch", "category": "Emergency / Crisis Response", "level": 2, "city": "Berlin", "country": "Germany", "lat": 52.5200, "lon": 13.4050 },
-{ "name": "Refugees Welcome", "category": "Human Rights / Legal Support", "level": 1, "city": "Berlin", "country": "Germany", "lat": 52.5200, "lon": 13.4050 },
-{ "name": "Teach For All", "category": "Education / Knowledge Access", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lon": -74.0060 },
-{ "name": "Khan Academy", "category": "Education / Knowledge Access", "level": 2, "city": "Mountain View", "country": "USA", "lat": 37.3861, "lon": -122.0839 },
-{ "name": "Wikipedia Foundation", "category": "Education / Knowledge Access", "level": 2, "city": "San Francisco", "country": "USA", "lat": 37.7749, "lon": -122.4194 },
-
-{ "name": "Internet Archive", "category": "Education / Knowledge Access", "level": 2, "city": "San Francisco", "country": "USA", "lat": 37.7749, "lon": -122.4194 },
-{ "name": "Amnesty International", "category": "Human Rights / Legal Support", "level": 2, "city": "London", "country": "United Kingdom", "lat": 51.5074, "lon": -0.1278 },
-{ "name": "Human Rights Watch", "category": "Human Rights / Legal Support", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lon": -74.0060 },
-{ "name": "Transparency International", "category": "Human Rights / Legal Support", "level": 2, "city": "Berlin", "country": "Germany", "lat": 52.5200, "lon": 13.4050 },
-{ "name": "Mozilla Foundation", "category": "Education / Knowledge Access", "level": 2, "city": "San Francisco", "country": "USA", "lat": 37.7749, "lon": -122.4194 },
-
-{ "name": "Water.org", "category": "Health / Care", "level": 2, "city": "Kansas City", "country": "USA", "lat": 39.0997, "lon": -94.5786 },
-{ "name": "Charity: Water", "category": "Health / Care", "level": 2, "city": "New York", "country": "USA", "lat": 40.7128, "lon": -74.0060 },
-{ "name": "SolarAid", "category": "Environment / Planet Care", "level": 1, "city": "London", "country": "United Kingdom", "lat": 51.5074, "lon": -0.1278 },
-{ "name": "Médecins du Monde", "category": "Health / Care", "level": 2, "city": "Paris", "country": "France", "lat": 48.8566, "lon": 2.3522 },
-{ "name": "African Wildlife Foundation", "category": "Environment / Planet Care", "level": 2, "city": "Nairobi", "country": "Kenya", "lat": -1.2921, "lon": 36.8219 },
-
-{ "name": "BRAC", "category": "Community / Social Care", "level": 2, "city": "Dhaka", "country": "Bangladesh", "lat": 23.8103, "lon": 90.4125 },
-{ "name": "Goonj", "category": "Community / Social Care", "level": 1, "city": "New Delhi", "country": "India", "lat": 28.6139, "lon": 77.2090 },
-{ "name": "Pratham", "category": "Education / Knowledge Access", "level": 2, "city": "Mumbai", "country": "India", "lat": 19.0760, "lon": 72.8777 },
-{ "name": "Barefoot College", "category": "Education / Knowledge Access", "level": 1, "city": "Tilonia", "country": "India", "lat": 26.4710, "lon": 75.3450 }
+{ "name": "WWF", "category": "Environment / Planet Care", "level": 2, "city": "Gland", "country": "Switzerland", "lat": 46.42, "lon": 6.27 }
 ]
