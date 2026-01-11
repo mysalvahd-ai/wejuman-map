@@ -1,11 +1,182 @@
 [
 {
-"name": "Emergency Test",
-"category": "Health / Care",
-"level": 2,
-"city": "Milan",
-"country": "Italy",
+"name": "Isha Foundation (Sadhguru)",
+"tagline": "Environmental action, education and rural health initiatives.",
+"lat": 11.0168,
+"lon": 76.9558
+},
+{
+"name": "Addi Road Community Organisation",
+"tagline": "Community meals and social support.",
+"lat": -33.9236,
+"lon": 151.0940
+},
+{
+"name": "EMERGENCY",
+"tagline": "Free healthcare in war zones and underserved areas.",
 "lat": 45.4642,
-"lon": 9.19
+"lon": 9.1900
+},
+{
+"name": "Médecins Sans Frontières",
+"tagline": "Medical assistance in conflict and crisis zones.",
+"lat": 46.2044,
+"lon": 6.1432
+},
+{
+"name": "Doctors of the World",
+"tagline": "Healthcare access for vulnerable populations.",
+"lat": 48.8566,
+"lon": 2.3522
+},
+{
+"name": "Partners In Health",
+"tagline": "Strengthening public health systems.",
+"lat": 18.5944,
+"lon": -72.3074
+},
+{
+"name": "Aravind Eye Care System",
+"tagline": "Accessible eye care and blindness prevention.",
+"lat": 9.9252,
+"lon": 78.1198
+},
+{
+"name": "World Central Kitchen",
+"tagline": "Emergency food relief in crisis situations.",
+"lat": 38.9072,
+"lon": -77.0369
+},
+{
+"name": "Action Against Hunger",
+"tagline": "Fighting hunger through nutrition and care.",
+"lat": 40.4168,
+"lon": -3.7038
+},
+{
+"name": "Mary’s Meals",
+"tagline": "School meals for children in vulnerable communities.",
+"lat": 55.9533,
+"lon": -3.1883
+},
+{
+"name": "Pratham",
+"tagline": "Education access for underprivileged children.",
+"lat": 19.0760,
+"lon": 72.8777
+},
+{
+"name": "Room to Read",
+"tagline": "Literacy and education for children.",
+"lat": 37.7749,
+"lon": -122.4194
+},
+{
+"name": "BRAC Education Programme",
+"tagline": "Community-based education initiatives.",
+"lat": 23.8103,
+"lon": 90.4125
+},
+{
+"name": "Educate Girls",
+"tagline": "Improving access to education for girls.",
+"lat": 26.9124,
+"lon": 75.7873
+},
+{
+"name": "WWF",
+"tagline": "Wildlife and environmental conservation.",
+"lat": 46.9480,
+"lon": 7.4474
+},
+{
+"name": "Greenpeace",
+"tagline": "Environmental protection and climate action.",
+"lat": 52.3676,
+"lon": 4.9041
+},
+{
+"name": "Rainforest Alliance",
+"tagline": "Forest conservation and sustainable livelihoods.",
+"lat": 40.7128,
+"lon": -74.0060
+},
+{
+"name": "Tree Aid",
+"tagline": "Reforestation and community resilience.",
+"lat": 12.3686,
+"lon": -1.5275
+},
+{
+"name": "International Rescue Committee",
+"tagline": "Support for displaced and crisis-affected people.",
+"lat": 40.7128,
+"lon": -74.0060
+},
+{
+"name": "Norwegian Refugee Council",
+"tagline": "Assistance and protection for refugees.",
+"lat": 59.9139,
+"lon": 10.7522
+},
+{
+"name": "Save the Children",
+"tagline": "Child protection and humanitarian aid.",
+"lat": 51.5074,
+"lon": -0.1278
+},
+{
+"name": "UNICEF",
+"tagline": "Child health, education and protection.",
+"lat": 40.7128,
+"lon": -74.0060
+},
+{
+"name": "Mercy Corps",
+"tagline": "Crisis response and long-term recovery.",
+"lat": 45.5152,
+"lon": -122.6784
+},
+{
+"name": "CARE International",
+"tagline": "Poverty reduction and humanitarian response.",
+"lat": 46.2044,
+"lon": 6.1432
+},
+{
+"name": "Catholic Relief Services",
+"tagline": "Humanitarian assistance and development.",
+"lat": 39.2904,
+"lon": -76.6122
+},
+{
+"name": "Islamic Relief Worldwide",
+"tagline": "Humanitarian aid and disaster response.",
+"lat": 51.5074,
+"lon": -0.1278
+},
+{
+"name": "Food For Life Global",
+"tagline": "Plant-based food relief worldwide.",
+"lat": 48.2082,
+"lon": 16.3738
+},
+{
+"name": "Teach For All",
+"tagline": "Education leadership and equality.",
+"lat": 51.5074,
+"lon": -0.1278
+},
+{
+"name": "OzHarvest",
+"tagline": "Food rescue and redistribution.",
+"lat": -33.8688,
+"lon": 151.2093
+},
+{
+"name": "World Food Programme",
+"tagline": "Food assistance in emergencies.",
+"lat": 41.9028,
+"lon": 12.4964
 }
 ]
