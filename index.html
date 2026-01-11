@@ -34,7 +34,6 @@ color:#fff;
 box-sizing:border-box;
 display:none;
 
-/* IMPORTANT: list can be long -> scroll inside panel */
 max-height: 50vh;
 overflow:auto;
 }
@@ -61,10 +60,6 @@ margin-bottom:8px;
 .item .t{ opacity:.75; margin-left:6px; }
 
 .mapped{ background: rgba(255,255,255,0.08); }
-.suggested{
-background: rgba(255,255,255,0.04);
-border:1px solid rgba(255,255,255,0.08);
-}
 
 .aiLine{
 font-size:13px; line-height:1.3;
@@ -74,11 +69,6 @@ border-radius:12px;
 background: rgba(255,255,255,0.04);
 border:1px solid rgba(255,255,255,0.08);
 margin-bottom:8px;
-}
-.smallNote{
-font-size:12px;
-opacity:.55;
-margin-top:6px;
 }
 
 .btnRow{
@@ -95,6 +85,12 @@ font-size:13px;
 border:1px solid rgba(255,255,255,0.10);
 }
 .btn:hover{ background: rgba(255,255,255,0.14); }
+
+.smallNote{
+font-size:12px;
+opacity:.55;
+margin-top:10px;
+}
 
 .leaflet-control-zoom a{
 background: rgba(0,0,0,0.55) !important;
@@ -126,7 +122,7 @@ backdrop-filter: blur(10px);
 <div class="section" id="aiSection" style="display:none;">
 <div class="sectionTitle">Suggestions</div>
 <div id="aiLines"></div>
-<div id="aiList"></div>
+<div class="btnRow" id="aiButtons"></div>
 <div class="smallNote">Visibility does not imply completeness.</div>
 </div>
 </div>
@@ -135,8 +131,7 @@ backdrop-filter: blur(10px);
 
 <script>
 /**********************
-* MAPPED / WEJUMAN POINTS
-* (Only what you choose to anchor on the map)
+* YOUR MAPPED / ANCHOR POINTS (Wejuman-curated)
 **********************/
 const mappedPoints = [
 { name:"Isha Foundation (Sadhguru)", tagline:"Environmental action, education and rural health initiatives.", lat:11.0168, lon:76.9558 },
@@ -146,119 +141,17 @@ const mappedPoints = [
 ];
 
 /**********************
-* CITY-FIRST SUGGESTIONS (not mapped)
-* Keys are normalized: lowercase, no accents.
-* You can keep adding as many as you want.
-**********************/
-const suggestedByCity = {
-"sydney": [
-{ name:"OzHarvest", hint:"Food rescue & redistribution." },
-{ name:"Addi Road Community Organisation", hint:"Community meals & support." },
-{ name:"Foodbank NSW & ACT", hint:"Food relief distribution." },
-{ name:"Mission Australia (Sydney)", hint:"Homelessness and community support." },
-{ name:"The Salvation Army (Sydney)", hint:"Social support and emergency relief." },
-{ name:"St Vincent de Paul Society (NSW)", hint:"Community assistance and outreach." },
-{ name:"Wayside Chapel", hint:"Support for vulnerable people." },
-{ name:"The Smith Family (Sydney)", hint:"Education support for children." },
-{ name:"Barnardos Australia (Sydney)", hint:"Child and family services." },
-{ name:"Red Cross Australia (Sydney)", hint:"Emergency support and community programs." }
-],
-"melbourne": [
-{ name:"FareShare", hint:"Meals for people in need." },
-{ name:"Asylum Seeker Resource Centre", hint:"Support for refugees and asylum seekers." },
-{ name:"Foodbank Victoria", hint:"Food relief distribution." },
-{ name:"Launch Housing", hint:"Homelessness support and housing services." },
-{ name:"Sacred Heart Mission", hint:"Meals and support services." },
-{ name:"The Salvation Army (Melbourne)", hint:"Social support and emergency relief." },
-{ name:"St Kilda Gatehouse", hint:"Support for women facing disadvantage." },
-{ name:"Sikh Volunteers Australia (Melbourne)", hint:"Community meals and support." },
-{ name:"Red Cross Australia (Melbourne)", hint:"Emergency support and community programs." },
-{ name:"Brotherhood of St Laurence", hint:"Poverty and social policy action." }
-],
-"rome": [
-{ name:"Caritas Roma", hint:"Local support networks and services." },
-{ name:"Banco Alimentare (Roma)", hint:"Food recovery and distribution." },
-{ name:"Comunità di Sant’Egidio", hint:"Community care and solidarity." }
-],
-"milan": [
-{ name:"Banco Alimentare", hint:"Food recovery and distribution." },
-{ name:"Fondazione Progetto Arca", hint:"Support for people in need." },
-{ name:"Caritas Ambrosiana", hint:"Local social support networks." }
-]
-};
-
-const suggestedByRegion = {
-"victoria": [
-{ name:"Foodbank Victoria", hint:"Food relief distribution." },
-{ name:"FareShare", hint:"Meals for people in need." }
-],
-"new south wales": [
-{ name:"Foodbank NSW & ACT", hint:"Food relief distribution." },
-{ name:"OzHarvest", hint:"Food rescue & redistribution." }
-],
-"lombardy": [
-{ name:"Banco Alimentare", hint:"Food recovery and distribution." }
-],
-"veneto": [
-{ name:"Caritas", hint:"Local support networks and services." }
-]
-};
-
-const suggestedByCountry = {
-"australia": [
-{ name:"Red Cross Australia", hint:"Emergency support and community programs." },
-{ name:"The Salvation Army (Australia)", hint:"Social support and emergency relief." }
-],
-"italy": [
-{ name:"Banco Alimentare", hint:"Food recovery and distribution." },
-{ name:"Caritas", hint:"Local support networks and services." }
-],
-"india": [
-{ name:"Akshaya Patra", hint:"School meals and nutrition support." },
-{ name:"Goonj", hint:"Material relief and community development." }
-]
-};
-
-const genericAiCategories = [
-"community care",
-"food support",
-"education access",
-"health assistance",
-"emergency response",
-"legal support",
-"women & children support",
-"housing and homelessness support"
-];
-
-/**********************
-* Definitive Wejuman AI voice
+* Definitive Wejuman AI voice (short + honest)
 **********************/
 const AI_LINE_A = "Human action is likely present in this area.";
-const AI_LINE_B = (cats) => `AI suggests recurring forms of human action in this area, including ${cats}.`;
-const AI_LINE_C = "AI has identified recurring references to initiatives related to community kitchens, local health clinics and social support networks.";
-const AI_LINE_D = "Some initiatives in this area have been mapped by Wejuman.";
-
-const AI_CLICK_1 = "This entity is suggested by AI based on recurring references in this area.";
-const AI_CLICK_2 = "Wejuman does not verify or represent this initiative.";
-const AI_CLICK_3 = "You are leaving the map to explore independently.";
+const AI_LINE_B = "AI suggests recurring forms of human action related to community care, food support, education access, health assistance and emergency response.";
+const AI_LINE_C = "You can explore independently outside the map.";
 
 /**********************
 * Helpers
 **********************/
 function escapeHtml(s){
 return String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
-}
-
-function normKey(s){
-return String(s || "")
-.trim()
-.toLowerCase()
-.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-function openExplore(entityName){
-const q = encodeURIComponent(entityName);
-window.open(`https://duckduckgo.com/?q=${q}`, "_blank", "noopener,noreferrer");
 }
 
 function pointsInBounds(bounds){
@@ -270,8 +163,13 @@ if (bounds.contains([p.lat, p.lon])) arr.push(p);
 return arr;
 }
 
+function openSearch(query){
+const q = encodeURIComponent(query);
+window.open(`https://duckduckgo.com/?q=${q}`, "_blank", "noopener,noreferrer");
+}
+
 /**********************
-* Reverse geocode (city/region/country) - worldwide
+* Reverse geocode (worldwide): city / region / country
 **********************/
 async function reverseGeocode(lat, lon){
 const url = `https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${lat}&lon=${lon}`;
@@ -283,20 +181,16 @@ const a = data?.address || {};
 const city = a.city || a.town || a.village || a.municipality || a.hamlet || null;
 const region = a.state || a.region || a.county || null;
 const country = a.country || null;
+
 const place = city || region || country || "This area";
 
 return { place, city, region, country };
 }
 
-function pickSuggestions(geo){
-const cityKey = normKey(geo?.city);
-const regionKey = normKey(geo?.region);
-const countryKey = normKey(geo?.country);
-
-return (cityKey && suggestedByCity[cityKey]) ? suggestedByCity[cityKey] :
-(regionKey && suggestedByRegion[regionKey]) ? suggestedByRegion[regionKey] :
-(countryKey && suggestedByCountry[countryKey]) ? suggestedByCountry[countryKey] :
-[];
+function buildFocusLabel(geo){
+// Use the most specific label available for searches
+// e.g., "Rovigo", else "Veneto", else "Italy"
+return geo?.city || geo?.region || geo?.country || geo?.place || "this area";
 }
 
 /**********************
@@ -319,7 +213,7 @@ fillOpacity: 0.14
 }
 
 /**********************
-* PANEL UI
+* PANEL
 **********************/
 const panel = document.getElementById("panel");
 const placeEl = document.getElementById("place");
@@ -330,7 +224,7 @@ const mappedList = document.getElementById("mappedList");
 
 const aiSection = document.getElementById("aiSection");
 const aiLines = document.getElementById("aiLines");
-const aiList = document.getElementById("aiList");
+const aiButtons = document.getElementById("aiButtons");
 
 const MIN_ZOOM_SHOW = 4;
 const DEBOUNCE_MS = 650;
@@ -345,70 +239,58 @@ mappedList.appendChild(div);
 }
 }
 
-function renderAi(geo, hasMapped){
+function renderAi(geo){
 aiLines.innerHTML = "";
-aiList.innerHTML = "";
+aiButtons.innerHTML = "";
 
-// AI voice lines (definitive)
 const l1 = document.createElement("div");
 l1.className = "aiLine";
 l1.textContent = AI_LINE_A;
 aiLines.appendChild(l1);
 
-const cats = genericAiCategories.join(", ");
 const l2 = document.createElement("div");
 l2.className = "aiLine";
-l2.textContent = AI_LINE_B(cats);
+l2.textContent = AI_LINE_B;
 aiLines.appendChild(l2);
 
-if (map.getZoom() >= 9){
 const l3 = document.createElement("div");
 l3.className = "aiLine";
 l3.textContent = AI_LINE_C;
 aiLines.appendChild(l3);
-}
 
-if (hasMapped){
-const l4 = document.createElement("div");
-l4.className = "aiLine";
-l4.textContent = AI_LINE_D;
-aiLines.appendChild(l4);
-}
+const focus = buildFocusLabel(geo);
 
-// ALL suggestions (option 2)
-const suggestions = pickSuggestions(geo);
-
-if (suggestions.length){
-for (const s of suggestions){
-const div = document.createElement("div");
-div.className = "item suggested";
-div.innerHTML = `<span class="n">${escapeHtml(s.name)}</span><span class="t">${escapeHtml(s.hint)}</span>`;
-div.style.cursor = "pointer";
-div.addEventListener("click", () => {
-alert(`${AI_CLICK_1}\n\n${AI_CLICK_2}\n\n${AI_CLICK_3}`);
-openExplore(s.name);
-});
-aiList.appendChild(div);
-}
-} else {
-// No named suggestions -> one neutral door
-const row = document.createElement("div");
-row.className = "btnRow";
-
+// 3 doors to the world (auto-city)
 const b1 = document.createElement("a");
 b1.className = "btn";
 b1.href = "#";
-b1.textContent = "Explore human action here";
+b1.textContent = `Explore initiatives in ${focus}`;
 b1.addEventListener("click", (e) => {
 e.preventDefault();
-alert(`${AI_CLICK_3}`);
-const q = (geo?.place && geo.place !== "This area") ? geo.place : "human action";
-openExplore(q + " community initiatives");
+openSearch(`${focus} community initiatives`);
 });
 
-row.appendChild(b1);
-aiList.appendChild(row);
-}
+const b2 = document.createElement("a");
+b2.className = "btn";
+b2.href = "#";
+b2.textContent = `Explore volunteering in ${focus}`;
+b2.addEventListener("click", (e) => {
+e.preventDefault();
+openSearch(`${focus} volunteer opportunities`);
+});
+
+const b3 = document.createElement("a");
+b3.className = "btn";
+b3.href = "#";
+b3.textContent = `Explore support & aid in ${focus}`;
+b3.addEventListener("click", (e) => {
+e.preventDefault();
+openSearch(`${focus} food bank shelter clinic support`);
+});
+
+aiButtons.appendChild(b1);
+aiButtons.appendChild(b2);
+aiButtons.appendChild(b3);
 }
 
 let timer = null;
@@ -427,11 +309,9 @@ let geo = { place:"This area", city:null, region:null, country:null };
 try{
 const r = await reverseGeocode(center.lat, center.lng);
 if (r) geo = r;
-}catch(e){}
+} catch(e){}
 
-// Expose for debug if needed
-window.__geo = geo;
-
+// show in UI
 placeEl.textContent = geo.place;
 
 if (mappedInView.length){
@@ -445,7 +325,7 @@ mappedList.innerHTML = "";
 }
 
 aiSection.style.display = "block";
-renderAi(geo, mappedInView.length > 0);
+renderAi(geo);
 
 panel.classList.add("show");
 }
