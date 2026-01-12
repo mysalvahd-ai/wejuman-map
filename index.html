@@ -1,239 +1,561 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8" />
-<title>Wejuman – Coscienza globale</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Wejuman</title>
 
-<link
-rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- MarkerCluster -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<!-- Geocoder (ricerca luogo) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
 <style>
-html, body {
-margin: 0;
-padding: 0;
-height: 100%;
-background: #0e0f12;
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-color: #eaeaea;
+:root{
+--bg: #0b0c10;
+--panel: rgba(20, 22, 28, 0.82);
+--panel2: rgba(20, 22, 28, 0.90);
+--stroke: rgba(255,255,255,0.14);
+--text: rgba(255,255,255,0.92);
+--muted: rgba(255,255,255,0.70);
+--chip: rgba(85, 212, 230, 0.95);
+--chipText: rgba(0,0,0,0.86);
+--shadow: 0 12px 40px rgba(0,0,0,0.40);
+--r: 18px;
 }
 
-#map {
-height: 100%;
-width: 100%;
-}
+html, body { height: 100%; margin: 0; background: var(--bg); font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif; }
+#map { height: 100%; width: 100%; }
 
 /* Top bar */
-#topbar {
+.topbar{
 position: fixed;
-top: 10px;
+top: calc(10px + env(safe-area-inset-top));
 left: 10px;
 right: 10px;
 z-index: 1000;
 display: flex;
-gap: 8px;
+gap: 10px;
 align-items: center;
-background: rgba(30,30,34,0.75);
-backdrop-filter: blur(14px);
-border-radius: 14px;
-padding: 10px 12px;
+padding: 10px;
+border: 1px solid var(--stroke);
+background: rgba(18, 20, 26, 0.70);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+border-radius: 22px;
+box-shadow: var(--shadow);
 }
-
-#menuBtn, #resetBtn {
+.btn{
+border: 1px solid var(--stroke);
 background: rgba(255,255,255,0.08);
-border: none;
-color: #fff;
-padding: 8px 12px;
-border-radius: 10px;
+color: var(--text);
+padding: 10px 12px;
+border-radius: 16px;
 font-size: 14px;
+line-height: 14px;
+cursor: pointer;
+user-select: none;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+}
+.btn:active{ transform: translateY(1px); }
+
+.title{
+display: flex;
+flex-direction: column;
+gap: 2px;
+padding: 4px 6px;
+min-width: 160px;
+}
+.title b{ font-size: 16px; color: var(--text); }
+.title span{ font-size: 12px; color: var(--muted); }
+
+.pill{
+margin-left: auto;
+border: 1px solid var(--stroke);
+background: rgba(255,255,255,0.08);
+color: var(--text);
+padding: 10px 12px;
+border-radius: 16px;
+font-size: 13px;
+white-space: nowrap;
 }
 
-#title {
-flex: 1;
-font-weight: 600;
-}
-
-/* Bottom bar */
-#bottombar {
+/* Bottom panel */
+.bottom{
 position: fixed;
-bottom: 10px;
 left: 10px;
 right: 10px;
-z-index: 1000;
-background: rgba(30,30,34,0.8);
+bottom: calc(10px + env(safe-area-inset-bottom));
+z-index: 900;
+border: 1px solid var(--stroke);
+background: rgba(0,0,0,0.62); /* alto contrasto */
 backdrop-filter: blur(14px);
-border-radius: 14px;
-padding: 12px;
-font-size: 14px;
-line-height: 1.4;
+-webkit-backdrop-filter: blur(14px);
+border-radius: 18px;
+box-shadow: var(--shadow);
+padding: 12px 14px;
+color: var(--text);
 }
+.bottom .kicker{
+font-size: 12px;
+color: rgba(255,255,255,0.85);
+letter-spacing: 0.2px;
+margin-bottom: 6px;
+}
+.bottom .list{
+font-size: 14px;
+line-height: 1.35;
+color: rgba(255,255,255,0.95);
+word-break: break-word;
+}
+.dot{ opacity: 0.8; margin: 0 6px; }
 
-/* Categories panel */
-#panel {
+/* Modal */
+.overlay{
 position: fixed;
 inset: 0;
-z-index: 2000;
-background: rgba(0,0,0,0.55);
+z-index: 1200;
+background: rgba(0,0,0,0.35);
+backdrop-filter: blur(6px);
+-webkit-backdrop-filter: blur(6px);
 display: none;
+align-items: flex-start;
+justify-content: center;
+padding: calc(16px + env(safe-area-inset-top)) 12px 12px;
 }
-
-#panelContent {
-background: rgba(30,30,34,0.95);
-margin: 60px auto;
-width: calc(100% - 40px);
-max-width: 420px;
-border-radius: 16px;
+.modal{
+width: min(520px, 96vw);
+border: 1px solid var(--stroke);
+background: var(--panel2);
+border-radius: 22px;
+box-shadow: var(--shadow);
 padding: 16px;
+color: var(--text);
 }
-
-.category {
-display: inline-block;
-margin: 6px;
-padding: 8px 12px;
+.modalHeader{
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 10px;
+margin-bottom: 10px;
+}
+.modalHeader h3{
+margin: 0;
+font-size: 18px;
+letter-spacing: 0.2px;
+}
+.closeX{
+width: 38px; height: 38px;
+border-radius: 14px;
+border: 1px solid var(--stroke);
 background: rgba(255,255,255,0.08);
-border-radius: 20px;
+color: var(--text);
+display: grid;
+place-items: center;
 cursor: pointer;
-font-size: 14px;
 }
-
-.category.active {
-background: #4dd0e1;
-color: #000;
-}
-
-.small {
-opacity: 0.6;
+.help{
 font-size: 13px;
+color: var(--muted);
+margin: 8px 0 14px;
+}
+.chips{
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+}
+.chip{
+border: 1px solid rgba(0,0,0,0.08);
+background: var(--chip);
+color: var(--chipText);
+padding: 10px 14px;
+border-radius: 999px;
+font-weight: 600;
+font-size: 14px;
+cursor: pointer;
+user-select: none;
+}
+.chip.off{
+background: rgba(255,255,255,0.10);
+color: var(--text);
+border: 1px solid var(--stroke);
+font-weight: 500;
+}
+.row{
+margin-top: 14px;
+padding-top: 12px;
+border-top: 1px solid rgba(255,255,255,0.12);
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 10px;
+flex-wrap: wrap;
+}
+.toggle{
+display:flex;
+align-items:center;
+gap:10px;
+color: var(--muted);
+font-size: 13px;
+user-select: none;
+}
+.stats{
+color: var(--muted);
+font-size: 12px;
+line-height: 1.35;
 margin-top: 10px;
 }
+
+/* Geocoder style compact */
+.leaflet-control-geocoder{
+border-radius: 14px !important;
+overflow: hidden;
+border: 1px solid rgba(255,255,255,0.18) !important;
+box-shadow: none !important;
+}
+.leaflet-control-geocoder-form input{
+background: rgba(18,20,26,0.75) !important;
+color: white !important;
+border: none !important;
+padding: 10px 12px !important;
+}
+
+/* Dim markers not highlighted */
+.dimMarker { opacity: 0.22 !important; }
 </style>
 </head>
-
 <body>
-
-<div id="topbar">
-<button id="menuBtn">☰</button>
-<div id="title">Wejuman · Coscienza globale</div>
-<button id="resetBtn">Reset</button>
-</div>
-
-<div id="bottombar">
-Qui intorno<br>
-<span id="nearText">Caricamento…</span>
-</div>
-
-<div id="panel">
-<div id="panelContent">
-<h3>Categorie</h3>
-<p class="small">
-Il filtro non giudica: evidenzia ciò che cerchi, senza cancellare il resto.
-</p>
-
-<div id="categories"></div>
-
-<label class="small">
-<input type="checkbox" id="onlyHighlighted">
-Mostra solo evidenziati
-</label>
-
-<p class="small" id="stats"></p>
-
-<button id="closePanel" style="margin-top:10px">Chiudi</button>
-</div>
-</div>
-
 <div id="map"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<div class="topbar">
+<div class="btn" id="openMenu">☰</div>
+
+<div class="title">
+<b>Wejuman</b>
+<span id="modeLabel">Coscienza globale</span>
+</div>
+
+<div class="pill" id="dataPill">Dati: points.json</div>
+
+<div class="btn" id="locBtn">📍</div>
+<div class="btn" id="resetBtn">Reset</div>
+</div>
+
+<div class="bottom" id="bottom">
+<div class="kicker">Qui intorno</div>
+<div class="list" id="nearList">—</div>
+</div>
+
+<div class="overlay" id="overlay">
+<div class="modal">
+<div class="modalHeader">
+<h3>Categorie</h3>
+<div class="closeX" id="closeMenu">✕</div>
+</div>
+
+<div class="help">
+Il filtro non <b>giudica</b>: evidenzia ciò che cerchi, senza cancellare il resto.
+</div>
+
+<div class="chips" id="chips"></div>
+
+<div class="row">
+<label class="toggle">
+<input type="checkbox" id="onlyHighlighted" />
+Mostra solo evidenziati
+</label>
+<div class="btn" id="clearFilter">Tutto</div>
+</div>
+
+<div class="stats" id="stats">—</div>
+</div>
+</div>
 
 <script>
-const categoriesList = [
-"Ambiente",
-"Cibo",
-"Acqua",
-"Salute",
-"Educazione",
-"Bambini",
-"Donne",
-"Diritti umani",
-"Emergenze",
-"Comunità",
-"Rifugiati",
-"Generale"
+(function(){
+const CATEGORIES = [
+"Ambiente","Cibo","Acqua","Salute","Educazione","Bambini","Donne",
+"Diritti umani","Emergenze","Comunità","Rifugiati","Generale"
 ];
 
-let activeCategories = new Set(categoriesList);
+// Heuristics: se points.json non ha category, la deduciamo da testo
+function inferCategory(p){
+const t = ((p.name||"") + " " + (p.tagline||"")).toLowerCase();
+const has = (arr)=>arr.some(k=>t.includes(k));
 
-const map = L.map('map', {
-zoomControl: false
-}).setView([20,0], 2);
+if (has(["refugee","refugees","rifugi","displaced","asylum"])) return "Rifugiati";
+if (has(["women","woman","girls","girl","donne","ragazze","gender"])) return "Donne";
+if (has(["child","children","bambini","orphan","orphans"])) return "Bambini";
+if (has(["education","school","literacy","educat","teacher","teachers","read"])) return "Educazione";
+if (has(["health","medical","hospital","clinic","clinics","doctor","doctors","medicine","medic","eye care"])) return "Salute";
+if (has(["water","acqua","clean water","sanitation","hygiene","wells","well "])) return "Acqua";
+if (has(["food","hunger","kitchen","meals","nutrition","famine","cibo","mensa"])) return "Cibo";
+if (has(["forest","tree","trees","climate","environment","environmental","wildlife","conservation","soil","rainforest","reforest"])) return "Ambiente";
+if (has(["emergency","crisis","disaster","war","earthquake","relief"])) return "Emergenze";
+if (has(["community","social","comunit","volunteer","volont"])) return "Comunità";
+if (has(["rights","human rights","legal","justice","diritti"])) return "Diritti umani";
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-attribution: '© OpenStreetMap contributors'
-}).addTo(map);
-
-let markers = [];
-
-fetch('points.json')
-.then(r => r.json())
-.then(points => {
-points.forEach(p => {
-const m = L.circleMarker([p.lat, p.lon], {
-radius: 6,
-color: '#ffffff',
-fillOpacity: 0.8
-}).addTo(map);
-
-m.category = p.category || "Generale";
-m.data = p;
-markers.push(m);
-});
-updateNear();
-updateStats();
-});
-
-function updateNear() {
-document.getElementById("nearText").innerText =
-markers.slice(0,3).map(m => m.data.name).join(" · ");
+return "Generale";
 }
 
-function updateStats() {
-document.getElementById("stats").innerText =
-`Punti caricati: ${markers.length} · Evidenziati: ${markers.filter(m => activeCategories.has(m.category)).length}`;
+function safeNum(x){ return typeof x === "number" && isFinite(x); }
+
+// Haversine km
+function distKm(aLat,aLon,bLat,bLon){
+const R=6371;
+const dLat=(bLat-aLat)*Math.PI/180;
+const dLon=(bLon-aLon)*Math.PI/180;
+const s1=Math.sin(dLat/2), s2=Math.sin(dLon/2);
+const aa=s1*s1+Math.cos(aLat*Math.PI/180)*Math.cos(bLat*Math.PI/180)*s2*s2;
+return 2*R*Math.asin(Math.min(1,Math.sqrt(aa)));
 }
 
-/* Menu */
-const panel = document.getElementById("panel");
-document.getElementById("menuBtn").onclick = () => panel.style.display = "block";
-document.getElementById("closePanel").onclick = () => panel.style.display = "none";
+const el = (id)=>document.getElementById(id);
 
-const catBox = document.getElementById("categories");
-categoriesList.forEach(c => {
-const el = document.createElement("div");
-el.className = "category active";
-el.innerText = c;
-el.onclick = () => {
-if (activeCategories.has(c)) {
-activeCategories.delete(c);
-el.classList.remove("active");
-} else {
-activeCategories.add(c);
-el.classList.add("active");
-}
-markers.forEach(m => {
-m.setStyle({
-opacity: activeCategories.has(m.category) ? 1 : 0.2
+let map, cluster, allMarkers = [];
+let activeCategory = "Generale"; // default
+let onlyHighlighted = false;
+let points = [];
+
+const overlay = el("overlay");
+el("openMenu").onclick = ()=> overlay.style.display="flex";
+el("closeMenu").onclick = ()=> overlay.style.display="none";
+overlay.addEventListener("click", (e)=>{ if(e.target===overlay) overlay.style.display="none"; });
+
+el("onlyHighlighted").addEventListener("change", (e)=>{
+onlyHighlighted = !!e.target.checked;
+applyFilter();
 });
-});
-updateStats();
+
+el("clearFilter").onclick = ()=>{
+activeCategory = null; // means ALL
+el("onlyHighlighted").checked = false;
+onlyHighlighted = false;
+renderChips();
+applyFilter();
 };
-catBox.appendChild(el);
+
+el("resetBtn").onclick = ()=>{
+activeCategory = "Generale";
+el("onlyHighlighted").checked = false;
+onlyHighlighted = false;
+renderChips();
+applyFilter();
+map.setView([20,0], 2);
+};
+
+el("locBtn").onclick = ()=>{
+if(!navigator.geolocation){
+alert("Geolocalizzazione non disponibile.");
+return;
+}
+navigator.geolocation.getCurrentPosition(
+(pos)=>{
+const {latitude, longitude} = pos.coords;
+map.setView([latitude, longitude], Math.max(map.getZoom(), 10));
+},
+()=> alert("Non riesco a ottenere la posizione (permessi?)."),
+{enableHighAccuracy:true, timeout:8000}
+);
+};
+
+function renderChips(){
+const wrap = el("chips");
+wrap.innerHTML = "";
+CATEGORIES.forEach(cat=>{
+const d = document.createElement("div");
+d.className = "chip" + ((activeCategory===cat || (activeCategory===null && cat==="Generale")) ? "" : " off");
+d.textContent = cat;
+d.onclick = ()=>{
+activeCategory = cat;
+renderChips();
+applyFilter();
+};
+wrap.appendChild(d);
+});
+// Label topbar
+el("modeLabel").textContent = activeCategory ? activeCategory : "Tutte";
+}
+
+function markerClassFor(cat, isMatch){
+// We do dim via className on icon element after add
+return;
+}
+
+function applyFilter(){
+let shown=0, highlighted=0;
+
+allMarkers.forEach(m=>{
+const cat = m.__cat;
+const isMatch = !activeCategory || cat === activeCategory;
+
+// highlighted count = match
+if(isMatch) highlighted++;
+
+// show/hide logic
+if(onlyHighlighted){
+if(isMatch){
+if(!cluster.hasLayer(m)) cluster.addLayer(m);
+shown++;
+// remove dim
+if(m._icon) m._icon.classList.remove("dimMarker");
+if(m._shadow) m._shadow.classList.remove("dimMarker");
+}else{
+if(cluster.hasLayer(m)) cluster.removeLayer(m);
+}
+}else{
+// always show, but dim non-match
+if(!cluster.hasLayer(m)) cluster.addLayer(m);
+shown++;
+if(m._icon){
+if(isMatch) m._icon.classList.remove("dimMarker");
+else m._icon.classList.add("dimMarker");
+}
+if(m._shadow){
+if(isMatch) m._shadow.classList.remove("dimMarker");
+else m._shadow.classList.add("dimMarker");
+}
+}
 });
 
-document.getElementById("resetBtn").onclick = () => location.reload();
-</script>
+el("stats").textContent =
+`Punti caricati: ${points.length} · Evidenziati: ${highlighted}`;
 
+updateNear();
+}
+
+function updateNear(){
+if(!map || !points.length) return;
+const c = map.getCenter();
+const list = points
+.map(p=>({p, d: distKm(c.lat,c.lng,p.lat,p.lon)}))
+.sort((a,b)=>a.d-b.d)
+.slice(0,3);
+
+const txt = list.map(x=>{
+const cat = x.p.category || "Generale";
+const name = x.p.name || "—";
+const d = (x.d<10 ? x.d.toFixed(1) : Math.round(x.d)).toString().replace(".", ",");
+return `${name} · ${cat} · ${d} km`;
+}).join(" · ");
+
+el("nearList").textContent = txt || "—";
+}
+
+async function loadPoints(){
+const res = await fetch("points.json", {cache:"no-store"});
+if(!res.ok) throw new Error("Impossibile caricare points.json");
+const arr = await res.json();
+if(!Array.isArray(arr)) throw new Error("points.json non è un array");
+
+// normalize
+points = arr
+.filter(p=>p && safeNum(p.lat) && safeNum(p.lon))
+.map(p=>{
+const cat = (p.category && CATEGORIES.includes(p.category)) ? p.category : inferCategory(p);
+return { ...p, category: cat };
+});
+
+return points;
+}
+
+function initMap(){
+map = L.map("map", { zoomControl: false }).setView([20,0], 2);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+maxZoom: 19,
+attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+// cluster
+cluster = L.markerClusterGroup({
+showCoverageOnHover: false,
+spiderfyOnMaxZoom: true,
+disableClusteringAtZoom: 10
+});
+map.addLayer(cluster);
+
+// geocoder
+if (window.L && L.Control && L.Control.Geocoder){
+const geocoder = L.Control.geocoder({
+defaultMarkGeocode: false,
+placeholder: "Cerca un luogo…"
+})
+.on('markgeocode', function(e) {
+const bbox = e.geocode.bbox;
+const poly = L.polygon([
+bbox.getSouthEast(),
+bbox.getNorthEast(),
+bbox.getNorthWest(),
+bbox.getSouthWest()
+]);
+map.fitBounds(poly.getBounds(), {padding:[20,20]});
+})
+.addTo(map);
+}
+
+map.on("moveend zoomend", ()=>{
+updateNear();
+});
+}
+
+function buildMarkers(){
+allMarkers = [];
+cluster.clearLayers();
+
+points.forEach(p=>{
+const m = L.marker([p.lat, p.lon], { title: p.name || "" });
+m.__cat = p.category || "Generale";
+const safe = (s)=>String(s||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const popupHtml = `
+<div style="min-width:220px">
+<div style="font-weight:700; margin-bottom:6px">${safe(p.name)}</div>
+<div style="color:#666; margin-bottom:8px">${safe(p.category)}</div>
+<div style="line-height:1.35">${safe(p.tagline)}</div>
+</div>`;
+m.bindPopup(popupHtml);
+allMarkers.push(m);
+});
+
+// add all then filter (so _icon exists after add)
+allMarkers.forEach(m=>cluster.addLayer(m));
+}
+
+async function start(){
+try{
+initMap();
+renderChips();
+
+await loadPoints();
+buildMarkers();
+
+// Default: Generale come “vista neutra”, ma evidenzia tutto (non dim)
+activeCategory = null; // tutte
+renderChips();
+applyFilter();
+
+updateNear();
+}catch(err){
+console.error(err);
+// fallback semplice: mostra errore in bottom
+el("nearList").textContent = "Errore: " + (err.message || err);
+el("modeLabel").textContent = "Errore dati";
+}
+}
+
+// Start when scripts are ready (Leaflet is deferred)
+window.addEventListener("load", start);
+})();
+</script>
 </body>
 </html>
