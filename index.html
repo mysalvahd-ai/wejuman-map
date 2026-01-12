@@ -1,637 +1,508 @@
-<!-- WEJUMAN PRO v1 – STABLE CHECKPOINT – 2026-01-12 -->
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Wejuman</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Wejuman — A living map of human action</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet -->
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+crossorigin=""
+/>
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+crossorigin=""
+></script>
 
 <style>
-html, body, #map { height: 100%; margin: 0; }
-
 :root{
---bar: rgba(255,255,255,.92);
---text:#111;
---muted:#5a5a5a;
---shadow: 0 10px 30px rgba(0,0,0,.18);
---radius: 16px;
+--bg: #f3f4f6;
+--card: rgba(255,255,255,0.92);
+--card2: rgba(255,255,255,0.96);
+--text: #111827;
+--muted: #6b7280;
+--line: rgba(17,24,39,0.10);
+--shadow: 0 10px 30px rgba(0,0,0,0.12);
+--radius: 18px;
+--radius2: 22px;
 }
+html, body { height: 100%; margin: 0; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif; color: var(--text); }
+#app { height: 100%; position: relative; overflow: hidden; }
+#map { height: 100%; width: 100%; }
 
-.bar{
-position: fixed;
-left: 50%;
-transform: translateX(-50%);
-width: min(720px, calc(100% - 24px));
-background: var(--bar);
-color: var(--text);
-border-radius: var(--radius);
-box-shadow: var(--shadow);
-z-index: 1000;
-font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
+/* Top bar */
+.topbar {
+position: absolute;
+top: env(safe-area-inset-top, 0px);
+left: 0;
+right: 0;
+padding: 12px 12px 0 12px;
+z-index: 500;
+pointer-events: none;
 }
-
-#topBar{
-top: 12px;
-padding: 12px 14px;
-display: grid;
-grid-template-columns: 44px 1fr auto;
+.topbar-inner {
+pointer-events: auto;
+display: flex;
 gap: 10px;
 align-items: center;
+justify-content: space-between;
+background: var(--card);
+backdrop-filter: blur(14px);
+-webkit-backdrop-filter: blur(14px);
+border: 1px solid var(--line);
+border-radius: var(--radius2);
+box-shadow: var(--shadow);
+padding: 10px 12px;
 }
-
-#btnMenu{
-width: 44px;
-height: 44px;
-border: none;
-background: rgba(0,0,0,.06);
-border-radius: 12px;
+.leftgrp { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hamb {
+width: 44px; height: 44px; border-radius: 14px;
+display: grid; place-items: center;
+border: 1px solid var(--line);
+background: rgba(255,255,255,0.75);
 cursor: pointer;
-font-size: 20px;
-line-height: 44px;
+flex: 0 0 auto;
 }
-
-#title{
-font-weight: 800;
-font-size: 18px;
-margin: 0;
-line-height: 1.05;
-}
-#subtitle{
-margin-top: 2px;
-font-size: 13px;
-color: var(--muted);
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-}
-#placeLabel{
-margin-top: 2px;
-font-size: 13px;
-color: var(--text);
-font-weight: 650;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-}
-
-#chip{
+.hamb svg { width: 22px; height: 22px; }
+.titlegrp { min-width: 0; }
+.brand { font-weight: 800; font-size: 20px; line-height: 1.1; }
+.sub { font-size: 13px; color: var(--muted); line-height: 1.2; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.locline { font-weight: 700; margin-top: 2px; }
+.chip {
+flex: 0 0 auto;
+border: 1px solid var(--line);
+background: rgba(255,255,255,0.82);
 padding: 10px 12px;
 border-radius: 999px;
-background: rgba(0,0,0,.06);
-font-size: 13px;
-color: var(--muted);
+font-size: 14px;
+color: var(--text);
+display: inline-flex;
+gap: 8px;
+align-items: center;
 white-space: nowrap;
 }
 
-#bottomBar{
-bottom: 12px;
-padding: 12px 14px;
-max-height: 44vh;
-overflow: auto;
-}
-
-#nearTitle{
-font-weight: 800;
-margin-bottom: 6px;
-font-size: 18px;
-}
-
-.nearItem{
-padding: 10px 0;
-border-top: 1px solid rgba(0,0,0,.06);
-cursor: pointer;
-}
-.nearItem:first-of-type{ border-top:none; }
-.nearName{ font-size: 15px; font-weight: 700; }
-.nearMeta{ font-size: 13px; color: var(--muted); margin-top: 2px; }
-
-.pillRow{
-display:flex; flex-wrap:wrap; gap:8px; margin-top: 10px;
-}
-.pill{
-padding: 8px 10px;
-border-radius: 999px;
-background: rgba(0,0,0,.06);
-font-size: 13px;
-cursor:pointer;
-user-select:none;
-}
-.pill.on{
-background: rgba(0,0,0,.14);
-color: #000;
-font-weight: 700;
-}
-
-/* Modal menu */
-#overlay{
-position: fixed; inset:0;
-background: rgba(0,0,0,.22);
-display:none;
-z-index: 2000;
-font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-}
-#panel{
+/* Bottom sheet */
+.sheet {
 position: absolute;
-left: 50%;
-transform: translateX(-50%);
-top: 72px;
-width: min(720px, calc(100% - 24px));
-background: var(--bar);
-border-radius: var(--radius);
-box-shadow: var(--shadow);
-padding: 14px;
+left: 0;
+right: 0;
+bottom: env(safe-area-inset-bottom, 0px);
+z-index: 500;
+padding: 0 12px 12px 12px;
+pointer-events: none;
 }
-#panel h3{ margin:0 0 8px 0; font-size: 18px; }
-#panel p{ margin:0 0 10px 0; color: var(--muted); font-size: 13px; }
-.row{ display:flex; align-items:center; gap:10px; margin-top: 10px; }
-.row label{ font-size: 13px; color: var(--text); }
-#btnClose{
-margin-top: 12px;
-width: 100%;
-padding: 12px 14px;
-border:none;
-border-radius: 12px;
-background: rgba(0,0,0,.08);
-font-weight: 800;
+.sheet-inner {
+pointer-events: auto;
+background: var(--card2);
+border: 1px solid var(--line);
+border-radius: var(--radius2);
+box-shadow: var(--shadow);
+overflow: hidden;
+max-height: min(52vh, 520px);
+display: flex;
+flex-direction: column;
+}
+.sheet-head {
+padding: 14px 16px 10px 16px;
+border-bottom: 1px solid var(--line);
+display: flex;
+align-items: baseline;
+justify-content: space-between;
+gap: 12px;
+}
+.sheet-title { font-weight: 900; font-size: 26px; }
+.sheet-meta { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.list {
+overflow: auto;
+-webkit-overflow-scrolling: touch;
+}
+.row {
+padding: 14px 16px;
+border-bottom: 1px solid var(--line);
 cursor: pointer;
 }
+.row:last-child { border-bottom: 0; }
+.row h4 { margin: 0; font-size: 18px; letter-spacing: 0.2px; }
+.row p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+.pill {
+display: inline-flex;
+gap: 6px;
+align-items: center;
+border: 1px solid var(--line);
+background: rgba(255,255,255,0.7);
+border-radius: 999px;
+padding: 4px 10px;
+font-size: 12px;
+margin-left: 8px;
+color: var(--text);
+}
 
-/* Leaflet */
-.leaflet-control-container{ display:none; } /* pulito come prima */
+/* Sidebar */
+.side {
+position: absolute;
+top: 0; bottom: 0; left: 0;
+width: min(320px, 85vw);
+z-index: 600;
+transform: translateX(-110%);
+transition: transform .22s ease;
+background: rgba(255,255,255,0.96);
+border-right: 1px solid var(--line);
+box-shadow: 10px 0 30px rgba(0,0,0,0.10);
+padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px 14px 14px;
+}
+.side.open { transform: translateX(0); }
+.overlay {
+position: absolute; inset: 0;
+background: rgba(0,0,0,0.25);
+z-index: 590;
+opacity: 0;
+pointer-events: none;
+transition: opacity .22s ease;
+}
+.overlay.show { opacity: 1; pointer-events: auto; }
+.side h3 { margin: 0 0 12px; font-size: 18px; }
+.btn {
+width: 100%;
+padding: 12px 12px;
+border-radius: 14px;
+border: 1px solid var(--line);
+background: white;
+text-align: left;
+font-size: 14px;
+margin-bottom: 8px;
+}
+.hint { color: var(--muted); font-size: 13px; line-height: 1.35; margin-top: 10px; }
+
+/* Leaflet tweaks */
+.leaflet-control-container { display:none; } /* pulito stile app-like */
 </style>
 </head>
 
 <body>
+<div id="app">
 <div id="map"></div>
 
-<div id="topBar" class="bar">
-<button id="btnMenu" title="Categorie">☰</button>
-<div>
-<div id="title">Wejuman</div>
-<div id="subtitle">A living map of human action</div>
-<div id="placeLabel"></div>
-</div>
-<div id="chip">Dati: points.json</div>
-</div>
-
-<div id="bottomBar" class="bar">
-<div id="nearTitle">Nearby</div>
-<div id="nearList">
-<div class="nearMeta">Sposta o zooma la mappa per vedere 20 attività nel raggio.</div>
+<div class="topbar">
+<div class="topbar-inner">
+<div class="leftgrp">
+<button class="hamb" id="hambBtn" aria-label="Menu">
+<svg viewBox="0 0 24 24" fill="none">
+<path d="M4 7h16M4 12h16M4 17h16" stroke="#111827" stroke-width="2" stroke-linecap="round"/>
+</svg>
+</button>
+<div class="titlegrp">
+<div class="brand">Wejuman</div>
+<div class="sub">A living map of human action</div>
+<div class="locline" id="locationLabel">—</div>
 </div>
 </div>
-
-<div id="overlay">
-<div id="panel">
-<h3>Categorie</h3>
-<p>Mostra solo queste categorie (menu canonico). I risultati “OSM” servono per riempire fino a 20 attorno al centro mappa.</p>
-<div id="cats" class="pillRow"></div>
-
-<div class="row">
-<input id="onlyLocal" type="checkbox" />
-<label for="onlyLocal"><b>Solo points.json</b> (disattiva OSM)</label>
+<div class="chip" title="Fonte dati">
+<span style="opacity:.8">Dati:</span>
+<strong>points.json</strong>
+</div>
+</div>
 </div>
 
-<button id="btnClose">Chiudi</button>
+<div class="sheet">
+<div class="sheet-inner">
+<div class="sheet-head">
+<div class="sheet-title">Nearby</div>
+<div class="sheet-meta" id="nearbyMeta">Tocca la mappa per aggiornare</div>
 </div>
+<div class="list" id="nearbyList"></div>
+</div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="side" id="side">
+<h3>Menu</h3>
+<button class="btn" id="btnMyPos">Vai alla mia posizione</button>
+<button class="btn" id="btnWorld">Vista mondo</button>
+<button class="btn" id="btnResetNearby">Reset “Nearby”</button>
+<div class="hint">
+Logica attuale: la lista “Nearby” mostra sempre le <b>20 iniziative più vicine</b> al punto che tocchi sulla mappa (anche se non c’è un marker).
+</div>
+</aside>
 </div>
 
 <script>
-/* =========================================================
-CONFIG: categorie canoniche (solo queste)
-========================================================= */
-const CATEGORIES = [
-"Food for the poor",
-"Homeless support",
-"Refugees",
-"Children & orphans",
-"Disability support",
-"Domestic violence support",
-"Mental health support",
-"Community center",
-"Volunteering"
-];
-const ALLOWED_CATS = new Set(CATEGORIES);
+// =========================
+// CONFIG
+// =========================
+const POINTS_URL = "points.json";
+const NEARBY_LIMIT = 20;
 
-/* stato filtri */
-const state = {
-categories: new Map(CATEGORIES.map(c => [c, true])), // tutte ON di default
-onlyLocal: false,
-};
+// NOTE: NON tocchiamo il JSON.
+// Accettiamo più schemi possibili:
+// - lat/lng (o latitude/longitude)
+// - name/title
+// - type/category + scope
+// - url/website
+// Qualunque campo manchi: fallback safe.
 
-/* =========================================================
-MAP
-========================================================= */
-const map = L.map('map', { zoomControl:false, attributionControl:false })
+// =========================
+// STATE
+// =========================
+let ALL_POINTS = [];
+let markersLayer = null;
+let lastQueryLatLng = null;
+
+// =========================
+// MAP
+// =========================
+const map = L.map("map", { zoomControl: false, attributionControl: false })
 .setView([45.4642, 9.1900], 11);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })
-.addTo(map);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+maxZoom: 19
+}).addTo(map);
 
-const elSub = document.getElementById('subtitle');
-const elPlace = document.getElementById('placeLabel');
-const elNear = document.getElementById('nearList');
+markersLayer = L.layerGroup().addTo(map);
 
-/* =========================================================
-3 stati (Lontano / Medio / Vicino)
-========================================================= */
-function zoomBand(z){
-if (z < 4) return "lontano";
-if (z < 10) return "medio";
-return "vicino";
+// =========================
+// UI HELPERS
+// =========================
+const $ = (id) => document.getElementById(id);
+const nearbyListEl = $("nearbyList");
+const nearbyMetaEl = $("nearbyMeta");
+const locationLabelEl = $("locationLabel");
+
+function setLocationLabelFromLatLng(latlng) {
+// Manteniamo semplice (come app): nome città “smart” non serve ora.
+// Mostriamo un’etichetta tipo: "Milano" se siamo vicino al default, altrimenti coordinate.
+const isMilan = Math.abs(latlng.lat - 45.4642) < 0.25 && Math.abs(latlng.lng - 9.19) < 0.35;
+locationLabelEl.textContent = isMilan ? "Milano" : `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
 }
 
-function updatePerception(){
-const band = zoomBand(map.getZoom());
-if (band === "lontano") elSub.textContent = "A living map of human action";
-if (band === "medio") elSub.textContent = "A living map of human action";
-if (band === "vicino") elSub.textContent = "A living map of human action";
+function escapeHtml(str) {
+return String(str ?? "")
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
 }
 
-/* =========================================================
-MENU UI (chips)
-========================================================= */
-const overlay = document.getElementById('overlay');
-const btnMenu = document.getElementById('btnMenu');
-const btnClose = document.getElementById('btnClose');
-const catsWrap = document.getElementById('cats');
-const onlyLocalEl = document.getElementById('onlyLocal');
-
-function renderCats(){
-catsWrap.innerHTML = "";
-CATEGORIES.forEach(cat => {
-const pill = document.createElement('div');
-pill.className = 'pill ' + (state.categories.get(cat) ? 'on' : '');
-pill.textContent = cat;
-pill.onclick = () => {
-state.categories.set(cat, !state.categories.get(cat));
-pill.classList.toggle('on');
-scheduleNearby20();
-};
-catsWrap.appendChild(pill);
-});
-}
-renderCats();
-
-btnMenu.onclick = () => { overlay.style.display = 'block'; };
-btnClose.onclick = () => { overlay.style.display = 'none'; };
-overlay.onclick = (e) => { if(e.target === overlay) overlay.style.display = 'none'; };
-
-onlyLocalEl.onchange = () => {
-state.onlyLocal = !!onlyLocalEl.checked;
-scheduleNearby20();
-};
-
-/* categorie attive */
-function activeCategories(){
-const on = [];
-for (const [cat, isOn] of state.categories.entries()) if (isOn) on.push(cat);
-return on.length ? on : CATEGORIES.slice(); // se tutte spente, considera tutte
+// =========================
+// DISTANCE (Haversine)
+// =========================
+function haversineKm(lat1, lon1, lat2, lon2) {
+const R = 6371;
+const dLat = (lat2 - lat1) * Math.PI / 180;
+const dLon = (lon2 - lon1) * Math.PI / 180;
+const a =
+Math.sin(dLat/2) * Math.sin(dLat/2) +
+Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+Math.sin(dLon/2) * Math.sin(dLon/2);
+return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-/* =========================================================
-LOCAL POINTS (points.json)
-========================================================= */
-let points = [];
-let markers = [];
+// =========================
+// NORMALIZE POINTS (NO JSON CHANGE)
+// =========================
+function normalizePoint(raw) {
+const lat = Number(raw.lat ?? raw.latitude);
+const lng = Number(raw.lng ?? raw.lon ?? raw.longitude);
+if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
-function isAllowedCat(cat){
-return ALLOWED_CATS.has(cat || "");
-}
-
-function isCatActive(cat){
-const on = state.categories.get(cat);
-// se non c'è, considerala OFF
-return !!on;
-}
-
-function addLocalMarkers(){
-markers.forEach(m => map.removeLayer(m));
-markers = [];
-
-points.forEach(p => {
-const cat = p.category || "Community center";
-// se nel dataset arriva qualcosa fuori lista, la normalizziamo:
-const safeCat = isAllowedCat(cat) ? cat : "Community center";
-p.category = safeCat;
-
-const m = L.marker([p.lat, p.lon]);
-m.addTo(map);
-markers.push(m);
-});
-}
-
-async function loadLocal(){
-const res = await fetch('./points.json', { cache: 'no-store' });
-points = await res.json();
-// normalizza formato minimo
-points = (Array.isArray(points) ? points : []).map(p => ({
-name: p.name || p.title || "Untitled",
-lat: Number(p.lat),
-lon: Number(p.lon || p.lng),
-category: p.category || "Community center",
-website: p.website || p.url || ""
-})).filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon));
-addLocalMarkers();
-}
-
-/* =========================================================
-REVERSE GEOCODE (stabile)
-========================================================= */
-const placeCache = new Map();
-let abortGeo = null;
-let geoTimer = null;
-
-function shouldReverseNow(){
-// sempre ok tranne molto lontano, per evitare call inutili
-return zoomBand(map.getZoom()) !== "lontano";
-}
-
-function scheduleReverse(){
-clearTimeout(geoTimer);
-geoTimer = setTimeout(reverseGeocode, 450);
-}
-
-async function reverseGeocode(){
-if (!shouldReverseNow()) { elPlace.textContent = ""; return; }
-
-const c = map.getCenter();
-const key = `${c.lat.toFixed(3)},${c.lng.toFixed(3)}`;
-if (placeCache.has(key)) { elPlace.textContent = placeCache.get(key); return; }
-
-try{
-if (abortGeo) abortGeo.abort();
-abortGeo = new AbortController();
-
-const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${c.lat}&lon=${c.lng}&zoom=10&addressdetails=1`;
-const r = await fetch(url, {
-signal: abortGeo.signal,
-headers: { "Accept":"application/json" }
-});
-const d = await r.json();
-const a = (d && d.address) ? d.address : {};
-const place = a.city || a.town || a.village || a.county || a.state || a.country || "";
-placeCache.set(key, place);
-elPlace.textContent = place;
-}catch(e){
-// silenzioso
-}
-}
-
-/* =========================================================
-OSM / OVERPASS: riempi fino a 20
-=========================================================
-Prendiamo POI "social" vicino al centro.
-Mappiamo tag -> categoria canonica.
-========================================================= */
-let overpassCache = new Map();
-let abortOSM = null;
-
-function tagToCategory(tags){
-// tags = { amenity, social_facility, social_facility:for, ... }
-const amenity = (tags.amenity || "").toLowerCase();
-const sf = (tags.social_facility || "").toLowerCase();
-const sfFor = (tags["social_facility:for"] || "").toLowerCase();
-
-if (amenity === "food_bank" || amenity === "soup_kitchen") return "Food for the poor";
-if (amenity === "shelter" || sf === "shelter") return "Homeless support";
-if (sfFor.includes("refugee") || sf.includes("refugee")) return "Refugees";
-if (sfFor.includes("child") || sf.includes("child")) return "Children & orphans";
-if (sfFor.includes("disabled") || sf.includes("disabled")) return "Disability support";
-if (sfFor.includes("victim") || sf.includes("victim") || sfFor.includes("violence")) return "Domestic violence support";
-if (sfFor.includes("mental") || sf.includes("mental")) return "Mental health support";
-if (amenity === "community_centre") return "Community center";
-
-// fallback: social facility generica
-if (amenity === "social_facility" || sf) return "Community center";
-return "Community center";
-}
-
-function overpassKey(lat, lon, radiusM, catsKey){
-return `${lat.toFixed(3)},${lon.toFixed(3)}|${radiusM}|${catsKey}`;
-}
-
-async function fetchOverpass(lat, lon, radiusM, activeCats){
-const catsKey = activeCats.join("|");
-const key = overpassKey(lat, lon, radiusM, catsKey);
-if (overpassCache.has(key)) return overpassCache.get(key);
-
-// query: social_facility + shelter + food_bank + soup_kitchen + community_centre
-const q = `
-[out:json][timeout:18];
-(
-node(around:${radiusM},${lat},${lon})["amenity"="social_facility"];
-way(around:${radiusM},${lat},${lon})["amenity"="social_facility"];
-relation(around:${radiusM},${lat},${lon})["amenity"="social_facility"];
-
-node(around:${radiusM},${lat},${lon})["amenity"="shelter"];
-way(around:${radiusM},${lat},${lon})["amenity"="shelter"];
-relation(around:${radiusM},${lat},${lon})["amenity"="shelter"];
-
-node(around:${radiusM},${lat},${lon})["amenity"="food_bank"];
-way(around:${radiusM},${lat},${lon})["amenity"="food_bank"];
-relation(around:${radiusM},${lat},${lon})["amenity"="food_bank"];
-
-node(around:${radiusM},${lat},${lon})["amenity"="soup_kitchen"];
-way(around:${radiusM},${lat},${lon})["amenity"="soup_kitchen"];
-relation(around:${radiusM},${lat},${lon})["amenity"="soup_kitchen"];
-
-node(around:${radiusM},${lat},${lon})["amenity"="community_centre"];
-way(around:${radiusM},${lat},${lon})["amenity"="community_centre"];
-relation(around:${radiusM},${lat},${lon})["amenity"="community_centre"];
-);
-out center tags;
-`.trim();
-
-const url = "https://overpass-api.de/api/interpreter";
-
-try{
-if (abortOSM) abortOSM.abort();
-abortOSM = new AbortController();
-
-const r = await fetch(url, {
-method: "POST",
-signal: abortOSM.signal,
-headers: { "Content-Type":"text/plain" },
-body: q
-});
-
-const data = await r.json();
-const els = (data && data.elements) ? data.elements : [];
-
-const results = els.map(el => {
-const tags = el.tags || {};
-const name = tags.name || tags.operator || tags.brand || "Unnamed";
-const cat = tagToCategory(tags);
-// filtra solo categorie del menu
-if (!ALLOWED_CATS.has(cat)) return null;
-// filtra categorie attive
-if (!activeCats.includes(cat)) return null;
-
-const lat2 = el.lat || (el.center && el.center.lat);
-const lon2 = el.lon || (el.center && el.center.lon);
-if (!Number.isFinite(lat2) || !Number.isFinite(lon2)) return null;
-
-// link OSM (più stabile di website spesso vuoto)
-const osmUrl = `https://www.openstreetmap.org/${el.type}/${el.id}`;
+const name = raw.name ?? raw.title ?? raw.org ?? raw.organization ?? "Untitled";
+const type = raw.type ?? raw.category ?? raw.kind ?? "Community center";
+const scope = raw.scope ?? raw.levelScope ?? raw.scale ?? "Local";
+const url = raw.url ?? raw.website ?? raw.link ?? "";
 
 return {
-source: "OSM",
-name,
-lat: lat2,
-lon: lon2,
-category: cat,
-website: tags.website || tags.url || osmUrl,
-osmUrl
+...raw,
+lat, lng,
+_name: String(name),
+_type: String(type),
+_scope: String(scope),
+_url: String(url)
 };
-}).filter(Boolean);
-
-overpassCache.set(key, results);
-return results;
-}catch(e){
-return [];
-}
 }
 
-/* =========================================================
-NEARBY: 20 attorno al centro (LOCAL + OSM)
-========================================================= */
-const MAX_ITEMS = 20;
-let nearbyTimer = null;
+// =========================
+// RENDER LIST
+// =========================
+function renderNearbyList(list) {
+nearbyListEl.innerHTML = "";
 
-function kmBetween(center, p){
-return map.distance(center, [p.lat, p.lon]) / 1000;
-}
-
-function radiusMetersByZoom(z){
-// raggio “stretto” quando sei vicino, più largo quando sei lontano
-if (z >= 14) return 12000; // 12 km
-if (z >= 12) return 25000; // 25 km
-if (z >= 10) return 60000; // 60 km
-if (z >= 8) return 180000; // 180 km
-return 400000; // 400 km
-}
-
-function uniqKey(p){
-// evita duplicati (local + osm)
-return `${(p.name||"").toLowerCase()}|${p.lat.toFixed(4)}|${p.lon.toFixed(4)}`;
-}
-
-function openLink(name, website){
-const url = website ? website : `https://www.google.com/search?q=${encodeURIComponent(name)}`;
-window.open(url, "_blank");
-}
-
-function scheduleNearby20(){
-clearTimeout(nearbyTimer);
-nearbyTimer = setTimeout(updateNearby20, 180);
-}
-
-async function updateNearby20(){
-const center = map.getCenter();
-const z = map.getZoom();
-const activeCats = activeCategories();
-const baseRadiusM = radiusMetersByZoom(z);
-
-// 1) LOCAL filtrati
-const localFiltered = points
-.map(p => ({
-source: "Local",
-...p,
-category: (ALLOWED_CATS.has(p.category) ? p.category : "Community center"),
-km: kmBetween(center, p)
-}))
-.filter(x => activeCats.includes(x.category))
-.sort((a,b) => a.km - b.km);
-
-// 2) OSM (se abilitato)
-let osm = [];
-if (!state.onlyLocal){
-osm = await fetchOverpass(center.lat, center.lng, baseRadiusM, activeCats);
-osm = osm.map(p => ({ ...p, km: kmBetween(center, p) }))
-.sort((a,b) => a.km - b.km);
-}
-
-// 3) merge + dedupe
-const merged = [];
-const seen = new Set();
-
-function pushList(list){
-for (const x of list){
-const k = uniqKey(x);
-if (seen.has(k)) continue;
-seen.add(k);
-merged.push(x);
-if (merged.length >= 200) break;
-}
-}
-
-pushList(localFiltered);
-pushList(osm);
-
-// 4) prendo “vicini” (entro raggio); se non bastano, allargo SOLO con OSM+local ordinati
-const within = merged.filter(x => (x.km * 1000) <= baseRadiusM);
-
-let list = within.slice(0, MAX_ITEMS);
-
-// se non arrivo a 20, riempio con i più vicini in assoluto (ma sempre coerenti)
-if (list.length < MAX_ITEMS){
-for (const x of merged){
-if (list.length >= MAX_ITEMS) break;
-if (!list.includes(x)) list.push(x);
-}
-}
-
-if (!list.length){
-elNear.innerHTML = `<div class="nearMeta">Nessun risultato. Prova ad attivare più categorie o disattiva “Solo points.json”.</div>`;
+if (!list || list.length === 0) {
+nearbyListEl.innerHTML = `<div class="row"><h4>Nessun risultato</h4><p>Carica points.json o tocca la mappa.</p></div>`;
 return;
 }
 
-// render
-elNear.innerHTML = list.map(x => {
-const name = escapeHtml(x.name);
-const cat = escapeHtml(x.category || "Community center");
-const meta = `${cat} · ${x.km.toFixed(1)} km · ${x.source}`;
-const link = x.website || "";
-return `
-<div class="nearItem" onclick="openLink('${escapeJs(x.name)}','${escapeJs(link)}')">
-<div class="nearName">${name}</div>
-<div class="nearMeta">${escapeHtml(meta)}</div>
-</div>
+const frag = document.createDocumentFragment();
+
+list.forEach(p => {
+const row = document.createElement("div");
+row.className = "row";
+
+const d = Number.isFinite(p._distKm) ? p._distKm : null;
+const distStr = d == null ? "" : `${d.toFixed(1)} km`;
+const typeStr = escapeHtml(p._type || "Community center");
+const scopeStr = escapeHtml(p._scope || "Local");
+const nameStr = escapeHtml(p._name || "Untitled");
+
+row.innerHTML = `
+<h4>${nameStr}</h4>
+<p>${typeStr} · ${distStr} · ${scopeStr}</p>
 `;
-}).join("");
+
+row.addEventListener("click", () => {
+// centriamo sulla iniziativa selezionata
+map.flyTo([p.lat, p.lng], Math.max(map.getZoom(), 13), { duration: 0.55 });
+
+// se ha un link, apri in nuova scheda (facoltativo)
+if (p._url && /^https?:\/\//i.test(p._url)) {
+window.open(p._url, "_blank", "noopener,noreferrer");
+}
+});
+
+frag.appendChild(row);
+});
+
+nearbyListEl.appendChild(frag);
 }
 
-/* =========================================================
-HELPERS
-========================================================= */
-function escapeHtml(s){
-return (s||"").replace(/[&<>"']/g, m => ({
-"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-}[m]));
-}
-function escapeJs(s){
-return (s||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ");
+// =========================
+// CORE BEHAVIOR: 20 nearest to tap (no radius / no 300km)
+// =========================
+function updateNearbyFromCenter(centerLatLng) {
+if (!centerLatLng || !Array.isArray(ALL_POINTS) || ALL_POINTS.length === 0) return;
+
+const cLat = centerLatLng.lat;
+const cLng = centerLatLng.lng;
+
+const ranked = ALL_POINTS
+.map(p => {
+const dKm = haversineKm(cLat, cLng, p.lat, p.lng);
+return { ...p, _distKm: dKm };
+})
+.sort((a, b) => a._distKm - b._distKm)
+.slice(0, NEARBY_LIMIT);
+
+lastQueryLatLng = centerLatLng;
+setLocationLabelFromLatLng(centerLatLng);
+nearbyMetaEl.textContent = `20 più vicine al punto selezionato`;
+renderNearbyList(ranked);
 }
 
-/* =========================================================
-BOOT
-========================================================= */
-(async function init(){
-await loadLocal();
-updatePerception();
-scheduleNearby20();
-scheduleReverse();
+// =========================
+// MARKERS
+// =========================
+function addMarkers(points) {
+markersLayer.clearLayers();
 
-map.on("zoomend", () => { updatePerception(); scheduleNearby20(); scheduleReverse(); });
-map.on("moveend", () => { scheduleNearby20(); scheduleReverse(); });
-})();
+points.forEach(p => {
+const m = L.marker([p.lat, p.lng], { keyboard: false });
+
+// IMPORTANT: nessun popup
+m.on("click", (e) => {
+updateNearbyFromCenter(e.latlng);
+});
+
+m.addTo(markersLayer);
+});
+}
+
+// =========================
+// MAP EVENTS
+// =========================
+map.on("click", (e) => {
+// Anche se tocchi in un punto senza marker: aggiorna Nearby
+updateNearbyFromCenter(e.latlng);
+});
+
+// =========================
+// MENU (sidebar)
+// =========================
+const side = $("side");
+const overlay = $("overlay");
+const hambBtn = $("hambBtn");
+
+function openSide() { side.classList.add("open"); overlay.classList.add("show"); }
+function closeSide() { side.classList.remove("open"); overlay.classList.remove("show"); }
+
+hambBtn.addEventListener("click", () => {
+if (side.classList.contains("open")) closeSide(); else openSide();
+});
+overlay.addEventListener("click", closeSide);
+
+$("btnWorld").addEventListener("click", () => {
+closeSide();
+map.flyTo([20, 0], 2, { duration: 0.7 });
+});
+
+$("btnResetNearby").addEventListener("click", () => {
+closeSide();
+lastQueryLatLng = null;
+nearbyMetaEl.textContent = "Tocca la mappa per aggiornare";
+renderNearbyList([]);
+locationLabelEl.textContent = "—";
+});
+
+$("btnMyPos").addEventListener("click", () => {
+closeSide();
+if (!navigator.geolocation) return alert("Geolocalizzazione non disponibile.");
+navigator.geolocation.getCurrentPosition(
+(pos) => {
+const latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+map.flyTo([latlng.lat, latlng.lng], 12, { duration: 0.7 });
+// Se vuoi: far partire subito le 20 più vicine alla tua posizione
+updateNearbyFromCenter(latlng);
+},
+() => alert("Impossibile ottenere la posizione."),
+{ enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+);
+});
+
+// =========================
+// LOAD DATA (points.json) - NO JSON CHANGE
+// =========================
+async function loadPoints() {
+const res = await fetch(POINTS_URL, { cache: "no-store" });
+if (!res.ok) throw new Error("Impossibile caricare points.json");
+const data = await res.json();
+
+const arr = Array.isArray(data) ? data : (data.points ?? data.features ?? []);
+const norm = [];
+
+for (const raw of arr) {
+// support GeoJSON Feature
+const candidate = raw?.type === "Feature" && raw.geometry?.type === "Point"
+? {
+...(raw.properties || {}),
+lat: raw.geometry.coordinates?.[1],
+lng: raw.geometry.coordinates?.[0]
+}
+: raw;
+
+const p = normalizePoint(candidate);
+if (p) norm.push(p);
+}
+
+ALL_POINTS = norm;
+addMarkers(ALL_POINTS);
+
+// Primo stato: centro attuale mappa
+const c = map.getCenter();
+setLocationLabelFromLatLng(c);
+// Mostra già qualcosa senza obbligare il tap (opzionale):
+updateNearbyFromCenter(c);
+}
+
+// Boot
+renderNearbyList([]);
+loadPoints().catch(err => {
+console.error(err);
+nearbyMetaEl.textContent = "Errore: points.json non caricato";
+nearbyListEl.innerHTML = `<div class="row"><h4>Errore</h4><p>Non riesco a leggere <b>points.json</b>. Controlla che sia nella stessa cartella di index.html.</p></div>`;
+});
 </script>
 </body>
 </html>
-
