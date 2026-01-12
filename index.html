@@ -306,12 +306,21 @@ band==="lontano" ? 4000 :
 band==="medio" ? 1200 :
 80;
 
-const list = points
-.map(p=>({p, km: map.distance(center, [p.lat, p.lon]) / 1000}))
-.filter(x=> x.km <= maxKm)
-.filter(x=> !onlyHighlighted || isHighlighted(x.p))
-.sort((a,b)=>a.km-b.km)
-.slice(0, 20);
+const MAX_ITEMS = 20;
+
+// prima calcolo tutti ordinati per distanza
+const ordered = points
+.map(p => ({ p, km: map.distance(center, [p.lat, p.lon]) / 1000 }))
+.filter(x => !onlyHighlighted || isHighlighted(x.p))
+.sort((a, b) => a.km - b.km);
+
+// poi applico raggio "soft", ma se sono pochi riempio comunque
+const within = ordered.filter(x => x.km <= maxKm);
+
+const list = (within.length >= Math.min(5, MAX_ITEMS))
+? within.slice(0, MAX_ITEMS)
+: ordered.slice(0, MAX_ITEMS);
+
 
 if(list.length === 0){
 elNear.innerHTML = `<div class="nearMeta">Nessun punto nel raggio (${maxKm} km). Zooma/sposta.</div>`;
