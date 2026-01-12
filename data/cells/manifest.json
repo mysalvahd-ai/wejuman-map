@@ -1,0 +1,134 @@
+{
+  "gridDeg": 5,
+  "input": "points.json",
+  "cellsWritten": 21,
+  "featuresWritten": 30,
+  "cells": [
+    {
+      "file": "c_11_66.geojson",
+      "latIdx": 11,
+      "lonIdx": 66,
+      "count": 2
+    },
+    {
+      "file": "c_19_51.geojson",
+      "latIdx": 19,
+      "lonIdx": 51,
+      "count": 1
+    },
+    {
+      "file": "c_20_35.geojson",
+      "latIdx": 20,
+      "lonIdx": 35,
+      "count": 1
+    },
+    {
+      "file": "c_20_51.geojson",
+      "latIdx": 20,
+      "lonIdx": 51,
+      "count": 1
+    },
+    {
+      "file": "c_21_21.geojson",
+      "latIdx": 21,
+      "lonIdx": 21,
+      "count": 1
+    },
+    {
+      "file": "c_21_50.geojson",
+      "latIdx": 21,
+      "lonIdx": 50,
+      "count": 1
+    },
+    {
+      "file": "c_22_54.geojson",
+      "latIdx": 22,
+      "lonIdx": 54,
+      "count": 1
+    },
+    {
+      "file": "c_23_51.geojson",
+      "latIdx": 23,
+      "lonIdx": 51,
+      "count": 1
+    },
+    {
+      "file": "c_25_11.geojson",
+      "latIdx": 25,
+      "lonIdx": 11,
+      "count": 1
+    },
+    {
+      "file": "c_25_20.geojson",
+      "latIdx": 25,
+      "lonIdx": 20,
+      "count": 2
+    },
+    {
+      "file": "c_26_21.geojson",
+      "latIdx": 26,
+      "lonIdx": 21,
+      "count": 3
+    },
+    {
+      "file": "c_26_35.geojson",
+      "latIdx": 26,
+      "lonIdx": 35,
+      "count": 1
+    },
+    {
+      "file": "c_26_38.geojson",
+      "latIdx": 26,
+      "lonIdx": 38,
+      "count": 1
+    },
+    {
+      "file": "c_27_11.geojson",
+      "latIdx": 27,
+      "lonIdx": 11,
+      "count": 1
+    },
+    {
+      "file": "c_27_36.geojson",
+      "latIdx": 27,
+      "lonIdx": 36,
+      "count": 1
+    },
+    {
+      "file": "c_27_37.geojson",
+      "latIdx": 27,
+      "lonIdx": 37,
+      "count": 4
+    },
+    {
+      "file": "c_27_39.geojson",
+      "latIdx": 27,
+      "lonIdx": 39,
+      "count": 1
+    },
+    {
+      "file": "c_28_35.geojson",
+      "latIdx": 28,
+      "lonIdx": 35,
+      "count": 3
+    },
+    {
+      "file": "c_28_36.geojson",
+      "latIdx": 28,
+      "lonIdx": 36,
+      "count": 1
+    },
+    {
+      "file": "c_29_35.geojson",
+      "latIdx": 29,
+      "lonIdx": 35,
+      "count": 1
+    },
+    {
+      "file": "c_29_38.geojson",
+      "latIdx": 29,
+      "lonIdx": 38,
+      "count": 1
+    }
+  ]
+}
