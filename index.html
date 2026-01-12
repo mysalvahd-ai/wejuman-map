@@ -301,31 +301,32 @@ const center = map.getCenter();
 const z = map.getZoom();
 const band = zoomBand(z);
 
-// raggio suggerimenti: lontano = grande, vicino = piccolo
+// raggio suggerimenti (HARD CAP per non far vedere roba lontana quando sei zoomato)
 const maxKm =
-band==="lontano" ? 4000 :
-band==="medio" ? 1200 :
-80;
+band === "lontano" ? 4000 :
+band === "medio" ? 1200 :
+50; // VICINO: 50 km (puoi mettere 30/80 a gusto)
 
 const MAX_ITEMS = 20;
 
-// prima calcolo tutti ordinati per distanza
+// calcolo tutti ordinati per distanza
 const ordered = points
 .map(p => ({ p, km: map.distance(center, [p.lat, p.lon]) / 1000 }))
 .filter(x => !onlyHighlighted || isHighlighted(x.p))
 .sort((a, b) => a.km - b.km);
 
-// poi applico raggio "soft", ma se sono pochi riempio comunque
+// prendo SOLO quelli nel raggio
 const within = ordered.filter(x => x.km <= maxKm);
 
-const list = points
-.map(p => ({ p, km: map.distance(center, [p.lat, p.lon]) / 1000 }))
-.filter(x => !onlyHighlighted || isHighlighted(x.p))
-.sort((a, b) => a.km - b.km)
-.slice(0, 20);
+// lista finale:
+// - in VICINO: SOLO dentro maxKm (se sono meno di 20, mostro meno di 20)
+// - in MEDIO/LONTANO: se sono pochi, riempio comunque fino a 20 coi più vicini
+const list = (band === "vicino")
+? within.slice(0, MAX_ITEMS)
+: (within.length >= MAX_ITEMS ? within.slice(0, MAX_ITEMS) : ordered.slice(0, MAX_ITEMS));
 
 if(list.length === 0){
-elNear.innerHTML = `<div class="nearMeta">Nessun punto nel raggio (${maxKm} km). Zooma/sposta.</div>`;
+elNear.innerHTML = `<div class="nearMeta">Nessun punto nel raggio (${maxKm} km). Zooma indietro o sposta la mappa.</div>`;
 return;
 }
 
@@ -334,8 +335,8 @@ const p = x.p;
 const km = x.km.toFixed(1);
 const cat = p.category || "Generale";
 return `
-<div class="nearItem" onclick="openLink('${escapeHtml(p.name)}','${escapeHtml(p.website||"")}')">
-${escapeHtml(p.name)}
+<div class="nearItem" onclick="flyToPoint(${p.lat},${p.lon})">
+<div class="nearName">${escapeHtml(p.name || "Senza nome")}</div>
 <div class="nearMeta">${escapeHtml(cat)} · ${km} km</div>
 </div>
 `;
