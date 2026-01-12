@@ -1,496 +1,239 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Wejuman</title>
+<title>Wejuman – Coscienza globale</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- MarkerCluster -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-<script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-
-<!-- Geocoder -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-<script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 
 <style>
-:root{
---bg:#0b0c10;
---panel: rgba(255,255,255,0.10);
---panel2: rgba(10,12,16,0.82);
---text: rgba(255,255,255,0.92);
---muted: rgba(255,255,255,0.70);
---stroke: rgba(255,255,255,0.14);
---shadow: 0 12px 35px rgba(0,0,0,0.45);
---radius: 14px;
+html, body {
+margin: 0;
+padding: 0;
+height: 100%;
+background: #0e0f12;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+color: #eaeaea;
 }
-html, body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-#map { height:100%; width:100%; }
 
-/* Topbar */
-.topbar{
+#map {
+height: 100%;
+width: 100%;
+}
+
+/* Top bar */
+#topbar {
 position: fixed;
-top: 14px;
-left: 14px;
-right: 14px;
-z-index: 9999;
-display:flex;
-align-items:center;
-justify-content:space-between;
+top: 10px;
+left: 10px;
+right: 10px;
+z-index: 1000;
+display: flex;
+gap: 8px;
+align-items: center;
+background: rgba(30,30,34,0.75);
+backdrop-filter: blur(14px);
+border-radius: 14px;
 padding: 10px 12px;
-border-radius: var(--radius);
-background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.08));
-border: 1px solid var(--stroke);
-box-shadow: var(--shadow);
-backdrop-filter: blur(12px);
-transform: translateY(0);
-transition: transform .22s ease, opacity .22s ease;
 }
-.topbar.is-dim{ opacity: 0.78; }
-.topbar.is-lower{ transform: translateY(54px); }
-.topbar__left{ display:flex; align-items:center; gap:10px; }
-.topbar__right{ display:flex; align-items:center; gap:8px; }
-.brand__title{ font-weight: 700; letter-spacing: .2px; line-height: 1.1; }
-.brand__subtitle{ font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-.iconbtn{
-border: 1px solid var(--stroke);
-background: rgba(0,0,0,0.24);
-color: var(--text);
-border-radius: 12px;
-width: 40px; height: 40px;
-display:grid; place-items:center;
+#menuBtn, #resetBtn {
+background: rgba(255,255,255,0.08);
+border: none;
+color: #fff;
+padding: 8px 12px;
+border-radius: 10px;
+font-size: 14px;
+}
+
+#title {
+flex: 1;
+font-weight: 600;
+}
+
+/* Bottom bar */
+#bottombar {
+position: fixed;
+bottom: 10px;
+left: 10px;
+right: 10px;
+z-index: 1000;
+background: rgba(30,30,34,0.8);
+backdrop-filter: blur(14px);
+border-radius: 14px;
+padding: 12px;
+font-size: 14px;
+line-height: 1.4;
+}
+
+/* Categories panel */
+#panel {
+position: fixed;
+inset: 0;
+z-index: 2000;
+background: rgba(0,0,0,0.55);
+display: none;
+}
+
+#panelContent {
+background: rgba(30,30,34,0.95);
+margin: 60px auto;
+width: calc(100% - 40px);
+max-width: 420px;
+border-radius: 16px;
+padding: 16px;
+}
+
+.category {
+display: inline-block;
+margin: 6px;
+padding: 8px 12px;
+background: rgba(255,255,255,0.08);
+border-radius: 20px;
 cursor: pointer;
+font-size: 14px;
 }
-.pill{
-border: 1px solid var(--stroke);
-background: rgba(0,0,0,0.24);
-color: var(--text);
-border-radius: 999px;
-padding: 10px 12px;
-cursor:pointer;
+
+.category.active {
+background: #4dd0e1;
+color: #000;
+}
+
+.small {
+opacity: 0.6;
 font-size: 13px;
-white-space: nowrap;
-}
-
-/* Drawer */
-.drawer{
-position: fixed;
-top: 14px;
-left: 14px;
-width: min(380px, calc(100vw - 28px));
-max-height: calc(100vh - 28px);
-z-index: 10000;
-background: rgba(10,12,16,0.78);
-border: 1px solid var(--stroke);
-border-radius: var(--radius);
-backdrop-filter: blur(16px);
-box-shadow: var(--shadow);
-transform: translateX(-110%);
-transition: transform .22s ease;
-overflow:hidden;
-}
-.drawer.is-open{ transform: translateX(0); }
-.drawer__header{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding: 12px 12px 8px 12px;
-border-bottom: 1px solid rgba(255,255,255,0.10);
-}
-.drawer__title{ font-weight: 750; }
-.drawer__body{ padding: 12px; overflow:auto; max-height: calc(100vh - 90px); }
-.drawer__note{ margin: 0 0 12px 0; font-size: 13px; color: var(--muted); }
-.divider{ height: 1px; background: rgba(255,255,255,0.10); margin: 12px 0; }
-
-.chips{ display:flex; flex-wrap: wrap; gap: 8px; }
-.chip{
-border: 1px solid rgba(255,255,255,0.18);
-background: rgba(255,255,255,0.07);
-color: var(--text);
-border-radius: 999px;
-padding: 9px 10px;
-font-size: 13px;
-cursor:pointer;
-user-select:none;
-}
-.chip.is-on{ background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.30); }
-
-.switchrow{ display:flex; align-items:center; gap:10px; font-size: 13px; color: var(--muted); }
-.small{ font-size: 13px; color: var(--muted); }
-
-/* Suggestions bar (leggibile) */
-.suggest{
-position: fixed;
-left: 14px;
-right: 14px;
-bottom: 14px;
-z-index: 9999;
-border-radius: var(--radius);
-background: var(--panel2); /* scuro */
-border: 1px solid rgba(255,255,255,0.16);
-box-shadow: var(--shadow);
-backdrop-filter: blur(16px);
-padding: 12px 12px;
-display:flex;
-gap: 12px;
-align-items:flex-start;
-}
-.suggest__title{ font-size: 12px; color: rgba(255,255,255,0.78); margin-bottom: 6px; }
-.suggest__subtitle{ font-size: 12px; color: rgba(255,255,255,0.66); }
-.suggest__items{ display:flex; flex-direction:column; gap:8px; width: 100%; }
-.sitem{ font-size: 14px; color: rgba(255,255,255,0.94); font-weight: 650; }
-.sitem .meta{ color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 500; }
-
-/* Popup */
-.popup .pname{ font-weight: 750; margin-bottom: 2px; }
-.popup .pmuted{ color: rgba(255,255,255,0.72); font-size: 12px; margin-bottom: 8px; }
-.popup .ptext{ font-size: 13px; color: rgba(255,255,255,0.90); margin-bottom: 8px; }
-
-.breath{
-position: fixed; inset:0; z-index:2; pointer-events:none;
-background: radial-gradient(1200px 900px at 30% 20%, rgba(255,255,255,0.05), transparent 60%),
-radial-gradient(1100px 800px at 80% 75%, rgba(255,255,255,0.04), transparent 55%);
-opacity: .65;
+margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
+
+<div id="topbar">
+<button id="menuBtn">☰</button>
+<div id="title">Wejuman · Coscienza globale</div>
+<button id="resetBtn">Reset</button>
+</div>
+
+<div id="bottombar">
+Qui intorno<br>
+<span id="nearText">Caricamento…</span>
+</div>
+
+<div id="panel">
+<div id="panelContent">
+<h3>Categorie</h3>
+<p class="small">
+Il filtro non giudica: evidenzia ciò che cerchi, senza cancellare il resto.
+</p>
+
+<div id="categories"></div>
+
+<label class="small">
+<input type="checkbox" id="onlyHighlighted">
+Mostra solo evidenziati
+</label>
+
+<p class="small" id="stats"></p>
+
+<button id="closePanel" style="margin-top:10px">Chiudi</button>
+</div>
+</div>
+
 <div id="map"></div>
 
-<div class="topbar" id="topbar">
-<div class="topbar__left">
-<button class="iconbtn" id="btnMenu">☰</button>
-<div>
-<div class="brand__title">Wejuman</div>
-<div class="brand__subtitle" id="modeHint">Coscienza globale</div>
-</div>
-</div>
-<div class="topbar__right">
-<span class="pill" id="dataHint">Dati: points.json</span>
-<button class="pill" id="btnLocate">📍</button>
-<button class="pill" id="btnReset">Reset</button>
-</div>
-</div>
-
-<aside class="drawer" id="drawer" aria-hidden="true">
-<div class="drawer__header">
-<div class="drawer__title">Categorie</div>
-<button class="iconbtn" id="btnClose">✕</button>
-</div>
-<div class="drawer__body">
-<p class="drawer__note">Il filtro <b>non giudica</b>: evidenzia ciò che cerchi, senza “cancellare” il resto.</p>
-<div class="chips" id="chips"></div>
-<div class="divider"></div>
-<label class="switchrow">
-<input type="checkbox" id="onlyHighlighted" />
-<span>Mostra solo evidenziati</span>
-</label>
-<div class="divider"></div>
-<div class="small">
-<div><b>Punti caricati:</b> <span id="countAll">—</span></div>
-<div><b>Evidenziati:</b> <span id="countHi">—</span></div>
-</div>
-</div>
-</aside>
-
-<div class="suggest" id="suggest">
-<div style="min-width: 150px;">
-<div class="suggest__title" id="suggestTitle">Qui intorno</div>
-<div class="suggest__subtitle" id="suggestSubtitle">3 azioni di cura (tra i punti caricati)</div>
-</div>
-<div class="suggest__items" id="suggestItems"></div>
-</div>
-
-<div class="breath" aria-hidden="true"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// 12 categorie fisse (sempre nel menu)
-const CATEGORY_LIST = [
+const categoriesList = [
 "Ambiente",
-"Spreco alimentare",
-"Cibo & pasti",
-"Volontariato",
-"Comunità & inclusione",
-"Educazione",
+"Cibo",
+"Acqua",
 "Salute",
+"Educazione",
 "Bambini",
+"Donne",
 "Diritti umani",
-"Rifugiati & migranti",
-"Emergenze & crisi",
-"Animali & natura"
+"Emergenze",
+"Comunità",
+"Rifugiati",
+"Generale"
 ];
-const DEFAULT_CATEGORY = "Generale";
 
-const state = {
-categories: new Map(),
-onlyHighlighted: false,
-features: [],
-markersById: new Map(),
-highlightedCount: 0,
-userLatLng: null
-};
+let activeCategories = new Set(categoriesList);
 
-// Init categories
-function initCategories(){
-state.categories.clear();
-for (const c of CATEGORY_LIST) state.categories.set(c, false);
-state.categories.set(DEFAULT_CATEGORY, false);
-}
-initCategories();
+const map = L.map('map', {
+zoomControl: false
+}).setView([20,0], 2);
 
-// UI refs
-const topbar = document.getElementById("topbar");
-const drawer = document.getElementById("drawer");
-const chipsEl = document.getElementById("chips");
-const onlyHighlightedEl = document.getElementById("onlyHighlighted");
-const countAll = document.getElementById("countAll");
-const countHi = document.getElementById("countHi");
-const suggestItems = document.getElementById("suggestItems");
-const suggestTitle = document.getElementById("suggestTitle");
-const modeHint = document.getElementById("modeHint");
-
-// Map
-const map = L.map("map", { preferCanvas:true, worldCopyJump:true });
-map.setView([20, 0], 2);
-
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-const cluster = L.markerClusterGroup({ chunkedLoading:true, chunkDelay:20, showCoverageOnHover:false });
-map.addLayer(cluster);
+let markers = [];
 
-// Geocoder
-const geocoder = L.Control.Geocoder.nominatim();
-const geocoderControl = L.Control.geocoder({
-geocoder, defaultMarkGeocode:false, placeholder:"Cerca un luogo…"
+fetch('points.json')
+.then(r => r.json())
+.then(points => {
+points.forEach(p => {
+const m = L.circleMarker([p.lat, p.lon], {
+radius: 6,
+color: '#ffffff',
+fillOpacity: 0.8
 }).addTo(map);
-geocoderControl.on("markgeocode", (e) => {
-const bbox = e.geocode.bbox;
-const bounds = L.latLngBounds(bbox.getSouthEast(), bbox.getNorthWest());
-map.fitBounds(bounds, { padding:[40,40] });
+
+m.category = p.category || "Generale";
+m.data = p;
+markers.push(m);
+});
+updateNear();
+updateStats();
 });
 
-// Topbar lower while interacting
-let t=null;
-function pulse(){
-topbar.classList.add("is-lower","is-dim");
-clearTimeout(t);
-t=setTimeout(()=>topbar.classList.remove("is-lower","is-dim"),650);
-}
-map.on("movestart zoomstart dragstart", pulse);
-
-// Drawer
-document.getElementById("btnMenu").onclick = ()=>openDrawer(true);
-document.getElementById("btnClose").onclick = ()=>openDrawer(false);
-map.on("click", ()=>openDrawer(false));
-function openDrawer(open){
-drawer.classList.toggle("is-open", open);
-drawer.setAttribute("aria-hidden", open ? "false" : "true");
+function updateNear() {
+document.getElementById("nearText").innerText =
+markers.slice(0,3).map(m => m.data.name).join(" · ");
 }
 
-// Locate
-document.getElementById("btnLocate").onclick = ()=>{
-if (!navigator.geolocation) return alert("Geolocalizzazione non disponibile.");
-navigator.geolocation.getCurrentPosition(
-(pos)=>{
-state.userLatLng = L.latLng(pos.coords.latitude, pos.coords.longitude);
-map.flyTo([pos.coords.latitude, pos.coords.longitude], Math.max(map.getZoom(), 10), { duration:0.8 });
-updateSuggestions();
-},
-()=>alert("Permesso posizione negato o errore.")
-);
-};
-
-// Reset
-document.getElementById("btnReset").onclick = ()=>{
-for (const k of state.categories.keys()) state.categories.set(k,false);
-state.onlyHighlighted=false;
-onlyHighlightedEl.checked=false;
-rebuildChips();
-applyFilterAndRender();
-updateSuggestions();
-};
-
-onlyHighlightedEl.onchange = (e)=>{
-state.onlyHighlighted = !!e.target.checked;
-applyFilterAndRender();
-updateSuggestions();
-};
-
-// Zoom modes (solo testo)
-function setModeHint(){
-const z = map.getZoom();
-if (z <= 3) modeHint.textContent = "Coscienza globale";
-else if (z <= 6) modeHint.textContent = "Scoperta";
-else modeHint.textContent = "Presenza umana";
-}
-map.on("zoomend", setModeHint);
-setModeHint();
-
-// Build chips (sempre 12 + Generale)
-function rebuildChips(){
-chipsEl.innerHTML = "";
-const ordered = [...CATEGORY_LIST, DEFAULT_CATEGORY];
-for (const cat of ordered){
-const on = !!state.categories.get(cat);
-const b = document.createElement("button");
-b.className = "chip" + (on ? " is-on" : "");
-b.textContent = cat;
-b.onclick = ()=>{
-state.categories.set(cat, !state.categories.get(cat));
-rebuildChips();
-applyFilterAndRender();
-updateSuggestions();
-};
-chipsEl.appendChild(b);
-}
+function updateStats() {
+document.getElementById("stats").innerText =
+`Punti caricati: ${markers.length} · Evidenziati: ${markers.filter(m => activeCategories.has(m.category)).length}`;
 }
 
-function anyCategoryOn(){
-for (const v of state.categories.values()) if (v) return true;
-return false;
+/* Menu */
+const panel = document.getElementById("panel");
+document.getElementById("menuBtn").onclick = () => panel.style.display = "block";
+document.getElementById("closePanel").onclick = () => panel.style.display = "none";
+
+const catBox = document.getElementById("categories");
+categoriesList.forEach(c => {
+const el = document.createElement("div");
+el.className = "category active";
+el.innerText = c;
+el.onclick = () => {
+if (activeCategories.has(c)) {
+activeCategories.delete(c);
+el.classList.remove("active");
+} else {
+activeCategories.add(c);
+el.classList.add("active");
 }
-function isHighlighted(f){
-if (!anyCategoryOn()) return false;
-const cat = (f.properties?.category || DEFAULT_CATEGORY);
-return !!state.categories.get(cat);
-}
-
-// TEMP category inference (se manca category nel points.json)
-function inferCategory(name, tagline){
-const t = (name + " " + tagline).toLowerCase();
-
-if (/(climate|forest|tree|soil|planet|environment|wildlife|rainforest)/.test(t)) return "Ambiente";
-if (/(hunger|food|meal|kitchen|harvest|waste|nutrition)/.test(t)) return "Cibo & pasti";
-if (/(volunteer|community|social|support|inclusion)/.test(t)) return "Comunità & inclusione";
-if (/(school|education|read|literacy|teach|girls|pratham)/.test(t)) return "Educazione";
-if (/(health|medical|doctors|medicine|hospital|eye care)/.test(t)) return "Salute";
-if (/(children|child|unicef|save the children|orphan)/.test(t)) return "Bambini";
-if (/(refugee|rescue|migrant|displaced|asylum)/.test(t)) return "Rifugiati & migranti";
-if (/(crisis|emergency|disaster|war|conflict)/.test(t)) return "Emergenze & crisi";
-if (/(rights|legal|human rights)/.test(t)) return "Diritti umani";
-
-return DEFAULT_CATEGORY;
-}
-
-function markerStyle(f, hi){
-return L.circleMarker([f.geometry.coordinates[1], f.geometry.coordinates[0]], {
-radius: hi ? 7 : 6,
-weight: hi ? 2 : 1,
-color: hi ? "rgba(255,255,255,0.88)" : "rgba(255,255,255,0.55)",
-fillColor: hi ? "rgba(255,255,255,0.62)" : "rgba(255,255,255,0.28)",
-fillOpacity: hi ? 1.0 : 0.55
+markers.forEach(m => {
+m.setStyle({
+opacity: activeCategories.has(m.category) ? 1 : 0.2
 });
-}
-
-function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));}
-
-function popupContent(f){
-const p = f.properties || {};
-const name = esc(p.name || "Iniziativa");
-const cat = esc(p.category || DEFAULT_CATEGORY);
-const short = esc(p.short || "");
-return `<div class="popup">
-<div class="pname">${name}</div>
-<div class="pmuted">${cat}</div>
-${short ? `<div class="ptext">${short}</div>` : ``}
-</div>`;
-}
-
-function applyFilterAndRender(){
-state.highlightedCount = 0;
-cluster.clearLayers();
-state.markersById.clear();
-
-for (const f of state.features){
-const hi = isHighlighted(f);
-if (hi) state.highlightedCount++;
-
-if (state.onlyHighlighted && !hi) continue;
-
-const m = markerStyle(f, hi);
-m.bindPopup(popupContent(f), { closeButton:true, maxWidth:320 });
-cluster.addLayer(m);
-}
-
-countAll.textContent = String(state.features.length);
-countHi.textContent = String(state.highlightedCount);
-}
-
-function haversineKm(a, b){
-const R=6371;
-const dLat=(b.lat-a.lat)*Math.PI/180;
-const dLon=(b.lng-a.lng)*Math.PI/180;
-const lat1=a.lat*Math.PI/180, lat2=b.lat*Math.PI/180;
-const s=Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
-return 2*R*Math.asin(Math.sqrt(s));
-}
-
-function updateSuggestions(){
-const ref = state.userLatLng || map.getCenter();
-const scored = state.features.map(f=>{
-const c=f.geometry.coordinates;
-const ll=L.latLng(c[1],c[0]);
-return { f, d: haversineKm(ref, ll) };
-}).sort((a,b)=>a.d-b.d).slice(0,3);
-
-suggestTitle.textContent = state.userLatLng ? "Vicino a te" : "Qui intorno";
-suggestItems.innerHTML = "";
-for (const it of scored){
-const p = it.f.properties || {};
-const km = it.d < 1 ? `${Math.round(it.d*1000)} m` : `${it.d.toFixed(1)} km`;
-const row = document.createElement("div");
-row.className="sitem";
-row.innerHTML = `${esc(p.name)} <span class="meta">• ${esc(p.category)} • ${km}</span>`;
-row.onclick = ()=>{
-const c = it.f.geometry.coordinates;
-map.flyTo([c[1],c[0]], Math.max(map.getZoom(), 10), { duration:0.6 });
-};
-suggestItems.appendChild(row);
-}
-}
-
-async function loadPoints(){
-const res = await fetch("./points.json", { cache:"no-store" });
-const arr = await res.json();
-
-const feats = [];
-for (let i=0; i<arr.length; i++){
-const p = arr[i] || {};
-if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
-
-// category: se manca, inferenza temporanea
-const cat = (p.category || "").trim() || inferCategory(p.name||"", p.tagline||"");
-
-feats.push({
-type: "Feature",
-geometry: { type: "Point", coordinates: [p.lon, p.lat] },
-properties: {
-id: p.id ?? `p_${i}`,
-name: p.name || "Iniziativa",
-category: cat,
-short: p.tagline || ""
-}
 });
-}
+updateStats();
+};
+catBox.appendChild(el);
+});
 
-state.features = feats;
-rebuildChips();
-applyFilterAndRender();
-updateSuggestions();
-}
-
-// Start
-rebuildChips();
-loadPoints();
+document.getElementById("resetBtn").onclick = () => location.reload();
 </script>
+
 </body>
 </html>
