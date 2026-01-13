@@ -252,8 +252,11 @@ return "vicino";
 }
 
 function updatePerception(){
-// subtitle fisso: non sovrascrivere mai l’HTML
-return;
+const z = map.getZoom();
+const band = zoomBand(z);
+// if(band==="lontano") elSub.textContent = "Coscienza globale";
+// if(band==="medio") elSub.textContent = "Scoperta";
+// if(band==="vicino") elSub.textContent = "Presenza umana";
 }
 
 
