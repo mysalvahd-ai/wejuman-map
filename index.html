@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wejuman</title>
+<title>Wejuman — A living map of human action</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -47,7 +47,8 @@ background: rgba(0,0,0,.06);
 font-size: 20px; cursor:pointer;
 }
 #title{ font-weight: 800; letter-spacing:.2px; }
-#subtitle{ font-size: 13px; color: var(--muted); margin-top:2px; }
+#subtitle{ font-size: 12px; color: var(--muted); margin-top:2px; }
+
 #chip{
 padding: 10px 12px;
 border-radius: 999px;
@@ -60,6 +61,8 @@ white-space: nowrap;
 #bottomBar{
 bottom: 12px;
 padding: 12px 14px;
+max-height: 32vh;
+overflow: auto;
 }
 #nearTitle{ font-weight: 800; margin-bottom: 6px; }
 .nearItem{
@@ -134,16 +137,17 @@ font-weight: 700;
 
 <div>
 <div id="title">Wejuman</div>
-<div id="subtitle">Coscienza globale</div>
+<div id="subtitle">A living map human action</div>
+<div id="placeLabel"></div>
 </div>
 
 <div id="chip">Dati: points.json</div>
 </div>
 
 <div id="bottomBar" class="bar">
-<div id="nearTitle">Qui intorno</div>
+<div id="nearTitle">Nearby</div>
 <div id="nearList">
-<div class="nearMeta">Sposta/zooma per vedere suggerimenti.</div>
+<div class="nearMeta">Move or zoom the map to discover nearby initiatives.</div>
 </div>
 </div>
 
@@ -191,7 +195,7 @@ maxZoom: 19
 }).addTo(map);
 
 // ===== UI =====
-const elSub = document.getElementById("subtitle");
+const elSub = document.getElementById("placeLabel");
 const elNear = document.getElementById("nearList");
 const elStats = document.getElementById("stats");
 
@@ -248,12 +252,10 @@ return "vicino";
 }
 
 function updatePerception(){
-const z = map.getZoom();
-const band = zoomBand(z);
-if(band==="lontano") elSub.textContent = "Coscienza globale";
-if(band==="medio") elSub.textContent = "Scoperta";
-if(band==="vicino") elSub.textContent = "Presenza umana";
+// subtitle fisso: non sovrascrivere mai l’HTML
+return;
 }
+
 
 // ===== HIGHLIGHT (non giudica) =====
 function isHighlighted(p){
@@ -305,12 +307,21 @@ band==="lontano" ? 4000 :
 band==="medio" ? 1200 :
 80;
 
-const list = points
-.map(p=>({p, km: map.distance(center, [p.lat, p.lon]) / 1000}))
-.filter(x=> x.km <= maxKm)
-.filter(x=> !onlyHighlighted || isHighlighted(x.p))
-.sort((a,b)=>a.km-b.km)
-.slice(0, 3);
+const MAX_ITEMS = 20;
+
+// prima calcolo tutti ordinati per distanza
+const ordered = points
+.map(p => ({ p, km: map.distance(center, [p.lat, p.lon]) / 1000 }))
+.filter(x => !onlyHighlighted || isHighlighted(x.p))
+.sort((a, b) => a.km - b.km);
+
+// poi applico raggio "soft", ma se sono pochi riempio comunque
+const within = ordered.filter(x => x.km <= maxKm);
+
+const list = (within.length >= Math.min(5, MAX_ITEMS))
+? within.slice(0, MAX_ITEMS)
+: ordered.slice(0, MAX_ITEMS);
+
 
 if(list.length === 0){
 elNear.innerHTML = `<div class="nearMeta">Nessun punto nel raggio (${maxKm} km). Zooma/sposta.</div>`;
@@ -356,7 +367,7 @@ const c = map.getCenter();
 // chiave cache arrotondata
 const key = `${c.lat.toFixed(3)},${c.lng.toFixed(3)}`;
 if(placeCache.has(key)){
-elSub.textContent = placeCache.get(key);
+// elSub.textContent = placeCache.get(key);
 return;
 }
 
