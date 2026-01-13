@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wejuman — A living map of human action</title>
+<title>Wejuman</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -311,7 +311,7 @@ const list = points
 .filter(x=> x.km <= maxKm)
 .filter(x=> !onlyHighlighted || isHighlighted(x.p))
 .sort((a,b)=>a.km-b.km)
-.slice(0, 20);
+.slice(0, 3);
 
 if(list.length === 0){
 elNear.innerHTML = `<div class="nearMeta">Nessun punto nel raggio (${maxKm} km). Zooma/sposta.</div>`;
