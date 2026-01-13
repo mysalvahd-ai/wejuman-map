@@ -137,7 +137,7 @@ font-weight: 700;
 
 <div>
 <div id="title">Wejuman</div>
-<div id="subtitle">A living map human action</div>
+<div id="subtitle">A living map of verified human action</div>
 <div id="placeLabel"></div>
 </div>
 
@@ -195,7 +195,7 @@ maxZoom: 19
 }).addTo(map);
 
 // ===== UI =====
-const elSub = document.getElementById("placeLabel");
+const elSub = document.getElementById("subtitle");
 const elNear = document.getElementById("nearList");
 const elStats = document.getElementById("stats");
 
@@ -254,11 +254,10 @@ return "vicino";
 function updatePerception(){
 const z = map.getZoom();
 const band = zoomBand(z);
-// if(band==="lontano") elSub.textContent = "Coscienza globale";
-// if(band==="medio") elSub.textContent = "Scoperta";
-// if(band==="vicino") elSub.textContent = "Presenza umana";
+if(band==="lontano") elSub.textContent = "Coscienza globale";
+if(band==="medio") elSub.textContent = "Scoperta";
+if(band==="vicino") elSub.textContent = "Presenza umana";
 }
-
 
 // ===== HIGHLIGHT (non giudica) =====
 function isHighlighted(p){
