@@ -2,560 +2,438 @@
 <html lang="it">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Wejuman</title>
 
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- MarkerCluster -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-<script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-
-<!-- Geocoder (ricerca luogo) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-<script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
+html, body, #map { height: 100%; margin: 0; }
 :root{
---bg: #0b0c10;
---panel: rgba(20, 22, 28, 0.82);
---panel2: rgba(20, 22, 28, 0.90);
---stroke: rgba(255,255,255,0.14);
---text: rgba(255,255,255,0.92);
---muted: rgba(255,255,255,0.70);
---chip: rgba(85, 212, 230, 0.95);
---chipText: rgba(0,0,0,0.86);
---shadow: 0 12px 40px rgba(0,0,0,0.40);
---r: 18px;
+--bar: rgba(255,255,255,.92);
+--text:#111;
+--muted:#5a5a5a;
+--shadow: 0 10px 30px rgba(0,0,0,.18);
+--radius: 16px;
 }
 
-html, body { height: 100%; margin: 0; background: var(--bg); font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif; }
-#map { height: 100%; width: 100%; }
-
-/* Top bar */
-.topbar{
+.bar{
 position: fixed;
-top: calc(10px + env(safe-area-inset-top));
-left: 10px;
-right: 10px;
+left: 50%;
+transform: translateX(-50%);
+width: min(720px, calc(100% - 24px));
+background: var(--bar);
+color: var(--text);
+border-radius: var(--radius);
+box-shadow: var(--shadow);
 z-index: 1000;
-display: flex;
+font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+}
+
+#topBar{
+top: 12px;
+padding: 12px 14px;
+display: grid;
+grid-template-columns: 44px 1fr auto;
 gap: 10px;
 align-items: center;
-padding: 10px;
-border: 1px solid var(--stroke);
-background: rgba(18, 20, 26, 0.70);
-backdrop-filter: blur(16px);
--webkit-backdrop-filter: blur(16px);
-border-radius: 22px;
-box-shadow: var(--shadow);
 }
-.btn{
-border: 1px solid var(--stroke);
-background: rgba(255,255,255,0.08);
-color: var(--text);
-padding: 10px 12px;
-border-radius: 16px;
-font-size: 14px;
-line-height: 14px;
-cursor: pointer;
-user-select: none;
-display: inline-flex;
-align-items: center;
-gap: 8px;
+#btnMenu{
+width:44px;height:44px;border-radius:12px;border:none;
+background: rgba(0,0,0,.06);
+font-size: 20px; cursor:pointer;
 }
-.btn:active{ transform: translateY(1px); }
+#title{ font-weight: 800; letter-spacing:.2px; }
+#subtitle{ font-size: 12px; color: var(--muted); margin-top:2px; }
 
-.title{
-display: flex;
-flex-direction: column;
-gap: 2px;
-padding: 4px 6px;
-min-width: 160px;
-}
-.title b{ font-size: 16px; color: var(--text); }
-.title span{ font-size: 12px; color: var(--muted); }
-
-.pill{
-margin-left: auto;
-border: 1px solid var(--stroke);
-background: rgba(255,255,255,0.08);
-color: var(--text);
+#chip{
 padding: 10px 12px;
-border-radius: 16px;
+border-radius: 999px;
+background: rgba(0,0,0,.06);
 font-size: 13px;
+color: var(--muted);
 white-space: nowrap;
 }
 
-/* Bottom panel */
-.bottom{
-position: fixed;
-left: 10px;
-right: 10px;
-bottom: calc(10px + env(safe-area-inset-bottom));
-z-index: 900;
-border: 1px solid var(--stroke);
-background: rgba(0,0,0,0.62); /* alto contrasto */
-backdrop-filter: blur(14px);
--webkit-backdrop-filter: blur(14px);
+#bottomBar{
+bottom: 12px;
+padding: 12px 14px;
+}
+#nearTitle{ font-weight: 800; margin-bottom: 6px; }
+.nearItem{
+font-size: 14px;
+color: var(--text);
+padding: 6px 0;
+border-top: 1px solid rgba(0,0,0,.06);
+cursor: pointer;
+}
+.nearItem:first-of-type{ border-top:none; }
+.nearMeta{ color: var(--muted); font-size: 13px; }
+
+/* Modal menu */
+#overlay{
+position: fixed; inset: 0;
+background: rgba(0,0,0,.22);
+display:none;
+z-index: 2000;
+}
+#panel{
+width: min(760px, calc(100% - 24px));
+margin: 90px auto;
+background: rgba(255,255,255,.94);
 border-radius: 18px;
 box-shadow: var(--shadow);
-padding: 12px 14px;
-color: var(--text);
-}
-.bottom .kicker{
-font-size: 12px;
-color: rgba(255,255,255,0.85);
-letter-spacing: 0.2px;
-margin-bottom: 6px;
-}
-.bottom .list{
-font-size: 14px;
-line-height: 1.35;
-color: rgba(255,255,255,0.95);
-word-break: break-word;
-}
-.dot{ opacity: 0.8; margin: 0 6px; }
-
-/* Modal */
-.overlay{
-position: fixed;
-inset: 0;
-z-index: 1200;
-background: rgba(0,0,0,0.35);
-backdrop-filter: blur(6px);
--webkit-backdrop-filter: blur(6px);
-display: none;
-align-items: flex-start;
-justify-content: center;
-padding: calc(16px + env(safe-area-inset-top)) 12px 12px;
-}
-.modal{
-width: min(520px, 96vw);
-border: 1px solid var(--stroke);
-background: var(--panel2);
-border-radius: 22px;
-box-shadow: var(--shadow);
 padding: 16px;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
 color: var(--text);
 }
-.modalHeader{
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 10px;
-margin-bottom: 10px;
-}
-.modalHeader h3{
-margin: 0;
-font-size: 18px;
-letter-spacing: 0.2px;
-}
-.closeX{
-width: 38px; height: 38px;
-border-radius: 14px;
-border: 1px solid var(--stroke);
-background: rgba(255,255,255,0.08);
-color: var(--text);
-display: grid;
-place-items: center;
-cursor: pointer;
-}
-.help{
-font-size: 13px;
-color: var(--muted);
-margin: 8px 0 14px;
-}
-.chips{
-display: flex;
-flex-wrap: wrap;
-gap: 10px;
-}
-.chip{
-border: 1px solid rgba(0,0,0,0.08);
-background: var(--chip);
-color: var(--chipText);
+#panel h3{ margin:0 0 6px 0; }
+#panel p{ margin:0 0 10px 0; color: var(--muted); }
+
+.catWrap{ display:flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.cat{
 padding: 10px 14px;
 border-radius: 999px;
-font-weight: 600;
-font-size: 14px;
+background: rgba(0,0,0,.06);
 cursor: pointer;
-user-select: none;
+user-select:none;
+font-weight: 700;
+font-size: 14px;
 }
-.chip.off{
-background: rgba(255,255,255,0.10);
-color: var(--text);
-border: 1px solid var(--stroke);
-font-weight: 500;
-}
+.cat.active{ background:#2ecbd6; color:#fff; }
+
 .row{
-margin-top: 14px;
-padding-top: 12px;
-border-top: 1px solid rgba(255,255,255,0.12);
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 10px;
-flex-wrap: wrap;
-}
-.toggle{
-display:flex;
-align-items:center;
-gap:10px;
+display:flex; gap: 10px; align-items:center; margin-top: 12px;
+padding-top: 10px; border-top: 1px solid rgba(0,0,0,.08);
 color: var(--muted);
-font-size: 13px;
-user-select: none;
+font-size: 14px;
 }
-.stats{
-color: var(--muted);
-font-size: 12px;
-line-height: 1.35;
-margin-top: 10px;
-}
+input[type="checkbox"]{ width:18px; height:18px; }
 
-/* Geocoder style compact */
-.leaflet-control-geocoder{
-border-radius: 14px !important;
-overflow: hidden;
-border: 1px solid rgba(255,255,255,0.18) !important;
-box-shadow: none !important;
+.closeBtn{
+margin-top: 12px;
+border:none;
+background: rgba(0,0,0,.06);
+padding: 10px 14px;
+border-radius: 12px;
+cursor:pointer;
+font-weight: 700;
 }
-.leaflet-control-geocoder-form input{
-background: rgba(18,20,26,0.75) !important;
-color: white !important;
-border: none !important;
-padding: 10px 12px !important;
-}
-
-/* Dim markers not highlighted */
-.dimMarker { opacity: 0.22 !important; }
 </style>
 </head>
+
 <body>
 <div id="map"></div>
 
-<div class="topbar">
-<div class="btn" id="openMenu">☰</div>
+<div id="topBar" class="bar">
+<button id="btnMenu" title="Categorie">☰</button>
 
-<div class="title">
-<b>Wejuman</b>
-<span id="modeLabel">Coscienza globale</span>
+<div>
+<div id="title">Wejuman</div>
+<div id="subtitle">A living map of verified human action</div>
 </div>
 
-<div class="pill" id="dataPill">Dati: points.json</div>
-
-<div class="btn" id="locBtn">📍</div>
-<div class="btn" id="resetBtn">Reset</div>
+<div id="chip">Dati: points.json</div>
 </div>
 
-<div class="bottom" id="bottom">
-<div class="kicker">Qui intorno</div>
-<div class="list" id="nearList">—</div>
+<div id="bottomBar" class="bar">
+<div id="nearTitle">Nearby</div>
+<div id="nearList">
+<div class="nearMeta">Move or zoom the map to discover nearby initiatives.</div>
+</div>
 </div>
 
-<div class="overlay" id="overlay">
-<div class="modal">
-<div class="modalHeader">
+<div id="overlay">
+<div id="panel">
 <h3>Categorie</h3>
-<div class="closeX" id="closeMenu">✕</div>
-</div>
-
-<div class="help">
-Il filtro non <b>giudica</b>: evidenzia ciò che cerchi, senza cancellare il resto.
-</div>
-
-<div class="chips" id="chips"></div>
+<p><b>Il filtro non giudica</b>: evidenzia ciò che cerchi, senza “cancellare” il resto.</p>
+<div class="catWrap" id="cats"></div>
 
 <div class="row">
-<label class="toggle">
-<input type="checkbox" id="onlyHighlighted" />
-Mostra solo evidenziati
-</label>
-<div class="btn" id="clearFilter">Tutto</div>
+<input id="onlyHighlighted" type="checkbox">
+<label for="onlyHighlighted">Mostra solo evidenziati</label>
 </div>
 
-<div class="stats" id="stats">—</div>
+<div class="row" id="stats">—</div>
+
+<button class="closeBtn" id="btnClose">Chiudi</button>
 </div>
 </div>
 
 <script>
-(function(){
+// ===== CONFIG =====
+const POINTS_URL = "points.json";
 const CATEGORIES = [
-"Ambiente","Cibo","Acqua","Salute","Educazione","Bambini","Donne",
-"Diritti umani","Emergenze","Comunità","Rifugiati","Generale"
+"Ambiente","Cibo","Acqua","Salute","Educazione",
+"Bambini","Donne","Diritti umani","Emergenze",
+"Comunità","Rifugiati","Generale"
 ];
 
-// Heuristics: se points.json non ha category, la deduciamo da testo
-function inferCategory(p){
-const t = ((p.name||"") + " " + (p.tagline||"")).toLowerCase();
-const has = (arr)=>arr.some(k=>t.includes(k));
-
-if (has(["refugee","refugees","rifugi","displaced","asylum"])) return "Rifugiati";
-if (has(["women","woman","girls","girl","donne","ragazze","gender"])) return "Donne";
-if (has(["child","children","bambini","orphan","orphans"])) return "Bambini";
-if (has(["education","school","literacy","educat","teacher","teachers","read"])) return "Educazione";
-if (has(["health","medical","hospital","clinic","clinics","doctor","doctors","medicine","medic","eye care"])) return "Salute";
-if (has(["water","acqua","clean water","sanitation","hygiene","wells","well "])) return "Acqua";
-if (has(["food","hunger","kitchen","meals","nutrition","famine","cibo","mensa"])) return "Cibo";
-if (has(["forest","tree","trees","climate","environment","environmental","wildlife","conservation","soil","rainforest","reforest"])) return "Ambiente";
-if (has(["emergency","crisis","disaster","war","earthquake","relief"])) return "Emergenze";
-if (has(["community","social","comunit","volunteer","volont"])) return "Comunità";
-if (has(["rights","human rights","legal","justice","diritti"])) return "Diritti umani";
-
-return "Generale";
-}
-
-function safeNum(x){ return typeof x === "number" && isFinite(x); }
-
-// Haversine km
-function distKm(aLat,aLon,bLat,bLon){
-const R=6371;
-const dLat=(bLat-aLat)*Math.PI/180;
-const dLon=(bLon-aLon)*Math.PI/180;
-const s1=Math.sin(dLat/2), s2=Math.sin(dLon/2);
-const aa=s1*s1+Math.cos(aLat*Math.PI/180)*Math.cos(bLat*Math.PI/180)*s2*s2;
-return 2*R*Math.asin(Math.min(1,Math.sqrt(aa)));
-}
-
-const el = (id)=>document.getElementById(id);
-
-let map, cluster, allMarkers = [];
-let activeCategory = "Generale"; // default
-let onlyHighlighted = false;
+// ===== STATE =====
 let points = [];
+let selected = "Tutte"; // categoria evidenziata
+let onlyHighlighted = false; // nasconde gli altri se true
 
-const overlay = el("overlay");
-el("openMenu").onclick = ()=> overlay.style.display="flex";
-el("closeMenu").onclick = ()=> overlay.style.display="none";
-overlay.addEventListener("click", (e)=>{ if(e.target===overlay) overlay.style.display="none"; });
+let markers = []; // {p, m}
+let placeCache = new Map(); // key= "lat,lon" approx -> text
+let reverseTimer = null;
+let lastReverseAtZoomBand = ""; // evita spam
+let abortCtl = null;
 
-el("onlyHighlighted").addEventListener("change", (e)=>{
-onlyHighlighted = !!e.target.checked;
-applyFilter();
-});
-
-el("clearFilter").onclick = ()=>{
-activeCategory = null; // means ALL
-el("onlyHighlighted").checked = false;
-onlyHighlighted = false;
-renderChips();
-applyFilter();
-};
-
-el("resetBtn").onclick = ()=>{
-activeCategory = "Generale";
-el("onlyHighlighted").checked = false;
-onlyHighlighted = false;
-renderChips();
-applyFilter();
-map.setView([20,0], 2);
-};
-
-el("locBtn").onclick = ()=>{
-if(!navigator.geolocation){
-alert("Geolocalizzazione non disponibile.");
-return;
-}
-navigator.geolocation.getCurrentPosition(
-(pos)=>{
-const {latitude, longitude} = pos.coords;
-map.setView([latitude, longitude], Math.max(map.getZoom(), 10));
-},
-()=> alert("Non riesco a ottenere la posizione (permessi?)."),
-{enableHighAccuracy:true, timeout:8000}
-);
-};
-
-function renderChips(){
-const wrap = el("chips");
-wrap.innerHTML = "";
-CATEGORIES.forEach(cat=>{
-const d = document.createElement("div");
-d.className = "chip" + ((activeCategory===cat || (activeCategory===null && cat==="Generale")) ? "" : " off");
-d.textContent = cat;
-d.onclick = ()=>{
-activeCategory = cat;
-renderChips();
-applyFilter();
-};
-wrap.appendChild(d);
-});
-// Label topbar
-el("modeLabel").textContent = activeCategory ? activeCategory : "Tutte";
-}
-
-function markerClassFor(cat, isMatch){
-// We do dim via className on icon element after add
-return;
-}
-
-function applyFilter(){
-let shown=0, highlighted=0;
-
-allMarkers.forEach(m=>{
-const cat = m.__cat;
-const isMatch = !activeCategory || cat === activeCategory;
-
-// highlighted count = match
-if(isMatch) highlighted++;
-
-// show/hide logic
-if(onlyHighlighted){
-if(isMatch){
-if(!cluster.hasLayer(m)) cluster.addLayer(m);
-shown++;
-// remove dim
-if(m._icon) m._icon.classList.remove("dimMarker");
-if(m._shadow) m._shadow.classList.remove("dimMarker");
-}else{
-if(cluster.hasLayer(m)) cluster.removeLayer(m);
-}
-}else{
-// always show, but dim non-match
-if(!cluster.hasLayer(m)) cluster.addLayer(m);
-shown++;
-if(m._icon){
-if(isMatch) m._icon.classList.remove("dimMarker");
-else m._icon.classList.add("dimMarker");
-}
-if(m._shadow){
-if(isMatch) m._shadow.classList.remove("dimMarker");
-else m._shadow.classList.add("dimMarker");
-}
-}
-});
-
-el("stats").textContent =
-`Punti caricati: ${points.length} · Evidenziati: ${highlighted}`;
-
-updateNear();
-}
-
-function updateNear(){
-if(!map || !points.length) return;
-const c = map.getCenter();
-const list = points
-.map(p=>({p, d: distKm(c.lat,c.lng,p.lat,p.lon)}))
-.sort((a,b)=>a.d-b.d)
-.slice(0,3);
-
-const txt = list.map(x=>{
-const cat = x.p.category || "Generale";
-const name = x.p.name || "—";
-const d = (x.d<10 ? x.d.toFixed(1) : Math.round(x.d)).toString().replace(".", ",");
-return `${name} · ${cat} · ${d} km`;
-}).join(" · ");
-
-el("nearList").textContent = txt || "—";
-}
-
-async function loadPoints(){
-const res = await fetch("points.json", {cache:"no-store"});
-if(!res.ok) throw new Error("Impossibile caricare points.json");
-const arr = await res.json();
-if(!Array.isArray(arr)) throw new Error("points.json non è un array");
-
-// normalize
-points = arr
-.filter(p=>p && safeNum(p.lat) && safeNum(p.lon))
-.map(p=>{
-const cat = (p.category && CATEGORIES.includes(p.category)) ? p.category : inferCategory(p);
-return { ...p, category: cat };
-});
-
-return points;
-}
-
-function initMap(){
-map = L.map("map", { zoomControl: false }).setView([20,0], 2);
-
+// ===== MAP =====
+const map = L.map("map", { zoomControl: false }).setView([20,0], 2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-maxZoom: 19,
-attribution: '&copy; OpenStreetMap contributors'
+maxZoom: 19
 }).addTo(map);
 
-// cluster
-cluster = L.markerClusterGroup({
-showCoverageOnHover: false,
-spiderfyOnMaxZoom: true,
-disableClusteringAtZoom: 10
-});
-map.addLayer(cluster);
+// ===== UI =====
+const elSub = document.getElementById("subtitle");
+const elNear = document.getElementById("nearList");
+const elStats = document.getElementById("stats");
 
-// geocoder
-if (window.L && L.Control && L.Control.Geocoder){
-const geocoder = L.Control.geocoder({
-defaultMarkGeocode: false,
-placeholder: "Cerca un luogo…"
-})
-.on('markgeocode', function(e) {
-const bbox = e.geocode.bbox;
-const poly = L.polygon([
-bbox.getSouthEast(),
-bbox.getNorthEast(),
-bbox.getNorthWest(),
-bbox.getSouthWest()
-]);
-map.fitBounds(poly.getBounds(), {padding:[20,20]});
-})
-.addTo(map);
-}
+document.getElementById("btnMenu").onclick = openMenu;
+document.getElementById("btnClose").onclick = closeMenu;
+document.getElementById("overlay").onclick = (e)=>{ if(e.target.id==="overlay") closeMenu(); };
 
-map.on("moveend zoomend", ()=>{
-updateNear();
+const chkOnly = document.getElementById("onlyHighlighted");
+chkOnly.onchange = ()=>{
+onlyHighlighted = chkOnly.checked;
+applyHighlight();
+updateNearby();
+updateStats();
+};
+
+// ===== LOAD =====
+fetch(POINTS_URL)
+.then(r=>r.json())
+.then(d=>{
+points = (Array.isArray(d)? d : []).map(p => ({
+...p,
+category: (p.category && p.category.trim()) ? p.category.trim() : "Generale"
+}));
+buildMarkers();
+buildMenu();
+applyHighlight();
+updateNearby();
+updateStats();
+updatePerception(); // set subtitle initial
+})
+.catch(()=>{
+elNear.innerHTML = `<div class="nearMeta">Errore: non riesco a caricare points.json</div>`;
 });
-}
 
 function buildMarkers(){
-allMarkers = [];
-cluster.clearLayers();
+markers.forEach(x=> map.removeLayer(x.m));
+markers = [];
 
 points.forEach(p=>{
-const m = L.marker([p.lat, p.lon], { title: p.name || "" });
-m.__cat = p.category || "Generale";
-const safe = (s)=>String(s||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-const popupHtml = `
-<div style="min-width:220px">
-<div style="font-weight:700; margin-bottom:6px">${safe(p.name)}</div>
-<div style="color:#666; margin-bottom:8px">${safe(p.category)}</div>
-<div style="line-height:1.35">${safe(p.tagline)}</div>
-</div>`;
-m.bindPopup(popupHtml);
-allMarkers.push(m);
+const m = L.marker([p.lat, p.lon]).addTo(map);
+m.on("click", ()=>{
+const url = p.website ? p.website : `https://www.google.com/search?q=${encodeURIComponent(p.name)}`;
+window.open(url, "_blank");
+});
+markers.push({p, m});
+});
+}
+
+// ===== PRO: 3 states (Lontano / Medio / Vicino) =====
+function zoomBand(z){
+if(z < 4) return "lontano";
+if(z < 10) return "medio";
+return "vicino";
+}
+
+function updatePerception(){
+const z = map.getZoom();
+const band = zoomBand(z);
+if(band==="lontano") elSub.textContent = "Coscienza globale";
+if(band==="medio") elSub.textContent = "Scoperta";
+if(band==="vicino") elSub.textContent = "Presenza umana";
+}
+
+// ===== HIGHLIGHT (non giudica) =====
+function isHighlighted(p){
+return (selected==="Tutte") ? true : (p.category === selected);
+}
+
+function applyHighlight(){
+let visibleCount = 0;
+let highlightedCount = 0;
+
+markers.forEach(({p,m})=>{
+const hi = isHighlighted(p);
+if(hi) highlightedCount++;
+
+if(onlyHighlighted && !hi){
+if(map.hasLayer(m)) map.removeLayer(m);
+}else{
+if(!map.hasLayer(m)) m.addTo(map);
+const iconEl = m.getElement && m.getElement();
+if(iconEl){
+iconEl.style.opacity = hi ? "1" : "0.28";
+iconEl.style.filter = hi ? "none" : "grayscale(1)";
+}
+visibleCount++;
+}
 });
 
-// add all then filter (so _icon exists after add)
-allMarkers.forEach(m=>cluster.addLayer(m));
+updateStats(visibleCount, highlightedCount);
 }
 
-async function start(){
-try{
-initMap();
-renderChips();
-
-await loadPoints();
-buildMarkers();
-
-// Default: Generale come “vista neutra”, ma evidenzia tutto (non dim)
-activeCategory = null; // tutte
-renderChips();
-applyFilter();
-
-updateNear();
-}catch(err){
-console.error(err);
-// fallback semplice: mostra errore in bottom
-el("nearList").textContent = "Errore: " + (err.message || err);
-el("modeLabel").textContent = "Errore dati";
+function updateStats(visibleCount, highlightedCount){
+if(visibleCount == null){
+// ricalcolo veloce
+visibleCount = markers.filter(({p,m})=> map.hasLayer(m)).length;
+highlightedCount = points.filter(isHighlighted).length;
 }
+elStats.textContent = `Punti: ${points.length} · Visibili: ${visibleCount} · Evidenziati: ${highlightedCount}`;
 }
 
-// Start when scripts are ready (Leaflet is deferred)
-window.addEventListener("load", start);
-})();
+// ===== NEARBY (qui intorno) =====
+function updateNearby(){
+const center = map.getCenter();
+const z = map.getZoom();
+const band = zoomBand(z);
+
+// raggio suggerimenti: lontano = grande, vicino = piccolo
+const maxKm =
+band==="lontano" ? 4000 :
+band==="medio" ? 1200 :
+80;
+
+const list = points
+.map(p=>({p, km: map.distance(center, [p.lat, p.lon]) / 1000}))
+.filter(x=> x.km <= maxKm)
+.filter(x=> !onlyHighlighted || isHighlighted(x.p))
+.sort((a,b)=>a.km-b.km)
+.slice(0, 3);
+
+if(list.length === 0){
+elNear.innerHTML = `<div class="nearMeta">Nessun punto nel raggio (${maxKm} km). Zooma/sposta.</div>`;
+return;
+}
+
+elNear.innerHTML = list.map(x=>{
+const p = x.p;
+const km = x.km.toFixed(1);
+const cat = p.category || "Generale";
+return `
+<div class="nearItem" onclick="openLink('${escapeHtml(p.name)}','${escapeHtml(p.website||"")}')">
+${escapeHtml(p.name)}
+<div class="nearMeta">${escapeHtml(cat)} · ${km} km</div>
+</div>
+`;
+}).join("");
+}
+
+window.openLink = function(name, website){
+const url = website ? website : `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+window.open(url, "_blank");
+};
+
+function escapeHtml(s){
+return (s||"").replace(/[&<>"']/g, m=>({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[m]));
+}
+
+// ===== REVERSE GEOCODE (stabile, no network crash) =====
+function shouldReverseNow(){
+const band = zoomBand(map.getZoom());
+// Niente reverse in "lontano"
+if(band === "lontano") return false;
+return true;
+}
+
+function reverseGeocode(){
+if(!shouldReverseNow()) return;
+
+const c = map.getCenter();
+// chiave cache arrotondata
+const key = `${c.lat.toFixed(3)},${c.lng.toFixed(3)}`;
+if(placeCache.has(key)){
+elSub.textContent = placeCache.get(key);
+return;
+}
+
+// evita sovrapposizioni
+if(abortCtl) abortCtl.abort();
+abortCtl = new AbortController();
+
+fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${c.lat}&lon=${c.lng}`, {
+signal: abortCtl.signal,
+headers: { "Accept": "application/json" }
+})
+.then(r=>r.json())
+.then(d=>{
+const a = d && d.address ? d.address : {};
+const place = a.city || a.town || a.village || a.county || a.state || a.country || "—";
+placeCache.set(key, place);
+elSub.textContent = place; // qui appare “Roma”
+})
+.catch(()=>{
+// fallback: NON rompe nulla
+// non cambiamo testo se fallisce
+});
+}
+
+// ===== MENU =====
+function buildMenu(){
+const cats = document.getElementById("cats");
+cats.innerHTML = "";
+
+const all = ["Tutte", ...CATEGORIES];
+all.forEach(cat=>{
+const b = document.createElement("div");
+b.className = "cat" + (cat===selected ? " active" : "");
+b.textContent = cat;
+b.onclick = ()=>{
+selected = cat;
+// aggiorna stato pulsanti
+Array.from(cats.children).forEach(x=> x.classList.remove("active"));
+b.classList.add("active");
+
+applyHighlight();
+updateNearby();
+updateStats();
+};
+cats.appendChild(b);
+});
+}
+
+function openMenu(){
+document.getElementById("overlay").style.display = "block";
+chkOnly.checked = onlyHighlighted;
+updateStats();
+}
+function closeMenu(){
+document.getElementById("overlay").style.display = "none";
+}
+
+// ===== EVENTS =====
+map.on("zoomend", ()=>{
+updatePerception();
+updateNearby();
+applyHighlight();
+
+// reverse solo se “medio/vicino” e con debounce
+clearTimeout(reverseTimer);
+reverseTimer = setTimeout(reverseGeocode, 550);
+});
+
+map.on("moveend", ()=>{
+updateNearby();
+
+// reverse SOLO quando cambia banda o quando ti fermi
+clearTimeout(reverseTimer);
+reverseTimer = setTimeout(reverseGeocode, 650);
+});
+
 </script>
 </body>
 </html>
