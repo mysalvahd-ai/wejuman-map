@@ -295,272 +295,52 @@ highlightedCount = points.filter(isHighlighted).length;
 elStats.textContent = `Punti: ${points.length} · Visibili: ${visibleCount} · Evidenziati: ${highlightedCount}`;
 }
 
-/*******************************
-* NEARBY PRO (Local + OSM)
-* Only SOCIAL actions, only menu categories
-*******************************/
-
-// 1) MENU CANONICO (solo queste categorie)
-const CATEGORIES = [
-"Food for the poor",
-"Homeless support",
-"Refugees",
-"Children & orphans",
-"Disability support",
-"Domestic violence support",
-"Mental health support",
-"Community center",
-"Volunteering"
-];
-const ALLOWED_CATS = new Set(CATEGORIES);
-
-// 2) Helpers: active categories (dalle chips)
-// - Se hai state.categories (Map cat->bool) lo usa.
-// - Se non hai selezioni attive, usa tutte.
-function getActiveCategories(){
-if (typeof state !== "undefined" && state.categories instanceof Map){
-const on = [];
-for (const [k,v] of state.categories.entries()){
-if (v) on.push(k);
-}
-return on.length ? on : CATEGORIES.slice();
-}
-return CATEGORIES.slice();
-}
-
-// 3) OSM -> categorie Wejuman (SOCIAL ONLY)
-function mapOsmToCategory(tags){
-// Social facilities
-if (tags.amenity === "social_facility"){
-const sf = tags.social_facility || tags["social_facility:for"];
-if (sf === "food_bank" || sf === "soup_kitchen") return "Food for the poor";
-if (sf === "shelter") return "Homeless support";
-if (sf === "refugee_site") return "Refugees";
-if (sf === "day_care" || sf === "group_home") return "Children & orphans";
-if (sf === "assisted_living" || sf === "workshop") return "Disability support";
-}
-
-// Community centers
-if (tags.amenity === "community_centre") return "Community center";
-
-// NGOs/Charities offices -> bucket "Volunteering"
-if (tags.office === "ngo" || tags.office === "charity") return "Volunteering";
-
-// Explicit volunteering tags -> "Volunteering"
-if (tags.volunteer === "yes" || tags.volunteering === "yes") return "Volunteering";
-
-return null;
-}
-
-// 4) Overpass fetch (cache + abort)
-const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
-const overpassCache = new Map(); // key -> {ts, items}
-let overpassAbort = null;
-
-function makeOverpassKey(lat, lon, radiusM, activeCats){
-// bucket to reduce calls
-const latB = lat.toFixed(3);
-const lonB = lon.toFixed(3);
-const catsKey = activeCats.slice().sort().join("|");
-return `${latB}|${lonB}|${radiusM}|${catsKey}`;
-}
-
-async function fetchOverpassSocial(lat, lon, radiusM, activeCats){
-const key = makeOverpassKey(lat, lon, radiusM, activeCats);
-const cached = overpassCache.get(key);
-if (cached && (Date.now() - cached.ts) < 1000 * 60 * 10) return cached.items; // 10 min
-
-if (overpassAbort) overpassAbort.abort();
-overpassAbort = new AbortController();
-
-const query = `
-[out:json][timeout:20];
-(
-node(around:${radiusM},${lat},${lon})["amenity"="social_facility"];
-way(around:${radiusM},${lat},${lon})["amenity"="social_facility"];
-relation(around:${radiusM},${lat},${lon})["amenity"="social_facility"];
-
-node(around:${radiusM},${lat},${lon})["amenity"="community_centre"];
-way(around:${radiusM},${lat},${lon})["amenity"="community_centre"];
-relation(around:${radiusM},${lat},${lon})["amenity"="community_centre"];
-
-node(around:${radiusM},${lat},${lon})["office"="ngo"];
-way(around:${radiusM},${lat},${lon})["office"="ngo"];
-relation(around:${radiusM},${lat},${lon})["office"="ngo"];
-
-node(around:${radiusM},${lat},${lon})["office"="charity"];
-way(around:${radiusM},${lat},${lon})["office"="charity"];
-relation(around:${radiusM},${lat},${lon})["office"="charity"];
-
-node(around:${radiusM},${lat},${lon})["volunteer"="yes"];
-node(around:${radiusM},${lat},${lon})["volunteering"="yes"];
-);
-out center tags;
-`.trim();
-
-const res = await fetch(OVERPASS_URL, {
-method: "POST",
-body: query,
-signal: overpassAbort.signal
-});
-if (!res.ok) return [];
-
-const json = await res.json();
-const els = json.elements || [];
-
-const activeSet = new Set(activeCats);
-
-const items = els.map(el => {
-const tags = el.tags || {};
-const cat = mapOsmToCategory(tags);
-if (!cat) return null;
-if (!ALLOWED_CATS.has(cat)) return null;
-if (!activeSet.has(cat)) return null;
-
-const name =
-tags.name ||
-tags["operator"] ||
-tags["brand"] ||
-"Community action";
-
-const lat2 = (el.type === "node") ? el.lat : (el.center ? el.center.lat : null);
-const lon2 = (el.type === "node") ? el.lon : (el.center ? el.center.lon : null);
-if (lat2 == null || lon2 == null) return null;
-
-return {
-source: "osm",
-name,
-category: cat,
-lat: lat2,
-lon: lon2,
-website: tags.website || tags.url || ""
-};
-}).filter(Boolean);
-
-overpassCache.set(key, { ts: Date.now(), items });
-return items;
-}
-
-// 5) Click external explore (fallback)
-function openExplore(name, category){
-const q = encodeURIComponent(`${name} ${category}`);
-window.open(`https://www.google.com/search?q=${q}`, "_blank");
-}
-
-// 6) Utility: format distance
-function formatDistance(km){
-if (km < 1) return `${Math.round(km * 1000)} m`;
-return `${km.toFixed(1)} km`;
-}
-
-// 7) MAIN: updateNearby (Local first, then OSM fill)
-let nearbyDebounce = null;
-
-async function updateNearbyPRO(){
+// ===== NEARBY (qui intorno) =====
+function updateNearby(){
 const center = map.getCenter();
+const z = map.getZoom();
+const band = zoomBand(z);
+
+// raggio suggerimenti: lontano = grande, vicino = piccolo
+const maxKm =
+band==="lontano" ? 4000 :
+band==="medio" ? 1200 :
+80;
+
 const MAX_ITEMS = 20;
 
-const activeCats = getActiveCategories();
-const activeSet = new Set(activeCats);
+// prima calcolo tutti ordinati per distanza
+const ordered = points
+.map(p => ({ p, km: map.distance(center, [p.lat, p.lon]) / 1000 }))
+.filter(x => !onlyHighlighted || isHighlighted(x.p))
+.sort((a, b) => a.km - b.km);
 
-// 7.1) local points (your dataset)
-// NOTE: serve p.category nel tuo points.json per essere perfetto.
-const local = (Array.isArray(points) ? points : [])
-.map(p => ({
-source: "local",
-name: p.name || "Action",
-category: (p.category || "Volunteering"),
-lat: p.lat,
-lon: p.lon,
-website: p.website || "",
-tagline: p.tagline || ""
-}))
-.filter(x => ALLOWED_CATS.has(x.category))
-.filter(x => activeSet.has(x.category))
-.map(x => ({
-...x,
-km: map.distance(center, [x.lat, x.lon]) / 1000
-}))
-.sort((a,b) => a.km - b.km);
+// poi applico raggio "soft", ma se sono pochi riempio comunque
+const within = ordered.filter(x => x.km <= maxKm);
 
-// Dedup + choose
-const chosen = [];
-const dedupe = new Set();
+const list = points
+.map(p => ({ p, km: map.distance(center, [p.lat, p.lon]) / 1000 }))
+.filter(x => !onlyHighlighted || isHighlighted(x.p))
+.sort((a, b) => a.km - b.km)
+.slice(0, 20);
 
-function pushUnique(x){
-const key = `${x.name}|${x.lat.toFixed(5)}|${x.lon.toFixed(5)}`;
-if (dedupe.has(key)) return;
-dedupe.add(key);
-chosen.push(x);
-}
-
-for (const x of local){
-pushUnique(x);
-if (chosen.length >= MAX_ITEMS) break;
-}
-
-// 7.2) If not enough, fill with OSM around center
-// radius steps (meters): social suggestions near the map center
-const radiusStepsM = [2000, 5000, 12000, 25000, 50000]; // 2km→5→12→25→50
-
-if (chosen.length < MAX_ITEMS){
-for (const r of radiusStepsM){
-const osm = await fetchOverpassSocial(center.lat, center.lng, r, activeCats);
-const scored = osm
-.map(x => ({ ...x, km: map.distance(center, [x.lat, x.lon]) / 1000 }))
-.sort((a,b) => a.km - b.km);
-
-for (const x of scored){
-pushUnique(x);
-if (chosen.length >= MAX_ITEMS) break;
-}
-if (chosen.length >= MAX_ITEMS) break;
-}
-}
-
-// 7.3) Render
-if (!chosen.length){
-elNear.innerHTML = `<div class="nearMeta">No nearby activities for the selected categories. Move the map or zoom out.</div>`;
+if(list.length === 0){
+elNear.innerHTML = `<div class="nearMeta">Nessun punto nel raggio (${maxKm} km). Zooma/sposta.</div>`;
 return;
 }
 
-elNear.innerHTML = chosen.slice(0, MAX_ITEMS).map(x => {
-const title = escapeHtml(x.name);
-const cat = escapeHtml(x.category);
-const dist = formatDistance(x.km);
-
-const tagline = x.tagline
-? `<div class="nearMeta">${escapeHtml(x.tagline)}</div>`
-: "";
-
-// click:
-const click = x.website
-? `window.open('${encodeURI(x.website)}','_blank')`
-: `openExplore(${JSON.stringify(x.name)}, ${JSON.stringify(x.category)})`;
-
+elNear.innerHTML = list.map(x=>{
+const p = x.p;
+const km = x.km.toFixed(1);
+const cat = p.category || "Generale";
 return `
-<div class="nearItem" style="cursor:pointer" onclick="${click}">
-<div class="nearName">${title}</div>
-<div class="nearMeta">${cat} · ${dist}</div>
-${tagline}
+<div class="nearItem" onclick="openLink('${escapeHtml(p.name)}','${escapeHtml(p.website||"")}')">
+${escapeHtml(p.name)}
+<div class="nearMeta">${escapeHtml(cat)} · ${km} km</div>
 </div>
 `;
 }).join("");
 }
-
-// 8) Schedule / debounce (call on move/zoom)
-function scheduleNearbyPRO(){
-clearTimeout(nearbyDebounce);
-nearbyDebounce = setTimeout(() => {
-updateNearbyPRO();
-}, 300);
-}
-
-// IMPORTANT: hook into map events (keep only one listener if you already have it)
-map.on("moveend zoomend", scheduleNearbyPRO);
-
-// Initial run
-scheduleNearbyPRO();
 
 window.openLink = function(name, website){
 const url = website ? website : `https://www.google.com/search?q=${encodeURIComponent(name)}`;
