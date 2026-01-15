@@ -29,7 +29,16 @@ crossorigin=""
 html, body { height: 100%; margin: 0; background: #000; }
 #map { height: 100%; width: 100%; }
 
-/* App-like overlay */
+/* ===== High Readability UI ===== */
+:root{
+--ui-bg: rgba(255,255,255,0.22); /* brighter */
+--ui-bg-strong: rgba(255,255,255,0.30);
+--ui-border: rgba(255,255,255,0.32);
+--ui-border-strong: rgba(255,255,255,0.45);
+--ui-text: #ffffff; /* pure white */
+--ui-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+
 .ui {
 position: absolute;
 left: 12px;
@@ -45,24 +54,29 @@ pointer-events: none;
 
 .panel {
 pointer-events: auto;
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
-background: rgba(255,255,255,0.12);
-border: 1px solid rgba(255,255,255,0.14);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+background: var(--ui-bg);
+border: 1px solid var(--ui-border);
 border-radius: 16px;
 padding: 10px 12px;
-color: rgba(255,255,255,0.92);
+color: var(--ui-text);
 font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+box-shadow: var(--ui-shadow);
 }
 
 .brand {
 display: flex; align-items: center; gap: 10px;
 padding: 10px 14px;
+min-width: 170px;
 }
-.brand .dot { width: 10px; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.75); }
-.brand .title { font-weight: 600; letter-spacing: 0.2px; }
-.brand .sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.brand .dot {
+width: 10px; height: 10px; border-radius: 999px;
+background: rgba(255,255,255,0.95);
+box-shadow: 0 0 0 3px rgba(0,0,0,0.18);
+}
+.brand .title { font-weight: 650; letter-spacing: 0.2px; color: #fff; }
+.brand .sub { font-size: 12px; color: #fff; opacity: 0.92; margin-top: 2px; }
 
 .lensbar {
 display: flex;
@@ -76,12 +90,13 @@ scrollbar-width: none;
 .lens {
 pointer-events: auto;
 user-select: none;
-border: 1px solid rgba(255,255,255,0.18);
-background: rgba(0,0,0,0.25);
-color: rgba(255,255,255,0.92);
+border: 1px solid var(--ui-border);
+background: rgba(0,0,0,0.18); /* keep contrast with map */
+color: #fff; /* pure white */
 padding: 10px 12px;
 border-radius: 999px;
 font-size: 13px;
+font-weight: 600;
 display: flex;
 align-items: center;
 gap: 8px;
@@ -90,25 +105,30 @@ white-space: nowrap;
 transition: transform 120ms ease, background 120ms ease, border 120ms ease;
 }
 .lens:active { transform: scale(0.98); }
+
+/* Active: clearly brighter */
 .lens.active {
-background: rgba(255,255,255,0.18);
-border: 1px solid rgba(255,255,255,0.28);
+background: var(--ui-bg-strong);
+border: 1px solid var(--ui-border-strong);
+box-shadow: 0 0 0 2px rgba(0,0,0,0.12) inset;
 }
 
 .btn {
 pointer-events: auto;
-border: 1px solid rgba(255,255,255,0.18);
-background: rgba(0,0,0,0.25);
-color: rgba(255,255,255,0.92);
+border: 1px solid var(--ui-border);
+background: rgba(0,0,0,0.18);
+color: #fff; /* pure white */
 padding: 10px 12px;
 border-radius: 12px;
 cursor: pointer;
 font-size: 13px;
+font-weight: 650;
 display: inline-flex;
 align-items: center;
 gap: 8px;
 user-select: none;
 }
+.btn:active { transform: scale(0.99); }
 
 .status {
 position: absolute;
@@ -117,43 +137,47 @@ left: 12px;
 z-index: 1000;
 pointer-events: none;
 font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-color: rgba(255,255,255,0.92);
+color: #fff; /* pure white */
 font-size: 12px;
-opacity: 0.95;
-background: rgba(0,0,0,0.35);
-border: 1px solid rgba(255,255,255,0.10);
+font-weight: 650;
+background: rgba(0,0,0,0.42);
+border: 1px solid rgba(255,255,255,0.22);
 border-radius: 999px;
 padding: 8px 10px;
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
 }
 
-/* Reduce UI while user interacts with map */
+/* Reduce UI while user interacts with map (but keep readability) */
 .ui.minimized .panel { padding: 8px 10px; }
 .ui.minimized .brand .sub { display: none; }
 .ui.minimized .lens { padding: 8px 10px; font-size: 12px; }
+.ui.minimized .btn { padding: 8px 10px; font-size: 12px; }
 
 /* Popup style */
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-background: rgba(20,20,20,0.92);
-color: rgba(255,255,255,0.92);
-border: 1px solid rgba(255,255,255,0.10);
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
+background: rgba(18,18,18,0.92);
+color: rgba(255,255,255,0.96);
+border: 1px solid rgba(255,255,255,0.12);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
 }
-.leaflet-popup-content { margin: 10px 12px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-.p-title { font-weight: 650; margin-bottom: 6px; }
-.p-meta { font-size: 12px; opacity: 0.82; line-height: 1.35; }
+.leaflet-popup-content {
+margin: 10px 12px;
+font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+.p-title { font-weight: 750; margin-bottom: 6px; }
+.p-meta { font-size: 12px; opacity: 0.88; line-height: 1.35; }
 .p-pill {
 display: inline-block;
 font-size: 11px;
 padding: 4px 8px;
 border-radius: 999px;
-border: 1px solid rgba(255,255,255,0.16);
-background: rgba(255,255,255,0.08);
+border: 1px solid rgba(255,255,255,0.18);
+background: rgba(255,255,255,0.10);
 margin-top: 8px;
 }
-a { color: rgba(255,255,255,0.92); }
+a { color: #fff; }
 </style>
 </head>
 
@@ -191,8 +215,6 @@ a { color: rgba(255,255,255,0.92); }
 * Wejuman V0.1 core
 * - Human Actions: local JSON (data/human_actions.json)
 * - Other lenses: OSM via Overpass
-* - Markers: white & readable
-* - PWA: hooks + SW registration (below)
 * ========================= */
 
 const statusEl = document.getElementById("status");
@@ -223,22 +245,21 @@ culture: L.layerGroup(),
 mobility: L.layerGroup()
 };
 
-// Lens state
 let activeLens = "human_actions";
 let humanActionsLoaded = false;
 let moveTimer = null;
 
 function setStatus(msg) { statusEl.textContent = msg; }
 
-// ✅ White, readable markers
+// White markers (readable)
 function makeCircleMarker(latlng) {
 return L.circleMarker(latlng, {
 radius: 6,
-weight: 1.2,
-color: "rgba(255,255,255,0.92)",
-opacity: 0.95,
-fillColor: "rgba(255,255,255,0.55)",
-fillOpacity: 0.85
+weight: 1.4,
+color: "rgba(255,255,255,0.95)",
+opacity: 0.98,
+fillColor: "rgba(255,255,255,0.60)",
+fillOpacity: 0.90
 });
 }
 
@@ -263,9 +284,7 @@ function escapeAttr(str) {
 return escapeHTML(str).replace(/"/g, "&quot;");
 }
 
-/** =========================
-* Lens switching
-* ========================= */
+/** Lens switching */
 function setActiveLens(lens) {
 activeLens = lens;
 
@@ -273,7 +292,6 @@ document.querySelectorAll(".lens").forEach(el => {
 el.classList.toggle("active", el.dataset.lens === lens);
 });
 
-// remove all layers
 Object.values(layers).forEach(layer => map.removeLayer(layer));
 
 if (lens === "all") {
@@ -295,19 +313,17 @@ setStatus("Human Actions — ready");
 }
 }
 
-/** =========================
-* Human Actions (local JSON)
-* ========================= */
+/** Human Actions (local JSON) */
 async function loadHumanActions() {
 try {
 setStatus("Loading Human Actions…");
 const res = await fetch("./data/human_actions.json", { cache: "no-store" });
-if (!res.ok) throw new Error("data/human_actions.json not found or not accessible");
+if (!res.ok) throw new Error("data/human_actions.json not found");
 const data = await res.json();
 
 layers.human_actions.clearLayers();
-
 const points = Array.isArray(data) ? data : (data.points || []);
+
 points.forEach(p => {
 const lat = Number(p.lat), lng = Number(p.lng);
 if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
@@ -334,9 +350,7 @@ console.warn(e);
 }
 }
 
-/** =========================
-* OSM via Overpass
-* ========================= */
+/** OSM via Overpass */
 const OVERPASS = "https://overpass-api.de/api/interpreter";
 
 const OSM_QUERIES = {
@@ -396,12 +410,10 @@ function pickName(tags) {
 if (!tags) return null;
 return tags.name || tags["name:en"] || tags.brand || tags.operator || null;
 }
-
 function pickPlace(tags) {
 if (!tags) return null;
 return tags.addr_city || tags["addr:city"] || tags["addr:place"] || null;
 }
-
 function lensLabel(lens) {
 return ({ homes:"Homes", nature:"Nature", culture:"Culture", mobility:"Mobility" }[lens] || lens);
 }
@@ -475,9 +487,7 @@ setStatus("OSM load failed (Overpass busy). Try refresh.");
 }
 }
 
-/** =========================
-* Interaction UX: minimize UI while moving
-* ========================= */
+/** minimize UI while moving */
 function minimizeUI(on) { uiEl.classList.toggle("minimized", on); }
 
 map.on("movestart", () => minimizeUI(true));
@@ -489,9 +499,7 @@ if (activeLens !== "human_actions") refreshOSM();
 }, 600);
 });
 
-/** =========================
-* Buttons + lens bar
-* ========================= */
+/** UI events */
 lensbar.addEventListener("click", (e) => {
 const target = e.target.closest(".lens");
 if (!target) return;
@@ -520,9 +528,7 @@ refreshOSM();
 }
 });
 
-/** =========================
-* Boot
-* ========================= */
+/** boot */
 (async function boot() {
 await loadHumanActions();
 setActiveLens("human_actions");
