@@ -2,510 +2,638 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wejuman — V0.1</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0b0f14" />
+
+<title>Wejuman</title>
 
 <!-- PWA -->
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#f6f7f9">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="manifest" href="./manifest.json" />
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
 <!-- Leaflet -->
-<link
-rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-crossorigin=""
-/>
-<script
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-crossorigin=""
-></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
-html, body { height: 100%; margin: 0; background: #fff; }
-#map { height: 100%; width: 100%; }
-
 :root{
---panel: rgba(255,255,255,0.96);
---panel2: rgba(248,249,251,0.98);
---border: rgba(0,0,0,0.10);
---border2: rgba(0,0,0,0.14);
---text: #111111;
---muted: rgba(17,17,17,0.62);
---muted2: rgba(17,17,17,0.48);
---shadow: 0 10px 28px rgba(0,0,0,0.18);
---radius: 14px;
+--bg:#0b0f14;
+--panel:rgba(255,255,255,.88);
+--text:#0b0f14;
+--muted:rgba(11,15,20,.65);
+--stroke:#0b0f14;
+--blue:#2d6cdf;
+--green:#28c76f;
+}
+html,body{height:100%; margin:0; background:var(--bg); font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;}
+#map{height:100%; width:100%;}
+
+/* Top info */
+.topbar{
+position:fixed; left:12px; right:12px; top:12px;
+padding:10px 12px;
+border-radius:14px;
+background:rgba(255,255,255,.22);
+backdrop-filter: blur(12px);
+color:#fff;
+z-index:1000;
+display:flex; gap:10px; align-items:center; justify-content:space-between;
+pointer-events:none;
+}
+.topbar .left{display:flex; flex-direction:column; gap:2px;}
+.topbar .title{font-weight:650; letter-spacing:.2px; font-size:14px;}
+.topbar .sub{font-size:12px; opacity:.75;}
+.toast{
+position:fixed; left:50%; transform:translateX(-50%);
+bottom:84px; z-index:1200;
+background:rgba(0,0,0,.65);
+color:#fff;
+padding:8px 12px;
+border-radius:999px;
+font-size:12px;
+opacity:0; transition:opacity .18s ease;
+pointer-events:none;
+max-width:90vw;
+text-align:center;
+}
+.toast.show{opacity:1;}
+
+/* Bottom lens bar */
+.lensbar{
+position:fixed; left:10px; right:10px; bottom:10px;
+display:flex; gap:8px;
+padding:10px;
+border-radius:18px;
+background:var(--panel);
+color:var(--text);
+z-index:1100;
+box-shadow: 0 8px 28px rgba(0,0,0,.25);
+overflow-x:auto;
+-webkit-overflow-scrolling:touch;
+}
+.lensbar::-webkit-scrollbar{display:none;}
+.lensbtn{
+border:1px solid rgba(11,15,20,.12);
+background:rgba(255,255,255,.65);
+color:var(--text);
+padding:10px 12px;
+border-radius:14px;
+font-size:13px;
+font-weight:600;
+white-space:nowrap;
+cursor:pointer;
+user-select:none;
+flex:0 0 auto;
+}
+.lensbtn.active{
+background:rgba(11,15,20,.92);
+border-color:rgba(11,15,20,.92);
+color:#fff;
+}
+.lensbtn:active{transform:translateY(1px);}
+
+/* Tiny locate button */
+.locate{
+position:fixed; right:14px; bottom:90px;
+z-index:1150;
+border:none;
+border-radius:999px;
+padding:10px 12px;
+background:rgba(255,255,255,.9);
+color:var(--text);
+box-shadow: 0 8px 20px rgba(0,0,0,.2);
+font-weight:650;
+cursor:pointer;
 }
 
-.topbar {
-position: absolute;
-left: 12px;
-right: 12px;
-top: 12px;
-z-index: 1000;
-background: var(--panel);
-border: 1px solid var(--border);
-border-radius: var(--radius);
-box-shadow: var(--shadow);
-padding: 12px 14px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 10px;
-font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-color: var(--text);
+/* Popup */
+.popup-title{font-weight:750; margin:0 0 6px 0;}
+.popup-meta{font-size:12px; color:rgba(0,0,0,.7); margin:0 0 10px 0;}
+.popup-actions{display:flex; gap:8px; flex-wrap:wrap;}
+.a-btn{
+display:inline-block;
+font-size:12px;
+padding:7px 10px;
+border-radius:10px;
+text-decoration:none;
+border:1px solid rgba(0,0,0,.15);
+color:rgba(0,0,0,.86);
+background:rgba(255,255,255,.9);
 }
-
-.brand { display: flex; align-items: center; gap: 10px; min-width: 180px; }
-.hamb {
-width: 26px; height: 26px; border-radius: 10px;
-border: 1px solid var(--border);
-display:flex; align-items:center; justify-content:center;
-background: var(--panel2);
-}
-.hamb:before { content:"≡"; font-size: 18px; color: var(--text); opacity: 0.9; }
-
-.brandText .name { font-weight: 800; letter-spacing: 0.2px; font-size: 15px; line-height: 1.1; }
-.brandText .tag { font-size: 12px; color: var(--muted); font-weight: 650; margin-top: 2px; }
-
-.statusPill {
-font-size: 12px;
-font-weight: 800;
-color: var(--text);
-background: var(--panel2);
-border: 1px solid var(--border2);
-border-radius: 999px;
-padding: 8px 10px;
-white-space: nowrap;
-}
-
-.bottombar {
-position: absolute;
-left: 12px;
-right: 12px;
-bottom: 12px;
-z-index: 1000;
-display: grid;
-grid-template-columns: 1fr auto;
-gap: 10px;
-align-items: end;
-font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-color: var(--text);
-}
-
-.panel {
-background: var(--panel);
-border: 1px solid var(--border);
-border-radius: var(--radius);
-box-shadow: var(--shadow);
-}
-
-.lensRow {
-display: flex;
-gap: 8px;
-padding: 10px;
-overflow-x: auto;
-scrollbar-width: none;
-}
-.lensRow::-webkit-scrollbar { display: none; }
-
-.lensBtn {
-border: 1px solid var(--border2);
-background: var(--panel2);
-color: var(--text);
-border-radius: 999px;
-padding: 10px 12px;
-font-size: 13px;
-font-weight: 900;
-display: inline-flex;
-align-items: center;
-gap: 8px;
-white-space: nowrap;
-cursor: pointer;
-user-select: none;
-}
-.lensBtn.active { border-color: rgba(0,0,0,0.22); background: #ffffff; }
-
-.rightBtns { padding: 10px; display: flex; gap: 8px; justify-content: flex-end; }
-.btn {
-border: 1px solid var(--border2);
-background: var(--panel2);
-color: var(--text);
-border-radius: 12px;
-padding: 10px 12px;
-font-size: 13px;
-font-weight: 950;
-cursor: pointer;
-user-select: none;
-display: inline-flex;
-align-items: center;
-gap: 8px;
-}
-
-.hint { padding: 0 12px 10px 12px; font-size: 12px; color: var(--muted2); font-weight: 650; }
-
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-background: #fff;
-color: var(--text);
-border: 1px solid var(--border);
-box-shadow: var(--shadow);
-}
-.leaflet-popup-content { margin: 10px 12px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-.p-title { font-weight: 950; margin-bottom: 6px; }
-.p-meta { font-size: 12px; color: var(--muted); line-height: 1.35; }
-.p-pill {
-display: inline-block;
-font-size: 11px;
-padding: 4px 8px;
-border-radius: 999px;
-border: 1px solid var(--border2);
-background: var(--panel2);
-margin-top: 8px;
-font-weight: 900;
-color: var(--text);
-}
-a { color: var(--text); }
-
-.leaflet-control-zoom a { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
-
-@supports (padding: env(safe-area-inset-bottom)) {
-.bottombar { bottom: calc(12px + env(safe-area-inset-bottom)); }
+.a-btn.primary{
+background:rgba(11,15,20,.92);
+border-color:rgba(11,15,20,.92);
+color:#fff;
 }
 </style>
 </head>
-
 <body>
 <div id="map"></div>
 
-<div class="topbar">
-<div class="brand">
-<div class="hamb"></div>
-<div class="brandText">
-<div class="name">Wejuman</div>
-<div class="tag">An app that is not an app — V0.1</div>
+<div class="topbar" aria-hidden="true">
+<div class="left">
+<div class="title">Wejuman</div>
+<div class="sub" id="statusText">Map-first. Silence by default.</div>
 </div>
-</div>
-<div class="statusPill" id="status">Human — ready</div>
+<div class="sub" id="lensText">Lens: Human</div>
 </div>
 
-<div class="bottombar">
-<div class="panel">
-<div class="lensRow" id="lensbar">
-<div class="lensBtn active" data-lens="human">🫶 Human</div>
-<div class="lensBtn" data-lens="homes">🏠 Homes</div>
-<div class="lensBtn" data-lens="nature">🌿 Nature</div>
-<div class="lensBtn" data-lens="culture">🏛️ Culture</div>
-<div class="lensBtn" data-lens="mobility">🧭 Mobility</div>
-<div class="lensBtn" data-lens="all">🌍 All</div>
-</div>
-<div class="hint">Public lenses V0.1 — data from OpenStreetMap via Overpass (current map bounds).</div>
+<div class="toast" id="toast"></div>
+
+<button class="locate" id="locateBtn" title="Center on my position">Locate</button>
+
+<div class="lensbar" id="lensBar">
+<!-- buttons injected -->
 </div>
 
-<div class="panel rightBtns">
-<div class="btn" id="locate">📍 Locate</div>
-<div class="btn" id="refresh">↻ Refresh</div>
-</div>
-</div>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ===== Helpers
-const statusEl = document.getElementById("status");
-const lensbar = document.getElementById("lensbar");
-const locateBtn = document.getElementById("locate");
-const refreshBtn = document.getElementById("refresh");
-function setStatus(msg){ statusEl.textContent = msg; }
+/***********************
+* CONFIG
+***********************/
+const MIN_ZOOM_FOR_QUERY = 12; // prevents heavy Overpass load
+const DEBOUNCE_MS = 450; // wait after user stops moving map
+const RESULT_LIMIT = 220; // safety limit per request
+const OVERPASS_ENDPOINTS = [
+"https://overpass-api.de/api/interpreter",
+"https://overpass.kumi.systems/api/interpreter",
+"https://overpass.nchc.org.tw/api/interpreter"
+];
 
-function escapeHTML(str) {
-return String(str ?? "").replace(/[&<>"']/g, s => ({
-"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-}[s]));
+const LENSES = [
+{
+id: "human",
+label: "Human",
+// Public, non-judgment, organizations/actions
+query: (bbox) => `
+(
+node["amenity"="community_centre"](${bbox});
+node["amenity"="social_centre"](${bbox});
+node["amenity"="food_bank"](${bbox});
+node["office"="ngo"](${bbox});
+node["office"="charity"](${bbox});
+way["amenity"="community_centre"](${bbox});
+way["amenity"="social_centre"](${bbox});
+way["amenity"="food_bank"](${bbox});
+way["office"="ngo"](${bbox});
+way["office"="charity"](${bbox});
+);
+`,
+kind: "osm"
+},
+{
+id: "homes_for_sale",
+label: "Homes for Sale",
+// Not listings; public OSM agents + suggestion link
+query: (bbox) => `
+(
+node["office"="estate_agent"](${bbox});
+node["amenity"="estate_agent"](${bbox});
+way["office"="estate_agent"](${bbox});
+way["amenity"="estate_agent"](${bbox});
+);
+`,
+kind: "osm"
+},
+{
+id: "hotel",
+label: "Hotel",
+query: (bbox) => `
+(
+node["tourism"="hotel"](${bbox});
+node["tourism"="hostel"](${bbox});
+node["tourism"="guest_house"](${bbox});
+node["tourism"="apartment"](${bbox});
+node["tourism"="camp_site"](${bbox});
+way["tourism"="hotel"](${bbox});
+way["tourism"="hostel"](${bbox});
+way["tourism"="guest_house"](${bbox});
+way["tourism"="apartment"](${bbox});
+way["tourism"="camp_site"](${bbox});
+);
+`,
+kind: "osm"
+},
+{
+id: "nature",
+label: "Nature",
+query: (bbox) => `
+(
+node["leisure"="park"](${bbox});
+node["leisure"="nature_reserve"](${bbox});
+node["natural"="beach"](${bbox});
+node["natural"="peak"](${bbox});
+way["leisure"="park"](${bbox});
+way["leisure"="nature_reserve"](${bbox});
+way["natural"="beach"](${bbox});
+);
+`,
+kind: "osm"
+},
+{
+id: "city",
+label: "City / Culture",
+query: (bbox) => `
+(
+node["tourism"="museum"](${bbox});
+node["tourism"="attraction"](${bbox});
+node["historic"="monument"](${bbox});
+node["historic"="memorial"](${bbox});
+way["tourism"="museum"](${bbox});
+way["tourism"="attraction"](${bbox});
+way["historic"="monument"](${bbox});
+way["historic"="memorial"](${bbox});
+);
+`,
+kind: "osm"
+},
+{
+id: "mobility",
+label: "Mobility",
+query: (bbox) => `
+(
+node["railway"="station"](${bbox});
+node["railway"="subway_entrance"](${bbox});
+node["amenity"="bus_station"](${bbox});
+node["public_transport"="station"](${bbox});
+way["railway"="station"](${bbox});
+way["amenity"="bus_station"](${bbox});
+way["public_transport"="station"](${bbox});
+);
+`,
+kind: "osm"
 }
-function escapeAttr(str){ return escapeHTML(str).replace(/"/g, "&quot;"); }
+];
 
-// ===== Map
-const map = L.map("map", { zoomControl: false, preferCanvas: true }).setView([20, 0], 2);
+/***********************
+* MAP INIT
+***********************/
+const map = L.map("map", { zoomControl: true }).setView([20, 0], 2);
+
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 maxZoom: 19,
 attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
-L.control.zoom({ position: "topright" }).addTo(map);
 
-// ===== Layers
-const layers = {
-human: L.layerGroup().addTo(map),
-homes: L.layerGroup(),
-nature: L.layerGroup(),
-culture: L.layerGroup(),
-mobility: L.layerGroup()
-};
+const statusText = document.getElementById("statusText");
+const lensText = document.getElementById("lensText");
+const toastEl = document.getElementById("toast");
 
-let activeLens = "human";
-let moveTimer = null;
+function toast(msg, ms=1400){
+toastEl.textContent = msg;
+toastEl.classList.add("show");
+window.clearTimeout(toastEl._t);
+toastEl._t = window.setTimeout(()=>toastEl.classList.remove("show"), ms);
+}
 
-// ===== Marker (blue + dark outline)
-function makeCircleMarker(latlng) {
-return L.circleMarker(latlng, {
+// Layer groups: keep old until new loaded (D3)
+let currentLayer = L.layerGroup().addTo(map);
+let pendingLayer = null;
+
+/***********************
+* VERIFIED STORAGE
+***********************/
+const VERIFIED_KEY = "wejuman_verified_v01";
+const verifiedSet = new Set(JSON.parse(localStorage.getItem(VERIFIED_KEY) || "[]"));
+
+function saveVerified(){
+localStorage.setItem(VERIFIED_KEY, JSON.stringify([...verifiedSet]));
+}
+
+function makeElementKey(el){
+// Works for node/way/relation. Overpass returns type + id.
+return `${el.type}/${el.id}`;
+}
+
+/***********************
+* MARKER STYLE
+***********************/
+function markerStyle(isVerified){
+return {
 radius: 7,
 weight: 2,
-color: "#0B1220",
-opacity: 0.95,
-fillColor: "#2563EB",
-fillOpacity: 0.92
-});
-}
-
-function popupHTML({ name, metaLines = [], tag = null, osmLink = null }) {
-const meta = metaLines.filter(Boolean).join("<br/>");
-const pill = tag ? `<div class="p-pill">${escapeHTML(tag)}</div>` : "";
-const exploreLink = name
-? ` · <a href="https://www.google.com/search?q=${encodeURIComponent(name)}"
-target="_blank" rel="noopener">
-Explore online
-</a>`
-: "";
-
-const link = osmLink
-? `<div class="p-meta" style="margin-top:8px;">
-<a href="${escapeAttr(osmLink)}" target="_blank" rel="noopener">
-OpenStreetMap
-</a>${exploreLink}
-</div>`
-: "";
-return `
-<div class="p-title">${escapeHTML(name || "Unknown")}</div>
-${meta ? `<div class="p-meta">${meta}</div>` : ""}
-${pill}
-${link}
-`;
-}
-
-// ===== Overpass
-const OVERPASS = "https://overpass-api.de/api/interpreter";
-
-// Human = Organizations/Actions (A) — NO shelter/social_facility here
-const OSM_QUERIES = {
-human: [
-'nwr["amenity"="charity"]({{bbox}});',
-'nwr["office"="ngo"]({{bbox}});',
-'nwr["amenity"="community_centre"]({{bbox}});',
-'nwr["amenity"="food_bank"]({{bbox}});'
-],
-
-// Homes A = stay/support (clean)
-homes: [
-'nwr["amenity"="shelter"]({{bbox}});',
-'nwr["amenity"="social_facility"]({{bbox}});',
-'nwr["tourism"="hostel"]({{bbox}});',
-'nwr["tourism"="guest_house"]({{bbox}});',
-'nwr["tourism"="hotel"]({{bbox}});'
-],
-
-nature: [
-'nwr["natural"="beach"]({{bbox}});',
-'nwr["leisure"="park"]({{bbox}});',
-'nwr["leisure"="nature_reserve"]({{bbox}});',
-'nwr["boundary"="protected_area"]({{bbox}});',
-'nwr["highway"="path"]({{bbox}});',
-'nwr["route"="hiking"]({{bbox}});'
-],
-
-culture: [
-'nwr["tourism"="museum"]({{bbox}});',
-'nwr["amenity"="library"]({{bbox}});',
-'nwr["amenity"="theatre"]({{bbox}});',
-'nwr["amenity"="arts_centre"]({{bbox}});',
-'nwr["tourism"="attraction"]({{bbox}});',
-'nwr["historic"]({{bbox}});'
-],
-
-mobility: [
-'nwr["public_transport"="station"]({{bbox}});',
-'nwr["public_transport"="platform"]({{bbox}});',
-'nwr["highway"="bus_stop"]({{bbox}});',
-'nwr["railway"="station"]({{bbox}});',
-'nwr["highway"="cycleway"]({{bbox}});'
-]
+color: getComputedStyle(document.documentElement).getPropertyValue("--stroke").trim() || "#0b0f14",
+fillColor: isVerified
+? (getComputedStyle(document.documentElement).getPropertyValue("--green").trim() || "#28c76f")
+: (getComputedStyle(document.documentElement).getPropertyValue("--blue").trim() || "#2d6cdf"),
+fillOpacity: 0.9
 };
-
-function bboxString(){
-const b = map.getBounds();
-return [
-b.getSouth().toFixed(6),
-b.getWest().toFixed(6),
-b.getNorth().toFixed(6),
-b.getEast().toFixed(6)
-].join(",");
 }
 
-function buildOverpassQuery(lens){
-const bbox = bboxString();
-const parts = OSM_QUERIES[lens].map(q => q.replace("{{bbox}}", bbox)).join("\n");
-return `
-[out:json][timeout:25];
-(
-${parts}
-);
-out tags center;
-`;
-}
-
-function lensLabel(lens){
-return ({ human:"Human", homes:"Homes", nature:"Nature", culture:"Culture", mobility:"Mobility" }[lens] || lens);
+function elementCenter(el){
+if (el.type === "node") return [el.lat, el.lon];
+// ways have "center" when using out center
+if (el.center) return [el.center.lat, el.center.lon];
+return null;
 }
 
 function pickName(tags){
-if (!tags) return null;
-return tags.name || tags["name:en"] || tags.brand || tags.operator || tags.official_name || null;
+return tags.name || tags["name:en"] || tags.brand || tags.operator || "Unnamed";
 }
-function pickPlace(tags){
-if (!tags) return null;
-return tags.addr_city || tags["addr:city"] || tags["addr:place"] || null;
+
+function pickCategory(lensId, tags){
+// Keep it minimal
+if (lensId === "homes_for_sale") return "Estate agent";
+if (lensId === "hotel") return tags.tourism || "Stay";
+if (lensId === "nature") return tags.leisure || tags.natural || "Nature";
+if (lensId === "city") return tags.tourism || tags.historic || "Place";
+if (lensId === "mobility") return tags.railway || tags.amenity || tags.public_transport || "Mobility";
+return tags.office || tags.amenity || "Human action";
 }
-function mainTag(tags){
-if (!tags) return "OSM";
-const keys = ["amenity","office","tourism","natural","leisure","public_transport","railway","highway","historic","boundary","route","social_facility"];
-for (const k of keys) if (tags[k]) return `${k}=${tags[k]}`;
-return "OSM";
+
+function buildWebsite(tags){
+return tags.website || tags["contact:website"] || tags.url || null;
 }
-function osmUrl(el){
+
+function osmLink(el){
 return `https://www.openstreetmap.org/${el.type}/${el.id}`;
 }
 
-async function fetchOverpass(lens){
-const query = buildOverpassQuery(lens);
-const res = await fetch(OVERPASS, {
-method: "POST",
-headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-body: "data=" + encodeURIComponent(query)
-});
-if (!res.ok) throw new Error(`Overpass error (${res.status})`);
-return await res.json();
+function buildHomesForSaleSearchLink(){
+// Universal suggestion: Google query anchored to map center
+const c = map.getCenter();
+const q = encodeURIComponent(`homes for sale near ${c.lat.toFixed(5)},${c.lng.toFixed(5)}`);
+return `https://www.google.com/search?q=${q}`;
 }
 
-function addOSMResultsToLayer(lens, osmJson){
-const group = layers[lens];
-group.clearLayers();
+/***********************
+* POPUP + VERIFY (Mode 1: only inside popup)
+***********************/
+function popupHtml({lensId, el, tags, isVerified}){
+const name = pickName(tags);
+const cat = pickCategory(lensId, tags);
+const site = buildWebsite(tags);
+const osm = osmLink(el);
 
-const els = osmJson.elements || [];
-const seen = new Set();
+const actions = [];
 
-for (const el of els){
-const key = `${el.type}/${el.id}`;
-if (seen.has(key)) continue;
-seen.add(key);
+// Keep external links as you asked
+if (site) actions.push(`<a class="a-btn" href="${site}" target="_blank" rel="noopener">Website</a>`);
+actions.push(`<a class="a-btn" href="${osm}" target="_blank" rel="noopener">OSM</a>`);
 
-const lat = el.lat ?? el.center?.lat;
-const lon = el.lon ?? el.center?.lon;
-if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+// Homes for Sale: suggestion market link
+if (lensId === "homes_for_sale") {
+actions.push(`<a class="a-btn" href="${buildHomesForSaleSearchLink()}" target="_blank" rel="noopener">Search homes for sale near here</a>`);
+}
+
+// Verify action (invisible until marker tapped)
+actions.push(`<a class="a-btn primary" href="#" data-verify="1">${isVerified ? "Verified" : "I was here"}</a>`);
+
+return `
+<div>
+<div class="popup-title">${escapeHtml(name)}</div>
+<div class="popup-meta">${escapeHtml(cat)} · Public data</div>
+<div class="popup-actions">${actions.join("")}</div>
+</div>
+`;
+}
+
+function escapeHtml(str){
+return String(str).replace(/[&<>"']/g, s => ({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+}[s]));
+}
+
+/***********************
+* OVERPASS FETCH with retry + fallback
+***********************/
+async function fetchOverpass(query, timeoutMs=12000){
+let lastErr = null;
+
+for (let attempt = 0; attempt < 3; attempt++){
+for (const endpoint of OVERPASS_ENDPOINTS){
+try{
+const controller = new AbortController();
+const t = setTimeout(()=>controller.abort(), timeoutMs);
+
+const res = await fetch(endpoint, {
+method: "POST",
+body: query,
+signal: controller.signal,
+headers: { "Content-Type": "text/plain;charset=UTF-8" }
+});
+
+clearTimeout(t);
+
+if (!res.ok) {
+lastErr = new Error(`Overpass HTTP ${res.status}`);
+continue;
+}
+return await res.json();
+} catch (e){
+lastErr = e;
+// try next endpoint
+}
+}
+// brief backoff
+await new Promise(r=>setTimeout(r, 650 + attempt*450));
+}
+
+throw lastErr || new Error("Overpass error");
+}
+
+function bboxString(){
+const b = map.getBounds();
+return `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
+}
+
+function makeOverpassBody(lens){
+const bbox = bboxString();
+const inner = lens.query(bbox);
+
+// out center makes ways return center point
+return `
+[out:json][timeout:25];
+${inner}
+out center ${RESULT_LIMIT};
+`;
+}
+
+/***********************
+* RENDER
+***********************/
+function renderElements(lensId, elements){
+const layer = L.layerGroup();
+
+for (const el of elements){
+const center = elementCenter(el);
+if (!center) continue;
 
 const tags = el.tags || {};
-const name = pickName(tags) || `${lensLabel(lens)} point`;
-const place = pickPlace(tags);
-const tag = mainTag(tags);
+const key = makeElementKey(el);
+const isVerified = verifiedSet.has(key);
 
-const m = makeCircleMarker([lat, lon]);
-m.bindPopup(popupHTML({
-name,
-metaLines: [
-place ? escapeHTML(place) : "",
-tags["addr:street"] ? escapeHTML(tags["addr:street"]) : ""
-],
-tag,
-osmLink: osmUrl(el)
-}));
-m.addTo(group);
+const m = L.circleMarker(center, markerStyle(isVerified));
+m._wejuman = { key, lensId, el, tags };
+
+m.on("popupopen", (ev) => {
+const popupEl = ev.popup.getElement();
+if (!popupEl) return;
+
+popupEl.addEventListener("click", (e) => {
+const a = e.target.closest("a[data-verify]");
+if (!a) return;
+e.preventDefault();
+
+// toggle verify -> green (we keep it as "verify once"; toggling allowed but optional)
+if (!verifiedSet.has(key)) {
+verifiedSet.add(key);
+saveVerified();
+// update marker style immediately
+m.setStyle(markerStyle(true));
+toast("Confirmed.");
+// update popup label
+a.textContent = "Verified";
+} else {
+// If you prefer "no unverify", comment this block out
+verifiedSet.delete(key);
+saveVerified();
+m.setStyle(markerStyle(false));
+toast("Unconfirmed.");
+a.textContent = "I was here";
+}
+}, { once: true }); // keeps it clean; reopened popup rebinds
+});
+
+m.bindPopup(popupHtml({lensId, el, tags, isVerified}), { maxWidth: 320 });
+layer.addLayer(m);
+}
+return layer;
+}
+
+/***********************
+* LENS UI
+***********************/
+const lensBar = document.getElementById("lensBar");
+let activeLens = LENSES[0];
+
+function setActiveLens(lens){
+activeLens = lens;
+lensText.textContent = `Lens: ${lens.label}`;
+
+// UI
+[...lensBar.querySelectorAll(".lensbtn")].forEach(btn=>{
+btn.classList.toggle("active", btn.dataset.lensId === lens.id);
+});
+
+// refresh query
+scheduleRefresh(true);
+}
+
+function buildLensButtons(){
+for (const lens of LENSES){
+const btn = document.createElement("button");
+btn.className = "lensbtn" + (lens.id === activeLens.id ? " active" : "");
+btn.textContent = lens.label;
+btn.dataset.lensId = lens.id;
+btn.onclick = () => setActiveLens(lens);
+lensBar.appendChild(btn);
 }
 }
+buildLensButtons();
 
-async function refreshOSM(isAll){
-const lensList = isAll
-? ["human","homes","nature","culture","mobility"]
-: [activeLens];
+/***********************
+* REFRESH LOGIC (debounce + min zoom + D3 old markers stay)
+***********************/
+let debounceTimer = null;
+let inFlight = 0;
+
+function scheduleRefresh(force=false){
+if (debounceTimer) clearTimeout(debounceTimer);
+debounceTimer = setTimeout(()=>refresh(force), force ? 0 : DEBOUNCE_MS);
+}
+
+async function refresh(force=false){
+const z = map.getZoom();
+
+if (z < MIN_ZOOM_FOR_QUERY) {
+statusText.textContent = `Zoom in to load data (min zoom ${MIN_ZOOM_FOR_QUERY}).`;
+return;
+}
+
+const myFlight = ++inFlight;
+statusText.textContent = "Loading…";
+toast("Loading…", 900);
+
+const q = makeOverpassBody(activeLens);
 
 try{
-setStatus(`Loading ${lensList.map(lensLabel).join(", ")}…`);
-for (const lens of lensList){
-const osm = await fetchOverpass(lens);
-addOSMResultsToLayer(lens, osm);
-}
-setStatus(`Ready — ${lensList.map(lensLabel).join(" • ")}`);
-}catch(e){
-console.warn(e);
-setStatus("OSM load failed (Overpass busy). Try refresh.");
-}
-}
+const data = await fetchOverpass(q);
+if (myFlight !== inFlight) return; // stale result
 
-// ===== UI + Lens switching
-function setActiveLens(lens) {
-activeLens = lens;
+const elements = (data && data.elements) ? data.elements : [];
+const nextLayer = renderElements(activeLens.id, elements);
 
-document.querySelectorAll(".lensBtn").forEach(el => {
-el.classList.toggle("active", el.dataset.lens === lens);
-});
+// D3: keep old markers until new ready, then swap
+pendingLayer = nextLayer;
+map.addLayer(pendingLayer);
+map.removeLayer(currentLayer);
+currentLayer = pendingLayer;
+pendingLayer = null;
 
-Object.values(layers).forEach(layer => map.removeLayer(layer));
-
-if (lens === "all") {
-map.addLayer(layers.human);
-map.addLayer(layers.homes);
-map.addLayer(layers.nature);
-map.addLayer(layers.culture);
-map.addLayer(layers.mobility);
-refreshOSM(true);
-} else {
-map.addLayer(layers[lens]);
-refreshOSM(false);
+statusText.textContent = `${elements.length} places · Public data`;
+} catch (e){
+if (myFlight !== inFlight) return;
+statusText.textContent = "Data source busy. Retrying on movement…";
+toast("Data source busy. Try again.", 1400);
 }
 }
 
-lensbar.addEventListener("click", (e) => {
-const t = e.target.closest(".lensBtn");
-if (!t) return;
-setActiveLens(t.dataset.lens);
-});
+map.on("moveend zoomend", ()=>scheduleRefresh(false));
 
-locateBtn.addEventListener("click", () => {
-if (!navigator.geolocation) return setStatus("Geolocation not available");
-setStatus("Locating…");
+/***********************
+* GEOLOCATION (ask once on entry) + locate button
+***********************/
+let askedGeo = false;
+
+async function requestGeoOnce(){
+if (askedGeo) return;
+askedGeo = true;
+
+if (!("geolocation" in navigator)) {
+toast("Geolocation not available.");
+return;
+}
+
 navigator.geolocation.getCurrentPosition(
 (pos) => {
-map.setView([pos.coords.latitude, pos.coords.longitude], 13, { animate: true });
-setStatus("Located");
+const lat = pos.coords.latitude;
+const lon = pos.coords.longitude;
+map.setView([lat, lon], 13, { animate: true });
+toast("Centered on you.");
+scheduleRefresh(true);
 },
-() => setStatus("Location denied"),
-{ enableHighAccuracy: true, timeout: 8000 }
+(err) => {
+// No insistence; respect silence
+toast("Location not granted.");
+},
+{ enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
 );
+}
+
+// Entry: ask once (your requirement)
+requestGeoOnce();
+
+// Manual locate
+document.getElementById("locateBtn").addEventListener("click", ()=>{
+askedGeo = false; // allow manual re-ask when user chooses
+requestGeoOnce();
 });
 
-refreshBtn.addEventListener("click", () => {
-if (activeLens === "all") refreshOSM(true);
-else refreshOSM(false);
-});
-
-// Auto-refresh after move (debounced)
-map.on("moveend", () => {
-if (moveTimer) clearTimeout(moveTimer);
-moveTimer = setTimeout(() => {
-if (activeLens === "all") refreshOSM(true);
-else refreshOSM(false);
-}, 650);
-});
-
-// Boot
-setActiveLens("human");
-</script>
-
-<!-- PWA service worker registration -->
-<script>
+/***********************
+* PWA: register service worker
+***********************/
 if ("serviceWorker" in navigator) {
-window.addEventListener("load", () => {
-navigator.serviceWorker.register("./sw.js").catch(console.warn);
+window.addEventListener("load", async () => {
+try {
+await navigator.serviceWorker.register("./sw.js");
+} catch (e) { /* silent */ }
 });
 }
+
+// First load
+scheduleRefresh(true);
 </script>
 </body>
 </html>
