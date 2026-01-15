@@ -261,8 +261,19 @@ fillOpacity: 0.92
 function popupHTML({ name, metaLines = [], tag = null, osmLink = null }) {
 const meta = metaLines.filter(Boolean).join("<br/>");
 const pill = tag ? `<div class="p-pill">${escapeHTML(tag)}</div>` : "";
+const exploreLink = name
+? ` · <a href="https://www.google.com/search?q=${encodeURIComponent(name)}"
+target="_blank" rel="noopener">
+Explore online
+</a>`
+: "";
+
 const link = osmLink
-? `<div class="p-meta" style="margin-top:8px;"><a href="${escapeAttr(osmLink)}" target="_blank" rel="noopener">OpenStreetMap</a></div>`
+? `<div class="p-meta" style="margin-top:8px;">
+<a href="${escapeAttr(osmLink)}" target="_blank" rel="noopener">
+OpenStreetMap
+</a>${exploreLink}
+</div>`
 : "";
 return `
 <div class="p-title">${escapeHTML(name || "Unknown")}</div>
