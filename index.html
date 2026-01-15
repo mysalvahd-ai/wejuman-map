@@ -220,21 +220,21 @@ border: 1px solid var(--border);
 <div class="tag">An app that is not an app — V0.1</div>
 </div>
 </div>
-<div class="statusPill" id="status">Human Actions — ready</div>
+<div class="statusPill" id="status">Human — ready</div>
 </div>
 
 <!-- BOTTOM -->
 <div class="bottombar">
 <div class="panel">
 <div class="lensRow" id="lensbar">
-<div class="lensBtn active" data-lens="human_actions">🫶 Human</div>
+<div class="lensBtn active" data-lens="human">🫶 Human</div>
 <div class="lensBtn" data-lens="homes">🏠 Homes</div>
 <div class="lensBtn" data-lens="nature">🌿 Nature</div>
 <div class="lensBtn" data-lens="culture">🏛️ Culture</div>
 <div class="lensBtn" data-lens="mobility">🧭 Mobility</div>
 <div class="lensBtn" data-lens="all">🌍 All</div>
 </div>
-<div class="hint">Public data V0.1 — Human Actions from curated JSON, other lenses from OSM (bbox).</div>
+<div class="hint">Public lenses V0.1 — data from OpenStreetMap via Overpass (current map bounds).</div>
 </div>
 
 <div class="panel rightBtns">
@@ -245,10 +245,8 @@ border: 1px solid var(--border);
 
 <script>
 /** =========================
-* Wejuman V0.1
-* - Human Actions: ./data/human_actions.json (supports lng OR lon)
-* - Homes A: places to stay + support (shelter/social_facility/hostel/guest_house/hotel)
-* - Other lenses: OSM via Overpass (bbox)
+* Wejuman V0.1 — PUBLIC LENSES
+* - Human/Homes/Nature/Culture/Mobility: OSM via Overpass (bbox)
 * - Marker: visible blue with dark outline
 * ========================= */
 
@@ -267,21 +265,19 @@ attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
 L.control.zoom({ position: "topright" }).addTo(map);
 
-// Layers
+// Layers (all public now)
 const layers = {
-human_actions: L.layerGroup().addTo(map),
+human: L.layerGroup().addTo(map),
 homes: L.layerGroup(),
 nature: L.layerGroup(),
 culture: L.layerGroup(),
 mobility: L.layerGroup()
 };
 
-let activeLens = "human_actions";
-let humanActionsLoaded = false;
+let activeLens = "human";
 let moveTimer = null;
-let didFitHumanOnce = false;
 
-// ✅ Marker: BLUE (readable everywhere)
+// Marker: BLUE
 function makeCircleMarker(latlng) {
 return L.circleMarker(latlng, {
 radius: 7,
@@ -300,15 +296,17 @@ return String(str ?? "").replace(/[&<>"']/g, s => ({
 }
 function escapeAttr(str){ return escapeHTML(str).replace(/"/g, "&quot;"); }
 
-function popupHTML({ name, metaLines = [], level = null, source_url = null }) {
+function popupHTML({ name, metaLines = [], tag = null, osmLink = null }) {
 const meta = metaLines.filter(Boolean).join("<br/>");
-const levelPill = (level === null || level === undefined) ? "" : `<div class="p-pill">level ${level}</div>`;
-const source = source_url ? `<div class="p-meta" style="margin-top:8px;"><a href="${escapeAttr(source_url)}" target="_blank" rel="noopener">source</a></div>` : "";
+const pill = tag ? `<div class="p-pill">${escapeHTML(tag)}</div>` : "";
+const link = osmLink
+? `<div class="p-meta" style="margin-top:8px;"><a href="${escapeAttr(osmLink)}" target="_blank" rel="noopener">OpenStreetMap</a></div>`
+: "";
 return `
 <div class="p-title">${escapeHTML(name || "Unknown")}</div>
 ${meta ? `<div class="p-meta">${meta}</div>` : ""}
-${levelPill}
-${source}
+${pill}
+${link}
 `;
 }
 
@@ -323,78 +321,37 @@ el.classList.toggle("active", el.dataset.lens === lens);
 Object.values(layers).forEach(layer => map.removeLayer(layer));
 
 if (lens === "all") {
-map.addLayer(layers.human_actions);
+map.addLayer(layers.human);
 map.addLayer(layers.homes);
 map.addLayer(layers.nature);
 map.addLayer(layers.culture);
 map.addLayer(layers.mobility);
+refreshOSM(true);
 } else {
 map.addLayer(layers[lens]);
-}
-
-if (!humanActionsLoaded) loadHumanActions();
-if (lens !== "human_actions") refreshOSM();
-else {
-// keep current status; if not loaded yet, show ready
-if (!humanActionsLoaded) setStatus("Human Actions — ready");
-}
-}
-
-/** Human Actions (supports lng OR lon) */
-async function loadHumanActions() {
-try {
-setStatus("Loading Human Actions…");
-const res = await fetch("./data/human_actions.json", { cache: "no-store" });
-if (!res.ok) throw new Error("data/human_actions.json not found");
-const data = await res.json();
-
-layers.human_actions.clearLayers();
-const points = Array.isArray(data) ? data : (data.points || []);
-
-let count = 0;
-
-points.forEach(p => {
-const lat = Number(p.lat ?? p.latitude);
-const lng = Number(p.lng ?? p.lon ?? p.longitude); // ✅ lon support
-if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-
-const m = makeCircleMarker([lat, lng]);
-m.bindPopup(popupHTML({
-name: p.name || "Human Action",
-metaLines: [
-p.city ? `${escapeHTML(p.city)}${p.country ? ", " + escapeHTML(p.country) : ""}` : (p.country ? escapeHTML(p.country) : ""),
-p.category ? escapeHTML(p.category) : (p.tagline ? escapeHTML(p.tagline) : "")
-],
-level: (p.level ?? 0),
-source_url: p.source_url || null
-}));
-m.addTo(layers.human_actions);
-count++;
-});
-
-humanActionsLoaded = true;
-setStatus(`Human Actions — ${count} loaded`);
-
-// Fit bounds once (nice UX)
-if (!didFitHumanOnce && count > 0) {
-const b = layers.human_actions.getBounds();
-if (b.isValid()) {
-map.fitBounds(b, { padding: [40, 40] });
-didFitHumanOnce = true;
-}
-}
-} catch (e) {
-humanActionsLoaded = true;
-setStatus("Human Actions — no local dataset yet");
-console.warn(e);
+refreshOSM(false);
 }
 }
 
 /** OSM via Overpass */
 const OVERPASS = "https://overpass-api.de/api/interpreter";
 
-// Homes A: stay/support (clean)
+/**
+* Human (public):
+* - charity / NGO / community support / food banks / shelters / social facilities
+* Note: OSM data quality varies a lot by country. This is "best effort".
+*/
 const OSM_QUERIES = {
+human: [
+'nwr["amenity"="charity"]({{bbox}});',
+'nwr["office"="ngo"]({{bbox}});',
+'nwr["amenity"="community_centre"]({{bbox}});',
+'nwr["amenity"="food_bank"]({{bbox}});',
+'nwr["amenity"="social_facility"]({{bbox}});',
+'nwr["amenity"="shelter"]({{bbox}});'
+],
+
+// Homes A: places to stay + support (clean)
 homes: [
 'nwr["amenity"="shelter"]({{bbox}});',
 'nwr["amenity"="social_facility"]({{bbox}});',
@@ -402,6 +359,7 @@ homes: [
 'nwr["tourism"="guest_house"]({{bbox}});',
 'nwr["tourism"="hotel"]({{bbox}});'
 ],
+
 nature: [
 'nwr["natural"="beach"]({{bbox}});',
 'nwr["leisure"="park"]({{bbox}});',
@@ -410,6 +368,7 @@ nature: [
 'nwr["highway"="path"]({{bbox}});',
 'nwr["route"="hiking"]({{bbox}});'
 ],
+
 culture: [
 'nwr["tourism"="museum"]({{bbox}});',
 'nwr["amenity"="library"]({{bbox}});',
@@ -418,6 +377,7 @@ culture: [
 'nwr["tourism"="attraction"]({{bbox}});',
 'nwr["historic"]({{bbox}});'
 ],
+
 mobility: [
 'nwr["public_transport"="station"]({{bbox}});',
 'nwr["public_transport"="platform"]({{bbox}});',
@@ -451,14 +411,26 @@ out tags center;
 
 function pickName(tags){
 if (!tags) return null;
-return tags.name || tags["name:en"] || tags.brand || tags.operator || null;
+return tags.name || tags["name:en"] || tags.brand || tags.operator || tags.official_name || null;
 }
 function pickPlace(tags){
 if (!tags) return null;
 return tags.addr_city || tags["addr:city"] || tags["addr:place"] || null;
 }
 function lensLabel(lens){
-return ({ homes:"Homes", nature:"Nature", culture:"Culture", mobility:"Mobility" }[lens] || lens);
+return ({ human:"Human", homes:"Homes", nature:"Nature", culture:"Culture", mobility:"Mobility" }[lens] || lens);
+}
+
+function mainTag(tags){
+if (!tags) return "OSM";
+const keys = ["amenity","office","tourism","natural","leisure","public_transport","railway","highway","historic","boundary","route","social_facility"];
+for (const k of keys) if (tags[k]) return `${k}=${tags[k]}`;
+return "OSM";
+}
+
+function osmUrl(el){
+// https://www.openstreetmap.org/node/ID or /way/ID or /relation/ID
+return `https://www.openstreetmap.org/${el.type}/${el.id}`;
 }
 
 async function fetchOverpass(lens){
@@ -491,31 +463,28 @@ if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
 const tags = el.tags || {};
 const name = pickName(tags) || `${lensLabel(lens)} point`;
 const place = pickPlace(tags);
-
-const mainTag = (() => {
-const keys = ["amenity","tourism","natural","leisure","public_transport","railway","highway","historic","boundary","route"];
-for (const k of keys) if (tags[k]) return `${k}=${tags[k]}`;
-return "OSM";
-})();
+const tag = mainTag(tags);
 
 const m = makeCircleMarker([lat, lon]);
 m.bindPopup(popupHTML({
 name,
 metaLines: [
 place ? escapeHTML(place) : "",
-mainTag ? escapeHTML(mainTag) : "OSM"
-]
+tags["addr:street"] ? escapeHTML(tags["addr:street"]) : ""
+],
+tag,
+osmLink: osmUrl(el)
 }));
 m.addTo(group);
 }
+
+return els.length;
 }
 
-async function refreshOSM(){
-const lensList = (activeLens === "all")
-? ["homes","nature","culture","mobility"]
-: (activeLens === "human_actions" ? [] : [activeLens]);
-
-if (!lensList.length) return;
+async function refreshOSM(isAll){
+const lensList = isAll
+? ["human","homes","nature","culture","mobility"]
+: [activeLens];
 
 try{
 setStatus(`Loading ${lensList.map(lensLabel).join(", ")}…`);
@@ -530,11 +499,12 @@ setStatus("OSM load failed (Overpass busy). Try refresh.");
 }
 }
 
-/** Auto-refresh OSM after move (debounced) */
+/** Auto-refresh after move (debounced) */
 map.on("moveend", () => {
 if (moveTimer) clearTimeout(moveTimer);
 moveTimer = setTimeout(() => {
-if (activeLens !== "human_actions") refreshOSM();
+if (activeLens === "all") refreshOSM(true);
+else refreshOSM(false);
 }, 650);
 });
 
@@ -559,18 +529,13 @@ setStatus("Located");
 });
 
 refreshBtn.addEventListener("click", () => {
-if (activeLens === "human_actions") {
-humanActionsLoaded = false;
-loadHumanActions();
-} else {
-refreshOSM();
-}
+if (activeLens === "all") refreshOSM(true);
+else refreshOSM(false);
 });
 
 /** boot */
-(async function boot(){
-await loadHumanActions();
-setActiveLens("human_actions");
+(function boot(){
+setActiveLens("human");
 })();
 </script>
 
