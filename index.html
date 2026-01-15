@@ -342,13 +342,11 @@ const OVERPASS = "https://overpass-api.de/api/interpreter";
 * Note: OSM data quality varies a lot by country. This is "best effort".
 */
 const OSM_QUERIES = {
-human: [
+human: human: [
 'nwr["amenity"="charity"]({{bbox}});',
 'nwr["office"="ngo"]({{bbox}});',
 'nwr["amenity"="community_centre"]({{bbox}});',
-'nwr["amenity"="food_bank"]({{bbox}});',
-'nwr["amenity"="social_facility"]({{bbox}});',
-'nwr["amenity"="shelter"]({{bbox}});'
+'nwr["amenity"="food_bank"]({{bbox}});'
 ],
 
 // Homes A: places to stay + support (clean)
