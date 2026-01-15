@@ -1,0 +1,16 @@
+{
+"points": [
+{
+"name": "Test — Human Action",
+"lens": "human_actions",
+"category": "Test",
+"lat": 45.4642,
+"lng": 9.19,
+"city": "Milan",
+"country": "Italy",
+"level": 0,
+"source_url": "",
+"last_checked": "2026-01-15"
+}
+]
+}
