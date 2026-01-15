@@ -7,9 +7,9 @@
 
 <!-- PWA -->
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f6f7f9">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
 <!-- Leaflet -->
@@ -26,185 +26,210 @@ crossorigin=""
 ></script>
 
 <style>
-html, body { height: 100%; margin: 0; background: #000; }
+html, body { height: 100%; margin: 0; background: #fff; }
 #map { height: 100%; width: 100%; }
 
-/* ===== High Readability UI ===== */
 :root{
---ui-bg: rgba(255,255,255,0.22); /* brighter */
---ui-bg-strong: rgba(255,255,255,0.30);
---ui-border: rgba(255,255,255,0.32);
---ui-border-strong: rgba(255,255,255,0.45);
---ui-text: #ffffff; /* pure white */
---ui-shadow: 0 10px 40px rgba(0,0,0,0.35);
+--bg: #ffffff;
+--panel: rgba(255,255,255,0.96);
+--panel2: rgba(248,249,251,0.98);
+--border: rgba(0,0,0,0.10);
+--border2: rgba(0,0,0,0.14);
+--text: #111111;
+--muted: rgba(17,17,17,0.62);
+--muted2: rgba(17,17,17,0.48);
+--shadow: 0 10px 28px rgba(0,0,0,0.18);
+--radius: 14px;
 }
 
-.ui {
+/* Top bar */
+.topbar {
+position: absolute;
+left: 12px;
+right: 12px;
+top: 12px;
+z-index: 1000;
+background: var(--panel);
+border: 1px solid var(--border);
+border-radius: var(--radius);
+box-shadow: var(--shadow);
+padding: 12px 14px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 10px;
+font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+color: var(--text);
+}
+
+.brand {
+display: flex;
+align-items: center;
+gap: 10px;
+min-width: 180px;
+}
+.hamb { width: 26px; height: 26px; border-radius: 10px; border: 1px solid var(--border); display:flex; align-items:center; justify-content:center; background: var(--panel2); }
+.hamb:before { content:"≡"; font-size: 18px; color: var(--text); opacity: 0.9; }
+
+.brandText .name { font-weight: 800; letter-spacing: 0.2px; font-size: 15px; line-height: 1.1; }
+.brandText .tag { font-size: 12px; color: var(--muted); font-weight: 650; margin-top: 2px; }
+
+.statusPill {
+font-size: 12px;
+font-weight: 750;
+color: var(--text);
+background: var(--panel2);
+border: 1px solid var(--border2);
+border-radius: 999px;
+padding: 8px 10px;
+white-space: nowrap;
+}
+
+/* Bottom bar */
+.bottombar {
 position: absolute;
 left: 12px;
 right: 12px;
 bottom: 12px;
 z-index: 1000;
-display: flex;
+display: grid;
+grid-template-columns: 1fr auto;
 gap: 10px;
-align-items: center;
-justify-content: space-between;
-pointer-events: none;
+align-items: end;
+font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+color: var(--text);
 }
 
 .panel {
-pointer-events: auto;
-backdrop-filter: blur(12px);
--webkit-backdrop-filter: blur(12px);
-background: var(--ui-bg);
-border: 1px solid var(--ui-border);
-border-radius: 16px;
-padding: 10px 12px;
-color: var(--ui-text);
-font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-box-shadow: var(--ui-shadow);
+background: var(--panel);
+border: 1px solid var(--border);
+border-radius: var(--radius);
+box-shadow: var(--shadow);
 }
 
-.brand {
-display: flex; align-items: center; gap: 10px;
-padding: 10px 14px;
-min-width: 170px;
-}
-.brand .dot {
-width: 10px; height: 10px; border-radius: 999px;
-background: rgba(255,255,255,0.95);
-box-shadow: 0 0 0 3px rgba(0,0,0,0.18);
-}
-.brand .title { font-weight: 650; letter-spacing: 0.2px; color: #fff; }
-.brand .sub { font-size: 12px; color: #fff; opacity: 0.92; margin-top: 2px; }
-
-.lensbar {
+.lensRow {
 display: flex;
 gap: 8px;
 padding: 10px;
-overflow: auto;
+overflow-x: auto;
 scrollbar-width: none;
 }
-.lensbar::-webkit-scrollbar { display: none; }
+.lensRow::-webkit-scrollbar { display: none; }
 
-.lens {
-pointer-events: auto;
-user-select: none;
-border: 1px solid var(--ui-border);
-background: rgba(0,0,0,0.18); /* keep contrast with map */
-color: #fff; /* pure white */
-padding: 10px 12px;
+.lensBtn {
+border: 1px solid var(--border2);
+background: var(--panel2);
+color: var(--text);
 border-radius: 999px;
-font-size: 13px;
-font-weight: 600;
-display: flex;
-align-items: center;
-gap: 8px;
-cursor: pointer;
-white-space: nowrap;
-transition: transform 120ms ease, background 120ms ease, border 120ms ease;
-}
-.lens:active { transform: scale(0.98); }
-
-/* Active: clearly brighter */
-.lens.active {
-background: var(--ui-bg-strong);
-border: 1px solid var(--ui-border-strong);
-box-shadow: 0 0 0 2px rgba(0,0,0,0.12) inset;
-}
-
-.btn {
-pointer-events: auto;
-border: 1px solid var(--ui-border);
-background: rgba(0,0,0,0.18);
-color: #fff; /* pure white */
 padding: 10px 12px;
-border-radius: 12px;
-cursor: pointer;
 font-size: 13px;
-font-weight: 650;
+font-weight: 800;
 display: inline-flex;
 align-items: center;
 gap: 8px;
+white-space: nowrap;
+cursor: pointer;
 user-select: none;
 }
-.btn:active { transform: scale(0.99); }
-
-.status {
-position: absolute;
-top: 12px;
-left: 12px;
-z-index: 1000;
-pointer-events: none;
-font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-color: #fff; /* pure white */
-font-size: 12px;
-font-weight: 650;
-background: rgba(0,0,0,0.42);
-border: 1px solid rgba(255,255,255,0.22);
-border-radius: 999px;
-padding: 8px 10px;
-backdrop-filter: blur(12px);
--webkit-backdrop-filter: blur(12px);
+.lensBtn.active {
+border-color: rgba(0,0,0,0.22);
+background: #ffffff;
 }
 
-/* Reduce UI while user interacts with map (but keep readability) */
-.ui.minimized .panel { padding: 8px 10px; }
-.ui.minimized .brand .sub { display: none; }
-.ui.minimized .lens { padding: 8px 10px; font-size: 12px; }
-.ui.minimized .btn { padding: 8px 10px; font-size: 12px; }
+.rightBtns {
+padding: 10px;
+display: flex;
+gap: 8px;
+justify-content: flex-end;
+}
+.btn {
+border: 1px solid var(--border2);
+background: var(--panel2);
+color: var(--text);
+border-radius: 12px;
+padding: 10px 12px;
+font-size: 13px;
+font-weight: 850;
+cursor: pointer;
+user-select: none;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+}
 
-/* Popup style */
+/* Small helper label */
+.hint {
+padding: 0 12px 10px 12px;
+font-size: 12px;
+color: var(--muted2);
+font-weight: 650;
+}
+
+/* Popups */
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-background: rgba(18,18,18,0.92);
-color: rgba(255,255,255,0.96);
-border: 1px solid rgba(255,255,255,0.12);
-backdrop-filter: blur(12px);
--webkit-backdrop-filter: blur(12px);
+background: #fff;
+color: var(--text);
+border: 1px solid var(--border);
+box-shadow: var(--shadow);
 }
 .leaflet-popup-content {
 margin: 10px 12px;
 font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
 }
-.p-title { font-weight: 750; margin-bottom: 6px; }
-.p-meta { font-size: 12px; opacity: 0.88; line-height: 1.35; }
+.p-title { font-weight: 850; margin-bottom: 6px; }
+.p-meta { font-size: 12px; color: var(--muted); line-height: 1.35; }
 .p-pill {
 display: inline-block;
 font-size: 11px;
 padding: 4px 8px;
 border-radius: 999px;
-border: 1px solid rgba(255,255,255,0.18);
-background: rgba(255,255,255,0.10);
+border: 1px solid var(--border2);
+background: var(--panel2);
 margin-top: 8px;
+font-weight: 800;
+color: var(--text);
 }
-a { color: #fff; }
+a { color: var(--text); }
+
+/* Make Leaflet control match style a bit */
+.leaflet-control-zoom a {
+background: var(--panel);
+color: var(--text);
+border: 1px solid var(--border);
+}
 </style>
 </head>
 
 <body>
 <div id="map"></div>
 
-<div class="status" id="status">Wejuman V0.1 — ready</div>
-
-<div class="ui" id="ui">
-<div class="panel brand">
-<div class="dot"></div>
-<div>
-<div class="title">Wejuman</div>
-<div class="sub">An app that is not an app — V0.1</div>
+<!-- TOP -->
+<div class="topbar">
+<div class="brand">
+<div class="hamb"></div>
+<div class="brandText">
+<div class="name">Wejuman</div>
+<div class="tag">An app that is not an app — V0.1</div>
 </div>
 </div>
-
-<div class="panel lensbar" id="lensbar">
-<div class="lens active" data-lens="human_actions">🫶 Human Actions</div>
-<div class="lens" data-lens="homes">🏠 Homes</div>
-<div class="lens" data-lens="nature">🌿 Nature</div>
-<div class="lens" data-lens="culture">🏛️ Culture</div>
-<div class="lens" data-lens="mobility">🧭 Mobility</div>
-<div class="lens" data-lens="all">🌍 All</div>
+<div class="statusPill" id="status">Human Actions — ready</div>
 </div>
 
-<div class="panel" style="display:flex; gap:8px; align-items:center;">
+<!-- BOTTOM -->
+<div class="bottombar">
+<div class="panel">
+<div class="lensRow" id="lensbar">
+<div class="lensBtn active" data-lens="human_actions">🫶 Human</div>
+<div class="lensBtn" data-lens="homes">🏠 Homes</div>
+<div class="lensBtn" data-lens="nature">🌿 Nature</div>
+<div class="lensBtn" data-lens="culture">🏛️ Culture</div>
+<div class="lensBtn" data-lens="mobility">🧭 Mobility</div>
+<div class="lensBtn" data-lens="all">🌍 All</div>
+</div>
+<div class="hint">Public data V0.1 — Human Actions from curated JSON, other lenses from OSM (bbox).</div>
+</div>
+
+<div class="panel rightBtns">
 <div class="btn" id="locate">📍 Locate</div>
 <div class="btn" id="refresh">↻ Refresh</div>
 </div>
@@ -212,28 +237,25 @@ a { color: #fff; }
 
 <script>
 /** =========================
-* Wejuman V0.1 core
-* - Human Actions: local JSON (data/human_actions.json)
-* - Other lenses: OSM via Overpass
+* Wejuman V0.1
+* - Human Actions: ./data/human_actions.json
+* - Homes/Nature/Culture/Mobility: OSM via Overpass (bbox)
+* - UI: solid light panels (high readability)
 * ========================= */
 
 const statusEl = document.getElementById("status");
-const uiEl = document.getElementById("ui");
 const lensbar = document.getElementById("lensbar");
 const locateBtn = document.getElementById("locate");
 const refreshBtn = document.getElementById("refresh");
 
-// Map
-const map = L.map("map", {
-zoomControl: false,
-preferCanvas: true
-}).setView([20, 0], 2);
+function setStatus(msg){ statusEl.textContent = msg; }
 
+// Map
+const map = L.map("map", { zoomControl: false, preferCanvas: true }).setView([20, 0], 2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 maxZoom: 19,
 attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
-
 L.control.zoom({ position: "topright" }).addTo(map);
 
 // Layers
@@ -249,19 +271,24 @@ let activeLens = "human_actions";
 let humanActionsLoaded = false;
 let moveTimer = null;
 
-function setStatus(msg) { statusEl.textContent = msg; }
-
-// White markers (readable)
+// Markers: white (clean) with subtle dark outline (works on light map)
 function makeCircleMarker(latlng) {
 return L.circleMarker(latlng, {
 radius: 6,
-weight: 1.4,
-color: "rgba(255,255,255,0.95)",
-opacity: 0.98,
-fillColor: "rgba(255,255,255,0.60)",
-fillOpacity: 0.90
+weight: 1.6,
+color: "rgba(0,0,0,0.55)", // outline dark
+opacity: 0.9,
+fillColor: "rgba(255,255,255,0.95)", // fill white
+fillOpacity: 0.95
 });
 }
+
+function escapeHTML(str) {
+return String(str ?? "").replace(/[&<>"']/g, s => ({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[s]));
+}
+function escapeAttr(str){ return escapeHTML(str).replace(/"/g, "&quot;"); }
 
 function popupHTML({ name, metaLines = [], level = null, source_url = null }) {
 const meta = metaLines.filter(Boolean).join("<br/>");
@@ -275,20 +302,11 @@ ${source}
 `;
 }
 
-function escapeHTML(str) {
-return String(str ?? "").replace(/[&<>"']/g, s => ({
-"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-}[s]));
-}
-function escapeAttr(str) {
-return escapeHTML(str).replace(/"/g, "&quot;");
-}
-
 /** Lens switching */
 function setActiveLens(lens) {
 activeLens = lens;
 
-document.querySelectorAll(".lens").forEach(el => {
+document.querySelectorAll(".lensBtn").forEach(el => {
 el.classList.toggle("active", el.dataset.lens === lens);
 });
 
@@ -305,15 +323,11 @@ map.addLayer(layers[lens]);
 }
 
 if (!humanActionsLoaded) loadHumanActions();
-
-if (lens !== "human_actions") {
-refreshOSM();
-} else {
-setStatus("Human Actions — ready");
-}
+if (lens !== "human_actions") refreshOSM();
+else setStatus("Human Actions — ready");
 }
 
-/** Human Actions (local JSON) */
+/** Human Actions */
 async function loadHumanActions() {
 try {
 setStatus("Loading Human Actions…");
@@ -352,7 +366,6 @@ console.warn(e);
 
 /** OSM via Overpass */
 const OVERPASS = "https://overpass-api.de/api/interpreter";
-
 const OSM_QUERIES = {
 homes: [
 'nwr["amenity"="shelter"]({{bbox}});',
@@ -384,7 +397,7 @@ mobility: [
 ]
 };
 
-function bboxString() {
+function bboxString(){
 const b = map.getBounds();
 return [
 b.getSouth().toFixed(6),
@@ -394,7 +407,7 @@ b.getEast().toFixed(6)
 ].join(",");
 }
 
-function buildOverpassQuery(lens) {
+function buildOverpassQuery(lens){
 const bbox = bboxString();
 const parts = OSM_QUERIES[lens].map(q => q.replace("{{bbox}}", bbox)).join("\n");
 return `
@@ -406,19 +419,19 @@ out tags center;
 `;
 }
 
-function pickName(tags) {
+function pickName(tags){
 if (!tags) return null;
 return tags.name || tags["name:en"] || tags.brand || tags.operator || null;
 }
-function pickPlace(tags) {
+function pickPlace(tags){
 if (!tags) return null;
 return tags.addr_city || tags["addr:city"] || tags["addr:place"] || null;
 }
-function lensLabel(lens) {
+function lensLabel(lens){
 return ({ homes:"Homes", nature:"Nature", culture:"Culture", mobility:"Mobility" }[lens] || lens);
 }
 
-async function fetchOverpass(lens) {
+async function fetchOverpass(lens){
 const query = buildOverpassQuery(lens);
 const res = await fetch(OVERPASS, {
 method: "POST",
@@ -429,14 +442,14 @@ if (!res.ok) throw new Error(`Overpass error (${res.status})`);
 return await res.json();
 }
 
-function addOSMResultsToLayer(lens, osmJson) {
+function addOSMResultsToLayer(lens, osmJson){
 const group = layers[lens];
 group.clearLayers();
 
 const els = osmJson.elements || [];
 const seen = new Set();
 
-for (const el of els) {
+for (const el of els){
 const key = `${el.type}/${el.id}`;
 if (seen.has(key)) continue;
 seen.add(key);
@@ -467,43 +480,39 @@ m.addTo(group);
 }
 }
 
-async function refreshOSM() {
+async function refreshOSM(){
 const lensList = (activeLens === "all")
 ? ["homes","nature","culture","mobility"]
 : (activeLens === "human_actions" ? [] : [activeLens]);
 
 if (!lensList.length) return;
 
-try {
+try{
 setStatus(`Loading ${lensList.map(lensLabel).join(", ")}…`);
-for (const lens of lensList) {
+for (const lens of lensList){
 const osm = await fetchOverpass(lens);
 addOSMResultsToLayer(lens, osm);
 }
 setStatus(`Ready — ${lensList.map(lensLabel).join(" • ")}`);
-} catch (e) {
+}catch(e){
 console.warn(e);
 setStatus("OSM load failed (Overpass busy). Try refresh.");
 }
 }
 
-/** minimize UI while moving */
-function minimizeUI(on) { uiEl.classList.toggle("minimized", on); }
-
-map.on("movestart", () => minimizeUI(true));
+/** Auto-refresh OSM after move (debounced) */
 map.on("moveend", () => {
-minimizeUI(false);
 if (moveTimer) clearTimeout(moveTimer);
 moveTimer = setTimeout(() => {
 if (activeLens !== "human_actions") refreshOSM();
-}, 600);
+}, 650);
 });
 
 /** UI events */
 lensbar.addEventListener("click", (e) => {
-const target = e.target.closest(".lens");
-if (!target) return;
-setActiveLens(target.dataset.lens);
+const t = e.target.closest(".lensBtn");
+if (!t) return;
+setActiveLens(t.dataset.lens);
 });
 
 locateBtn.addEventListener("click", () => {
@@ -529,7 +538,7 @@ refreshOSM();
 });
 
 /** boot */
-(async function boot() {
+(async function boot(){
 await loadHumanActions();
 setActiveLens("human_actions");
 })();
