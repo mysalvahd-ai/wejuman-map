@@ -41,7 +41,6 @@ html, body { height: 100%; margin: 0; background: #fff; }
 --radius: 14px;
 }
 
-/* Top bar */
 .topbar {
 position: absolute;
 left: 12px;
@@ -61,12 +60,7 @@ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
 color: var(--text);
 }
 
-.brand {
-display: flex;
-align-items: center;
-gap: 10px;
-min-width: 180px;
-}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 180px; }
 .hamb {
 width: 26px; height: 26px; border-radius: 10px;
 border: 1px solid var(--border);
@@ -89,7 +83,6 @@ padding: 8px 10px;
 white-space: nowrap;
 }
 
-/* Bottom bar */
 .bottombar {
 position: absolute;
 left: 12px;
@@ -135,17 +128,9 @@ white-space: nowrap;
 cursor: pointer;
 user-select: none;
 }
-.lensBtn.active {
-border-color: rgba(0,0,0,0.22);
-background: #ffffff;
-}
+.lensBtn.active { border-color: rgba(0,0,0,0.22); background: #ffffff; }
 
-.rightBtns {
-padding: 10px;
-display: flex;
-gap: 8px;
-justify-content: flex-end;
-}
+.rightBtns { padding: 10px; display: flex; gap: 8px; justify-content: flex-end; }
 .btn {
 border: 1px solid var(--border2);
 background: var(--panel2);
@@ -161,24 +146,15 @@ align-items: center;
 gap: 8px;
 }
 
-.hint {
-padding: 0 12px 10px 12px;
-font-size: 12px;
-color: var(--muted2);
-font-weight: 650;
-}
+.hint { padding: 0 12px 10px 12px; font-size: 12px; color: var(--muted2); font-weight: 650; }
 
-/* Popups */
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
 background: #fff;
 color: var(--text);
 border: 1px solid var(--border);
 box-shadow: var(--shadow);
 }
-.leaflet-popup-content {
-margin: 10px 12px;
-font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-}
+.leaflet-popup-content { margin: 10px 12px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
 .p-title { font-weight: 950; margin-bottom: 6px; }
 .p-meta { font-size: 12px; color: var(--muted); line-height: 1.35; }
 .p-pill {
@@ -194,14 +170,8 @@ color: var(--text);
 }
 a { color: var(--text); }
 
-/* Leaflet zoom match style */
-.leaflet-control-zoom a {
-background: var(--panel);
-color: var(--text);
-border: 1px solid var(--border);
-}
+.leaflet-control-zoom a { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
 
-/* iPhone safe area bottom */
 @supports (padding: env(safe-area-inset-bottom)) {
 .bottombar { bottom: calc(12px + env(safe-area-inset-bottom)); }
 }
@@ -211,7 +181,6 @@ border: 1px solid var(--border);
 <body>
 <div id="map"></div>
 
-<!-- TOP -->
 <div class="topbar">
 <div class="brand">
 <div class="hamb"></div>
@@ -223,7 +192,6 @@ border: 1px solid var(--border);
 <div class="statusPill" id="status">Human — ready</div>
 </div>
 
-<!-- BOTTOM -->
 <div class="bottombar">
 <div class="panel">
 <div class="lensRow" id="lensbar">
@@ -244,20 +212,21 @@ border: 1px solid var(--border);
 </div>
 
 <script>
-/** =========================
-* Wejuman V0.1 — PUBLIC LENSES
-* - Human/Homes/Nature/Culture/Mobility: OSM via Overpass (bbox)
-* - Marker: visible blue with dark outline
-* ========================= */
-
+// ===== Helpers
 const statusEl = document.getElementById("status");
 const lensbar = document.getElementById("lensbar");
 const locateBtn = document.getElementById("locate");
 const refreshBtn = document.getElementById("refresh");
-
 function setStatus(msg){ statusEl.textContent = msg; }
 
-// Map
+function escapeHTML(str) {
+return String(str ?? "").replace(/[&<>"']/g, s => ({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[s]));
+}
+function escapeAttr(str){ return escapeHTML(str).replace(/"/g, "&quot;"); }
+
+// ===== Map
 const map = L.map("map", { zoomControl: false, preferCanvas: true }).setView([20, 0], 2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 maxZoom: 19,
@@ -265,7 +234,7 @@ attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
 L.control.zoom({ position: "topright" }).addTo(map);
 
-// Layers (all public now)
+// ===== Layers
 const layers = {
 human: L.layerGroup().addTo(map),
 homes: L.layerGroup(),
@@ -277,24 +246,17 @@ mobility: L.layerGroup()
 let activeLens = "human";
 let moveTimer = null;
 
-// Marker: BLUE
+// ===== Marker (blue + dark outline)
 function makeCircleMarker(latlng) {
 return L.circleMarker(latlng, {
 radius: 7,
 weight: 2,
-color: "#0B1220", // dark outline
+color: "#0B1220",
 opacity: 0.95,
-fillColor: "#2563EB", // blue fill
+fillColor: "#2563EB",
 fillOpacity: 0.92
 });
 }
-
-function escapeHTML(str) {
-return String(str ?? "").replace(/[&<>"']/g, s => ({
-"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-}[s]));
-}
-function escapeAttr(str){ return escapeHTML(str).replace(/"/g, "&quot;"); }
 
 function popupHTML({ name, metaLines = [], tag = null, osmLink = null }) {
 const meta = metaLines.filter(Boolean).join("<br/>");
@@ -310,46 +272,19 @@ ${link}
 `;
 }
 
-/** Lens switching */
-function setActiveLens(lens) {
-activeLens = lens;
-
-document.querySelectorAll(".lensBtn").forEach(el => {
-el.classList.toggle("active", el.dataset.lens === lens);
-});
-
-Object.values(layers).forEach(layer => map.removeLayer(layer));
-
-if (lens === "all") {
-map.addLayer(layers.human);
-map.addLayer(layers.homes);
-map.addLayer(layers.nature);
-map.addLayer(layers.culture);
-map.addLayer(layers.mobility);
-refreshOSM(true);
-} else {
-map.addLayer(layers[lens]);
-refreshOSM(false);
-}
-}
-
-/** OSM via Overpass */
+// ===== Overpass
 const OVERPASS = "https://overpass-api.de/api/interpreter";
 
-/**
-* Human (public):
-* - charity / NGO / community support / food banks / shelters / social facilities
-* Note: OSM data quality varies a lot by country. This is "best effort".
-*/
+// Human = Organizations/Actions (A) — NO shelter/social_facility here
 const OSM_QUERIES = {
-human: human: [
+human: [
 'nwr["amenity"="charity"]({{bbox}});',
 'nwr["office"="ngo"]({{bbox}});',
 'nwr["amenity"="community_centre"]({{bbox}});',
 'nwr["amenity"="food_bank"]({{bbox}});'
 ],
 
-// Homes A: places to stay + support (clean)
+// Homes A = stay/support (clean)
 homes: [
 'nwr["amenity"="shelter"]({{bbox}});',
 'nwr["amenity"="social_facility"]({{bbox}});',
@@ -407,6 +342,10 @@ out tags center;
 `;
 }
 
+function lensLabel(lens){
+return ({ human:"Human", homes:"Homes", nature:"Nature", culture:"Culture", mobility:"Mobility" }[lens] || lens);
+}
+
 function pickName(tags){
 if (!tags) return null;
 return tags.name || tags["name:en"] || tags.brand || tags.operator || tags.official_name || null;
@@ -415,19 +354,13 @@ function pickPlace(tags){
 if (!tags) return null;
 return tags.addr_city || tags["addr:city"] || tags["addr:place"] || null;
 }
-function lensLabel(lens){
-return ({ human:"Human", homes:"Homes", nature:"Nature", culture:"Culture", mobility:"Mobility" }[lens] || lens);
-}
-
 function mainTag(tags){
 if (!tags) return "OSM";
 const keys = ["amenity","office","tourism","natural","leisure","public_transport","railway","highway","historic","boundary","route","social_facility"];
 for (const k of keys) if (tags[k]) return `${k}=${tags[k]}`;
 return "OSM";
 }
-
 function osmUrl(el){
-// https://www.openstreetmap.org/node/ID or /way/ID or /relation/ID
 return `https://www.openstreetmap.org/${el.type}/${el.id}`;
 }
 
@@ -475,8 +408,6 @@ osmLink: osmUrl(el)
 }));
 m.addTo(group);
 }
-
-return els.length;
 }
 
 async function refreshOSM(isAll){
@@ -497,16 +428,29 @@ setStatus("OSM load failed (Overpass busy). Try refresh.");
 }
 }
 
-/** Auto-refresh after move (debounced) */
-map.on("moveend", () => {
-if (moveTimer) clearTimeout(moveTimer);
-moveTimer = setTimeout(() => {
-if (activeLens === "all") refreshOSM(true);
-else refreshOSM(false);
-}, 650);
+// ===== UI + Lens switching
+function setActiveLens(lens) {
+activeLens = lens;
+
+document.querySelectorAll(".lensBtn").forEach(el => {
+el.classList.toggle("active", el.dataset.lens === lens);
 });
 
-/** UI events */
+Object.values(layers).forEach(layer => map.removeLayer(layer));
+
+if (lens === "all") {
+map.addLayer(layers.human);
+map.addLayer(layers.homes);
+map.addLayer(layers.nature);
+map.addLayer(layers.culture);
+map.addLayer(layers.mobility);
+refreshOSM(true);
+} else {
+map.addLayer(layers[lens]);
+refreshOSM(false);
+}
+}
+
 lensbar.addEventListener("click", (e) => {
 const t = e.target.closest(".lensBtn");
 if (!t) return;
@@ -531,10 +475,17 @@ if (activeLens === "all") refreshOSM(true);
 else refreshOSM(false);
 });
 
-/** boot */
-(function boot(){
+// Auto-refresh after move (debounced)
+map.on("moveend", () => {
+if (moveTimer) clearTimeout(moveTimer);
+moveTimer = setTimeout(() => {
+if (activeLens === "all") refreshOSM(true);
+else refreshOSM(false);
+}, 650);
+});
+
+// Boot
 setActiveLens("human");
-})();
 </script>
 
 <!-- PWA service worker registration -->
