@@ -1,450 +1,541 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wejuman — A living map of human action</title>
+<title>Wejuman — V0.1</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- PWA -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<!-- Leaflet -->
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+crossorigin=""
+/>
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+crossorigin=""
+></script>
 
 <style>
-html, body, #map { height: 100%; margin: 0; }
-:root{
---bar: rgba(255,255,255,.92);
---text:#111;
---muted:#5a5a5a;
---shadow: 0 10px 30px rgba(0,0,0,.18);
---radius: 16px;
-}
+html, body { height: 100%; margin: 0; background: #000; }
+#map { height: 100%; width: 100%; }
 
-.bar{
-position: fixed;
-left: 50%;
-transform: translateX(-50%);
-width: min(720px, calc(100% - 24px));
-background: var(--bar);
-color: var(--text);
-border-radius: var(--radius);
-box-shadow: var(--shadow);
+/* App-like overlay */
+.ui {
+position: absolute;
+left: 12px;
+right: 12px;
+bottom: 12px;
 z-index: 1000;
-font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
-}
-
-#topBar{
-top: 12px;
-padding: 12px 14px;
-display: grid;
-grid-template-columns: 44px 1fr auto;
+display: flex;
 gap: 10px;
 align-items: center;
-}
-#btnMenu{
-width:44px;height:44px;border-radius:12px;border:none;
-background: rgba(0,0,0,.06);
-font-size: 20px; cursor:pointer;
-}
-#title{ font-weight: 800; letter-spacing:.2px; }
-#subtitle{ font-size: 12px; color: var(--muted); margin-top:2px; }
-
-#chip{
-padding: 10px 12px;
-border-radius: 999px;
-background: rgba(0,0,0,.06);
-font-size: 13px;
-color: var(--muted);
-white-space: nowrap;
+justify-content: space-between;
+pointer-events: none;
 }
 
-#bottomBar{
-bottom: 12px;
-padding: 12px 14px;
-max-height: 32vh;
-overflow: auto;
-}
-#nearTitle{ font-weight: 800; margin-bottom: 6px; }
-.nearItem{
-font-size: 14px;
-color: var(--text);
-padding: 6px 0;
-border-top: 1px solid rgba(0,0,0,.06);
-cursor: pointer;
-}
-.nearItem:first-of-type{ border-top:none; }
-.nearMeta{ color: var(--muted); font-size: 13px; }
-
-/* Modal menu */
-#overlay{
-position: fixed; inset: 0;
-background: rgba(0,0,0,.22);
-display:none;
-z-index: 2000;
-}
-#panel{
-width: min(760px, calc(100% - 24px));
-margin: 90px auto;
-background: rgba(255,255,255,.94);
-border-radius: 18px;
-box-shadow: var(--shadow);
-padding: 16px;
+.panel {
+pointer-events: auto;
 backdrop-filter: blur(10px);
 -webkit-backdrop-filter: blur(10px);
-font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-color: var(--text);
+background: rgba(255,255,255,0.12);
+border: 1px solid rgba(255,255,255,0.14);
+border-radius: 16px;
+padding: 10px 12px;
+color: rgba(255,255,255,0.92);
+font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+box-shadow: 0 10px 40px rgba(0,0,0,0.35);
 }
-#panel h3{ margin:0 0 6px 0; }
-#panel p{ margin:0 0 10px 0; color: var(--muted); }
 
-.catWrap{ display:flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.cat{
+.brand {
+display: flex; align-items: center; gap: 10px;
 padding: 10px 14px;
+}
+.brand .dot { width: 10px; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.75); }
+.brand .title { font-weight: 600; letter-spacing: 0.2px; }
+.brand .sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+.lensbar {
+display: flex;
+gap: 8px;
+padding: 10px;
+overflow: auto;
+scrollbar-width: none;
+}
+.lensbar::-webkit-scrollbar { display: none; }
+
+.lens {
+pointer-events: auto;
+user-select: none;
+border: 1px solid rgba(255,255,255,0.18);
+background: rgba(0,0,0,0.25);
+color: rgba(255,255,255,0.92);
+padding: 10px 12px;
 border-radius: 999px;
-background: rgba(0,0,0,.06);
+font-size: 13px;
+display: flex;
+align-items: center;
+gap: 8px;
 cursor: pointer;
-user-select:none;
-font-weight: 700;
-font-size: 14px;
+white-space: nowrap;
+transition: transform 120ms ease, background 120ms ease, border 120ms ease;
 }
-.cat.active{ background:#2ecbd6; color:#fff; }
-
-.row{
-display:flex; gap: 10px; align-items:center; margin-top: 12px;
-padding-top: 10px; border-top: 1px solid rgba(0,0,0,.08);
-color: var(--muted);
-font-size: 14px;
+.lens:active { transform: scale(0.98); }
+.lens.active {
+background: rgba(255,255,255,0.18);
+border: 1px solid rgba(255,255,255,0.28);
 }
-input[type="checkbox"]{ width:18px; height:18px; }
 
-.closeBtn{
-margin-top: 12px;
-border:none;
-background: rgba(0,0,0,.06);
-padding: 10px 14px;
+.btn {
+pointer-events: auto;
+border: 1px solid rgba(255,255,255,0.18);
+background: rgba(0,0,0,0.25);
+color: rgba(255,255,255,0.92);
+padding: 10px 12px;
 border-radius: 12px;
-cursor:pointer;
-font-weight: 700;
+cursor: pointer;
+font-size: 13px;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+user-select: none;
 }
+
+.status {
+position: absolute;
+top: 12px;
+left: 12px;
+z-index: 1000;
+pointer-events: none;
+font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+color: rgba(255,255,255,0.92);
+font-size: 12px;
+opacity: 0.95;
+background: rgba(0,0,0,0.35);
+border: 1px solid rgba(255,255,255,0.10);
+border-radius: 999px;
+padding: 8px 10px;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+}
+
+/* Reduce UI while user interacts with map */
+.ui.minimized .panel { padding: 8px 10px; }
+.ui.minimized .brand .sub { display: none; }
+.ui.minimized .lens { padding: 8px 10px; font-size: 12px; }
+
+/* Popup style */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+background: rgba(20,20,20,0.92);
+color: rgba(255,255,255,0.92);
+border: 1px solid rgba(255,255,255,0.10);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+}
+.leaflet-popup-content { margin: 10px 12px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+.p-title { font-weight: 650; margin-bottom: 6px; }
+.p-meta { font-size: 12px; opacity: 0.82; line-height: 1.35; }
+.p-pill {
+display: inline-block;
+font-size: 11px;
+padding: 4px 8px;
+border-radius: 999px;
+border: 1px solid rgba(255,255,255,0.16);
+background: rgba(255,255,255,0.08);
+margin-top: 8px;
+}
+a { color: rgba(255,255,255,0.92); }
 </style>
 </head>
 
 <body>
 <div id="map"></div>
 
-<div id="topBar" class="bar">
-<button id="btnMenu" title="Categorie">☰</button>
+<div class="status" id="status">Wejuman V0.1 — ready</div>
 
+<div class="ui" id="ui">
+<div class="panel brand">
+<div class="dot"></div>
 <div>
-<div id="title">Wejuman</div>
-<div id="subtitle">A living map human action</div>
-<div id="placeLabel"></div>
-</div>
-
-<div id="chip">Dati: points.json</div>
-</div>
-
-<div id="bottomBar" class="bar">
-<div id="nearTitle">Nearby</div>
-<div id="nearList">
-<div class="nearMeta">Move or zoom the map to discover nearby initiatives.</div>
+<div class="title">Wejuman</div>
+<div class="sub">An app that is not an app — V0.1</div>
 </div>
 </div>
 
-<div id="overlay">
-<div id="panel">
-<h3>Categorie</h3>
-<p><b>Il filtro non giudica</b>: evidenzia ciò che cerchi, senza “cancellare” il resto.</p>
-<div class="catWrap" id="cats"></div>
-
-<div class="row">
-<input id="onlyHighlighted" type="checkbox">
-<label for="onlyHighlighted">Mostra solo evidenziati</label>
+<div class="panel lensbar" id="lensbar">
+<div class="lens active" data-lens="human_actions">🫶 Human Actions</div>
+<div class="lens" data-lens="homes">🏠 Homes</div>
+<div class="lens" data-lens="nature">🌿 Nature</div>
+<div class="lens" data-lens="culture">🏛️ Culture</div>
+<div class="lens" data-lens="mobility">🧭 Mobility</div>
+<div class="lens" data-lens="all">🌍 All</div>
 </div>
 
-<div class="row" id="stats">—</div>
-
-<button class="closeBtn" id="btnClose">Chiudi</button>
+<div class="panel" style="display:flex; gap:8px; align-items:center;">
+<div class="btn" id="locate">📍 Locate</div>
+<div class="btn" id="refresh">↻ Refresh</div>
 </div>
 </div>
 
 <script>
-// ===== CONFIG =====
-const POINTS_URL = "points.json";
-const CATEGORIES = [
-"Ambiente","Cibo","Acqua","Salute","Educazione",
-"Bambini","Donne","Diritti umani","Emergenze",
-"Comunità","Rifugiati","Generale"
-];
+/** =========================
+* Wejuman V0.1 core
+* - Human Actions: local JSON (data/human_actions.json)
+* - Other lenses: OSM via Overpass
+* - Markers: white & readable
+* - PWA: hooks + SW registration (below)
+* ========================= */
 
-// ===== STATE =====
-let points = [];
-let selected = "Tutte"; // categoria evidenziata
-let onlyHighlighted = false; // nasconde gli altri se true
+const statusEl = document.getElementById("status");
+const uiEl = document.getElementById("ui");
+const lensbar = document.getElementById("lensbar");
+const locateBtn = document.getElementById("locate");
+const refreshBtn = document.getElementById("refresh");
 
-let markers = []; // {p, m}
-let placeCache = new Map(); // key= "lat,lon" approx -> text
-let reverseTimer = null;
-let lastReverseAtZoomBand = ""; // evita spam
-let abortCtl = null;
+// Map
+const map = L.map("map", {
+zoomControl: false,
+preferCanvas: true
+}).setView([20, 0], 2);
 
-// ===== MAP =====
-const map = L.map("map", { zoomControl: false }).setView([20,0], 2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-maxZoom: 19
+maxZoom: 19,
+attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
 
-// ===== UI =====
-const elSub = document.getElementById("placeLabel");
-const elNear = document.getElementById("nearList");
-const elStats = document.getElementById("stats");
+L.control.zoom({ position: "topright" }).addTo(map);
 
-document.getElementById("btnMenu").onclick = openMenu;
-document.getElementById("btnClose").onclick = closeMenu;
-document.getElementById("overlay").onclick = (e)=>{ if(e.target.id==="overlay") closeMenu(); };
-
-const chkOnly = document.getElementById("onlyHighlighted");
-chkOnly.onchange = ()=>{
-onlyHighlighted = chkOnly.checked;
-applyHighlight();
-updateNearby();
-updateStats();
+// Layers
+const layers = {
+human_actions: L.layerGroup().addTo(map),
+homes: L.layerGroup(),
+nature: L.layerGroup(),
+culture: L.layerGroup(),
+mobility: L.layerGroup()
 };
 
-// ===== LOAD =====
-fetch(POINTS_URL)
-.then(r=>r.json())
-.then(d=>{
-points = (Array.isArray(d)? d : []).map(p => ({
-...p,
-category: (p.category && p.category.trim()) ? p.category.trim() : "Generale"
-}));
-buildMarkers();
-buildMenu();
-applyHighlight();
-updateNearby();
-updateStats();
-updatePerception(); // set subtitle initial
-})
-.catch(()=>{
-elNear.innerHTML = `<div class="nearMeta">Errore: non riesco a caricare points.json</div>`;
-});
+// Lens state
+let activeLens = "human_actions";
+let humanActionsLoaded = false;
+let moveTimer = null;
 
-function buildMarkers(){
-markers.forEach(x=> map.removeLayer(x.m));
-markers = [];
+function setStatus(msg) { statusEl.textContent = msg; }
 
-points.forEach(p=>{
-const m = L.marker([p.lat, p.lon]).addTo(map);
-m.on("click", ()=>{
-const url = p.website ? p.website : `https://www.google.com/search?q=${encodeURIComponent(p.name)}`;
-window.open(url, "_blank");
-});
-markers.push({p, m});
+// ✅ White, readable markers
+function makeCircleMarker(latlng) {
+return L.circleMarker(latlng, {
+radius: 6,
+weight: 1.2,
+color: "rgba(255,255,255,0.92)",
+opacity: 0.95,
+fillColor: "rgba(255,255,255,0.55)",
+fillOpacity: 0.85
 });
 }
 
-// ===== PRO: 3 states (Lontano / Medio / Vicino) =====
-function zoomBand(z){
-if(z < 4) return "lontano";
-if(z < 10) return "medio";
-return "vicino";
-}
-
-function updatePerception(){
-// subtitle fisso: non sovrascrivere mai l’HTML
-return;
-}
-
-
-// ===== HIGHLIGHT (non giudica) =====
-function isHighlighted(p){
-return (selected==="Tutte") ? true : (p.category === selected);
-}
-
-function applyHighlight(){
-let visibleCount = 0;
-let highlightedCount = 0;
-
-markers.forEach(({p,m})=>{
-const hi = isHighlighted(p);
-if(hi) highlightedCount++;
-
-if(onlyHighlighted && !hi){
-if(map.hasLayer(m)) map.removeLayer(m);
-}else{
-if(!map.hasLayer(m)) m.addTo(map);
-const iconEl = m.getElement && m.getElement();
-if(iconEl){
-iconEl.style.opacity = hi ? "1" : "0.28";
-iconEl.style.filter = hi ? "none" : "grayscale(1)";
-}
-visibleCount++;
-}
-});
-
-updateStats(visibleCount, highlightedCount);
-}
-
-function updateStats(visibleCount, highlightedCount){
-if(visibleCount == null){
-// ricalcolo veloce
-visibleCount = markers.filter(({p,m})=> map.hasLayer(m)).length;
-highlightedCount = points.filter(isHighlighted).length;
-}
-elStats.textContent = `Punti: ${points.length} · Visibili: ${visibleCount} · Evidenziati: ${highlightedCount}`;
-}
-
-// ===== NEARBY (qui intorno) =====
-function updateNearby(){
-const center = map.getCenter();
-const z = map.getZoom();
-const band = zoomBand(z);
-
-// raggio suggerimenti: lontano = grande, vicino = piccolo
-const maxKm =
-band==="lontano" ? 4000 :
-band==="medio" ? 1200 :
-80;
-
-const MAX_ITEMS = 20;
-
-// prima calcolo tutti ordinati per distanza
-const ordered = points
-.map(p => ({ p, km: map.distance(center, [p.lat, p.lon]) / 1000 }))
-.filter(x => !onlyHighlighted || isHighlighted(x.p))
-.sort((a, b) => a.km - b.km);
-
-// poi applico raggio "soft", ma se sono pochi riempio comunque
-const within = ordered.filter(x => x.km <= maxKm);
-
-const list = (within.length >= Math.min(5, MAX_ITEMS))
-? within.slice(0, MAX_ITEMS)
-: ordered.slice(0, MAX_ITEMS);
-
-
-if(list.length === 0){
-elNear.innerHTML = `<div class="nearMeta">Nessun punto nel raggio (${maxKm} km). Zooma/sposta.</div>`;
-return;
-}
-
-elNear.innerHTML = list.map(x=>{
-const p = x.p;
-const km = x.km.toFixed(1);
-const cat = p.category || "Generale";
+function popupHTML({ name, metaLines = [], level = null, source_url = null }) {
+const meta = metaLines.filter(Boolean).join("<br/>");
+const levelPill = (level === null || level === undefined) ? "" : `<div class="p-pill">level ${level}</div>`;
+const source = source_url ? `<div class="p-meta" style="margin-top:8px;"><a href="${escapeAttr(source_url)}" target="_blank" rel="noopener">source</a></div>` : "";
 return `
-<div class="nearItem" onclick="openLink('${escapeHtml(p.name)}','${escapeHtml(p.website||"")}')">
-${escapeHtml(p.name)}
-<div class="nearMeta">${escapeHtml(cat)} · ${km} km</div>
-</div>
+<div class="p-title">${escapeHTML(name || "Unknown")}</div>
+${meta ? `<div class="p-meta">${meta}</div>` : ""}
+${levelPill}
+${source}
 `;
-}).join("");
 }
 
-window.openLink = function(name, website){
-const url = website ? website : `https://www.google.com/search?q=${encodeURIComponent(name)}`;
-window.open(url, "_blank");
+function escapeHTML(str) {
+return String(str ?? "").replace(/[&<>"']/g, s => ({
+"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[s]));
+}
+function escapeAttr(str) {
+return escapeHTML(str).replace(/"/g, "&quot;");
+}
+
+/** =========================
+* Lens switching
+* ========================= */
+function setActiveLens(lens) {
+activeLens = lens;
+
+document.querySelectorAll(".lens").forEach(el => {
+el.classList.toggle("active", el.dataset.lens === lens);
+});
+
+// remove all layers
+Object.values(layers).forEach(layer => map.removeLayer(layer));
+
+if (lens === "all") {
+map.addLayer(layers.human_actions);
+map.addLayer(layers.homes);
+map.addLayer(layers.nature);
+map.addLayer(layers.culture);
+map.addLayer(layers.mobility);
+} else {
+map.addLayer(layers[lens]);
+}
+
+if (!humanActionsLoaded) loadHumanActions();
+
+if (lens !== "human_actions") {
+refreshOSM();
+} else {
+setStatus("Human Actions — ready");
+}
+}
+
+/** =========================
+* Human Actions (local JSON)
+* ========================= */
+async function loadHumanActions() {
+try {
+setStatus("Loading Human Actions…");
+const res = await fetch("./data/human_actions.json", { cache: "no-store" });
+if (!res.ok) throw new Error("data/human_actions.json not found or not accessible");
+const data = await res.json();
+
+layers.human_actions.clearLayers();
+
+const points = Array.isArray(data) ? data : (data.points || []);
+points.forEach(p => {
+const lat = Number(p.lat), lng = Number(p.lng);
+if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+const m = makeCircleMarker([lat, lng]);
+m.bindPopup(popupHTML({
+name: p.name || "Human Action",
+metaLines: [
+p.city ? `${escapeHTML(p.city)}${p.country ? ", " + escapeHTML(p.country) : ""}` : (p.country ? escapeHTML(p.country) : ""),
+p.category ? escapeHTML(p.category) : ""
+],
+level: (p.level ?? 0),
+source_url: p.source_url || null
+}));
+m.addTo(layers.human_actions);
+});
+
+humanActionsLoaded = true;
+setStatus(`Human Actions — ${points.length} loaded`);
+} catch (e) {
+humanActionsLoaded = true;
+setStatus("Human Actions — no local dataset yet");
+console.warn(e);
+}
+}
+
+/** =========================
+* OSM via Overpass
+* ========================= */
+const OVERPASS = "https://overpass-api.de/api/interpreter";
+
+const OSM_QUERIES = {
+homes: [
+'nwr["amenity"="shelter"]({{bbox}});',
+'nwr["amenity"="social_facility"]({{bbox}});',
+'nwr["tourism"="hostel"]({{bbox}});'
+],
+nature: [
+'nwr["natural"="beach"]({{bbox}});',
+'nwr["leisure"="park"]({{bbox}});',
+'nwr["leisure"="nature_reserve"]({{bbox}});',
+'nwr["boundary"="protected_area"]({{bbox}});',
+'nwr["highway"="path"]({{bbox}});',
+'nwr["route"="hiking"]({{bbox}});'
+],
+culture: [
+'nwr["tourism"="museum"]({{bbox}});',
+'nwr["amenity"="library"]({{bbox}});',
+'nwr["amenity"="theatre"]({{bbox}});',
+'nwr["amenity"="arts_centre"]({{bbox}});',
+'nwr["tourism"="attraction"]({{bbox}});',
+'nwr["historic"]({{bbox}});'
+],
+mobility: [
+'nwr["public_transport"="station"]({{bbox}});',
+'nwr["public_transport"="platform"]({{bbox}});',
+'nwr["highway"="bus_stop"]({{bbox}});',
+'nwr["railway"="station"]({{bbox}});',
+'nwr["highway"="cycleway"]({{bbox}});'
+]
 };
 
-function escapeHtml(s){
-return (s||"").replace(/[&<>"']/g, m=>({
-"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-}[m]));
+function bboxString() {
+const b = map.getBounds();
+return [
+b.getSouth().toFixed(6),
+b.getWest().toFixed(6),
+b.getNorth().toFixed(6),
+b.getEast().toFixed(6)
+].join(",");
 }
 
-// ===== REVERSE GEOCODE (stabile, no network crash) =====
-function shouldReverseNow(){
-const band = zoomBand(map.getZoom());
-// Niente reverse in "lontano"
-if(band === "lontano") return false;
-return true;
+function buildOverpassQuery(lens) {
+const bbox = bboxString();
+const parts = OSM_QUERIES[lens].map(q => q.replace("{{bbox}}", bbox)).join("\n");
+return `
+[out:json][timeout:25];
+(
+${parts}
+);
+out tags center;
+`;
 }
 
-function reverseGeocode(){
-if(!shouldReverseNow()) return;
-
-const c = map.getCenter();
-// chiave cache arrotondata
-const key = `${c.lat.toFixed(3)},${c.lng.toFixed(3)}`;
-if(placeCache.has(key)){
-// elSub.textContent = placeCache.get(key);
-return;
+function pickName(tags) {
+if (!tags) return null;
+return tags.name || tags["name:en"] || tags.brand || tags.operator || null;
 }
 
-// evita sovrapposizioni
-if(abortCtl) abortCtl.abort();
-abortCtl = new AbortController();
+function pickPlace(tags) {
+if (!tags) return null;
+return tags.addr_city || tags["addr:city"] || tags["addr:place"] || null;
+}
 
-fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${c.lat}&lon=${c.lng}`, {
-signal: abortCtl.signal,
-headers: { "Accept": "application/json" }
-})
-.then(r=>r.json())
-.then(d=>{
-const a = d && d.address ? d.address : {};
-const place = a.city || a.town || a.village || a.county || a.state || a.country || "—";
-placeCache.set(key, place);
-elSub.textContent = place; // qui appare “Roma”
-})
-.catch(()=>{
-// fallback: NON rompe nulla
-// non cambiamo testo se fallisce
+function lensLabel(lens) {
+return ({ homes:"Homes", nature:"Nature", culture:"Culture", mobility:"Mobility" }[lens] || lens);
+}
+
+async function fetchOverpass(lens) {
+const query = buildOverpassQuery(lens);
+const res = await fetch(OVERPASS, {
+method: "POST",
+headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+body: "data=" + encodeURIComponent(query)
+});
+if (!res.ok) throw new Error(`Overpass error (${res.status})`);
+return await res.json();
+}
+
+function addOSMResultsToLayer(lens, osmJson) {
+const group = layers[lens];
+group.clearLayers();
+
+const els = osmJson.elements || [];
+const seen = new Set();
+
+for (const el of els) {
+const key = `${el.type}/${el.id}`;
+if (seen.has(key)) continue;
+seen.add(key);
+
+const lat = el.lat ?? el.center?.lat;
+const lon = el.lon ?? el.center?.lon;
+if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+const tags = el.tags || {};
+const name = pickName(tags) || `${lensLabel(lens)} point`;
+const place = pickPlace(tags);
+
+const mainTag = (() => {
+const keys = ["amenity","tourism","natural","leisure","public_transport","railway","highway","historic","boundary","route"];
+for (const k of keys) if (tags[k]) return `${k}=${tags[k]}`;
+return "OSM";
+})();
+
+const m = makeCircleMarker([lat, lon]);
+m.bindPopup(popupHTML({
+name,
+metaLines: [
+place ? escapeHTML(place) : "",
+mainTag ? escapeHTML(mainTag) : "OSM"
+]
+}));
+m.addTo(group);
+}
+}
+
+async function refreshOSM() {
+const lensList = (activeLens === "all")
+? ["homes","nature","culture","mobility"]
+: (activeLens === "human_actions" ? [] : [activeLens]);
+
+if (!lensList.length) return;
+
+try {
+setStatus(`Loading ${lensList.map(lensLabel).join(", ")}…`);
+for (const lens of lensList) {
+const osm = await fetchOverpass(lens);
+addOSMResultsToLayer(lens, osm);
+}
+setStatus(`Ready — ${lensList.map(lensLabel).join(" • ")}`);
+} catch (e) {
+console.warn(e);
+setStatus("OSM load failed (Overpass busy). Try refresh.");
+}
+}
+
+/** =========================
+* Interaction UX: minimize UI while moving
+* ========================= */
+function minimizeUI(on) { uiEl.classList.toggle("minimized", on); }
+
+map.on("movestart", () => minimizeUI(true));
+map.on("moveend", () => {
+minimizeUI(false);
+if (moveTimer) clearTimeout(moveTimer);
+moveTimer = setTimeout(() => {
+if (activeLens !== "human_actions") refreshOSM();
+}, 600);
+});
+
+/** =========================
+* Buttons + lens bar
+* ========================= */
+lensbar.addEventListener("click", (e) => {
+const target = e.target.closest(".lens");
+if (!target) return;
+setActiveLens(target.dataset.lens);
+});
+
+locateBtn.addEventListener("click", () => {
+if (!navigator.geolocation) return setStatus("Geolocation not available");
+setStatus("Locating…");
+navigator.geolocation.getCurrentPosition(
+(pos) => {
+map.setView([pos.coords.latitude, pos.coords.longitude], 13, { animate: true });
+setStatus("Located");
+},
+() => setStatus("Location denied"),
+{ enableHighAccuracy: true, timeout: 8000 }
+);
+});
+
+refreshBtn.addEventListener("click", () => {
+if (activeLens === "human_actions") {
+humanActionsLoaded = false;
+loadHumanActions();
+} else {
+refreshOSM();
+}
+});
+
+/** =========================
+* Boot
+* ========================= */
+(async function boot() {
+await loadHumanActions();
+setActiveLens("human_actions");
+})();
+</script>
+
+<!-- PWA service worker registration -->
+<script>
+if ("serviceWorker" in navigator) {
+window.addEventListener("load", () => {
+navigator.serviceWorker.register("./sw.js").catch(console.warn);
 });
 }
-
-// ===== MENU =====
-function buildMenu(){
-const cats = document.getElementById("cats");
-cats.innerHTML = "";
-
-const all = ["Tutte", ...CATEGORIES];
-all.forEach(cat=>{
-const b = document.createElement("div");
-b.className = "cat" + (cat===selected ? " active" : "");
-b.textContent = cat;
-b.onclick = ()=>{
-selected = cat;
-// aggiorna stato pulsanti
-Array.from(cats.children).forEach(x=> x.classList.remove("active"));
-b.classList.add("active");
-
-applyHighlight();
-updateNearby();
-updateStats();
-};
-cats.appendChild(b);
-});
-}
-
-function openMenu(){
-document.getElementById("overlay").style.display = "block";
-chkOnly.checked = onlyHighlighted;
-updateStats();
-}
-function closeMenu(){
-document.getElementById("overlay").style.display = "none";
-}
-
-// ===== EVENTS =====
-map.on("zoomend", ()=>{
-updatePerception();
-updateNearby();
-applyHighlight();
-
-// reverse solo se “medio/vicino” e con debounce
-clearTimeout(reverseTimer);
-reverseTimer = setTimeout(reverseGeocode, 550);
-});
-
-map.on("moveend", ()=>{
-updateNearby();
-
-// reverse SOLO quando cambia banda o quando ti fermi
-clearTimeout(reverseTimer);
-reverseTimer = setTimeout(reverseGeocode, 650);
-});
-
 </script>
 </body>
 </html>
-Save last stable and working version of index.html
