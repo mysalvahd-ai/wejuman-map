@@ -30,7 +30,6 @@ html, body { height: 100%; margin: 0; background: #fff; }
 #map { height: 100%; width: 100%; }
 
 :root{
---bg: #ffffff;
 --panel: rgba(255,255,255,0.96);
 --panel2: rgba(248,249,251,0.98);
 --border: rgba(0,0,0,0.10);
@@ -68,7 +67,12 @@ align-items: center;
 gap: 10px;
 min-width: 180px;
 }
-.hamb { width: 26px; height: 26px; border-radius: 10px; border: 1px solid var(--border); display:flex; align-items:center; justify-content:center; background: var(--panel2); }
+.hamb {
+width: 26px; height: 26px; border-radius: 10px;
+border: 1px solid var(--border);
+display:flex; align-items:center; justify-content:center;
+background: var(--panel2);
+}
 .hamb:before { content:"≡"; font-size: 18px; color: var(--text); opacity: 0.9; }
 
 .brandText .name { font-weight: 800; letter-spacing: 0.2px; font-size: 15px; line-height: 1.1; }
@@ -76,7 +80,7 @@ min-width: 180px;
 
 .statusPill {
 font-size: 12px;
-font-weight: 750;
+font-weight: 800;
 color: var(--text);
 background: var(--panel2);
 border: 1px solid var(--border2);
@@ -123,7 +127,7 @@ color: var(--text);
 border-radius: 999px;
 padding: 10px 12px;
 font-size: 13px;
-font-weight: 800;
+font-weight: 900;
 display: inline-flex;
 align-items: center;
 gap: 8px;
@@ -149,7 +153,7 @@ color: var(--text);
 border-radius: 12px;
 padding: 10px 12px;
 font-size: 13px;
-font-weight: 850;
+font-weight: 950;
 cursor: pointer;
 user-select: none;
 display: inline-flex;
@@ -157,7 +161,6 @@ align-items: center;
 gap: 8px;
 }
 
-/* Small helper label */
 .hint {
 padding: 0 12px 10px 12px;
 font-size: 12px;
@@ -176,7 +179,7 @@ box-shadow: var(--shadow);
 margin: 10px 12px;
 font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
 }
-.p-title { font-weight: 850; margin-bottom: 6px; }
+.p-title { font-weight: 950; margin-bottom: 6px; }
 .p-meta { font-size: 12px; color: var(--muted); line-height: 1.35; }
 .p-pill {
 display: inline-block;
@@ -186,16 +189,21 @@ border-radius: 999px;
 border: 1px solid var(--border2);
 background: var(--panel2);
 margin-top: 8px;
-font-weight: 800;
+font-weight: 900;
 color: var(--text);
 }
 a { color: var(--text); }
 
-/* Make Leaflet control match style a bit */
+/* Leaflet zoom match style */
 .leaflet-control-zoom a {
 background: var(--panel);
 color: var(--text);
 border: 1px solid var(--border);
+}
+
+/* iPhone safe area bottom */
+@supports (padding: env(safe-area-inset-bottom)) {
+.bottombar { bottom: calc(12px + env(safe-area-inset-bottom)); }
 }
 </style>
 </head>
@@ -238,9 +246,10 @@ border: 1px solid var(--border);
 <script>
 /** =========================
 * Wejuman V0.1
-* - Human Actions: ./data/human_actions.json
-* - Homes/Nature/Culture/Mobility: OSM via Overpass (bbox)
-* - UI: solid light panels (high readability)
+* - Human Actions: ./data/human_actions.json (supports lng OR lon)
+* - Homes A: places to stay + support (shelter/social_facility/hostel/guest_house/hotel)
+* - Other lenses: OSM via Overpass (bbox)
+* - Marker: visible blue with dark outline
 * ========================= */
 
 const statusEl = document.getElementById("status");
@@ -270,16 +279,17 @@ mobility: L.layerGroup()
 let activeLens = "human_actions";
 let humanActionsLoaded = false;
 let moveTimer = null;
+let didFitHumanOnce = false;
 
-// Markers: white (clean) with subtle dark outline (works on light map)
+// ✅ Marker: BLUE (readable everywhere)
 function makeCircleMarker(latlng) {
 return L.circleMarker(latlng, {
-radius: 6,
-weight: 1.6,
-color: "rgba(0,0,0,0.55)", // outline dark
-opacity: 0.9,
-fillColor: "rgba(255,255,255,0.95)", // fill white
-fillOpacity: 0.95
+radius: 7,
+weight: 2,
+color: "#0B1220", // dark outline
+opacity: 0.95,
+fillColor: "#2563EB", // blue fill
+fillOpacity: 0.92
 });
 }
 
@@ -324,10 +334,13 @@ map.addLayer(layers[lens]);
 
 if (!humanActionsLoaded) loadHumanActions();
 if (lens !== "human_actions") refreshOSM();
-else setStatus("Human Actions — ready");
+else {
+// keep current status; if not loaded yet, show ready
+if (!humanActionsLoaded) setStatus("Human Actions — ready");
+}
 }
 
-/** Human Actions */
+/** Human Actions (supports lng OR lon) */
 async function loadHumanActions() {
 try {
 setStatus("Loading Human Actions…");
@@ -338,8 +351,11 @@ const data = await res.json();
 layers.human_actions.clearLayers();
 const points = Array.isArray(data) ? data : (data.points || []);
 
+let count = 0;
+
 points.forEach(p => {
-const lat = Number(p.lat), lng = Number(p.lng);
+const lat = Number(p.lat ?? p.latitude);
+const lng = Number(p.lng ?? p.lon ?? p.longitude); // ✅ lon support
 if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
 const m = makeCircleMarker([lat, lng]);
@@ -347,16 +363,26 @@ m.bindPopup(popupHTML({
 name: p.name || "Human Action",
 metaLines: [
 p.city ? `${escapeHTML(p.city)}${p.country ? ", " + escapeHTML(p.country) : ""}` : (p.country ? escapeHTML(p.country) : ""),
-p.category ? escapeHTML(p.category) : ""
+p.category ? escapeHTML(p.category) : (p.tagline ? escapeHTML(p.tagline) : "")
 ],
 level: (p.level ?? 0),
 source_url: p.source_url || null
 }));
 m.addTo(layers.human_actions);
+count++;
 });
 
 humanActionsLoaded = true;
-setStatus(`Human Actions — ${points.length} loaded`);
+setStatus(`Human Actions — ${count} loaded`);
+
+// Fit bounds once (nice UX)
+if (!didFitHumanOnce && count > 0) {
+const b = layers.human_actions.getBounds();
+if (b.isValid()) {
+map.fitBounds(b, { padding: [40, 40] });
+didFitHumanOnce = true;
+}
+}
 } catch (e) {
 humanActionsLoaded = true;
 setStatus("Human Actions — no local dataset yet");
@@ -366,11 +392,15 @@ console.warn(e);
 
 /** OSM via Overpass */
 const OVERPASS = "https://overpass-api.de/api/interpreter";
+
+// Homes A: stay/support (clean)
 const OSM_QUERIES = {
 homes: [
 'nwr["amenity"="shelter"]({{bbox}});',
 'nwr["amenity"="social_facility"]({{bbox}});',
-'nwr["tourism"="hostel"]({{bbox}});'
+'nwr["tourism"="hostel"]({{bbox}});',
+'nwr["tourism"="guest_house"]({{bbox}});',
+'nwr["tourism"="hotel"]({{bbox}});'
 ],
 nature: [
 'nwr["natural"="beach"]({{bbox}});',
